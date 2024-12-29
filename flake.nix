@@ -1,5 +1,5 @@
 {
-  description = "0x77land";
+  description = "@0x77dev homelab/machines land";
 
   inputs = {
     devenv-root = {
@@ -12,14 +12,44 @@
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
+
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    # darwin specific inputs
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-homebrew = {
+      url = "github:zhaofengli-wip/nix-homebrew";
+    };
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+    homebrew-bundle = {
+      url = "github:homebrew/homebrew-bundle";
+      flake = false;
+    };
+    lyraphase-av-casks = {
+      url = "github:LyraPhase/homebrew-av-casks";
+      flake = false;
+    };
   };
 
   nixConfig = {
-    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
-    extra-substituters = "https://devenv.cachix.org";
+    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= land.cachix.org-1:9KPti8Xi0UJ7eQof7b8VUzSYU5piFy6WVQ8MDTLOqEA=";
+    extra-substituters = "https://devenv.cachix.org https://land.cachix.org";
+    warn-dirty = false;
+    allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, nixpkgs, ... }:
+  outputs = inputs@{ flake-parts, devenv-root, nix-darwin, nixpkgs, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.devenv.flakeModule
@@ -27,6 +57,11 @@
       systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
 
       perSystem = { config, self', inputs', pkgs, system, ... }: {
+        _module.args.pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+
         devenv.shells.default = {
           devenv.root =
             let
@@ -34,21 +69,58 @@
             in
             pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
 
-          name = "0x77land";
-
-          languages.nix.enable = true;
-
-          pre-commit.hooks.shellcheck.enable = true;
-          pre-commit.hooks.nixpkgs-fmt.enable = true;
+          name = "land";
+          imports = [
+            ./devenv.nix
+          ];
         };
       };
 
       flake = {
-        nixosConfigurations.tomato = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux"; # Adjust this to match your target system architecture
-          modules = [
-            ./nixos/tomato/configuration.nix
-          ];
+        nixosConfigurations = {
+          tomato = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./modules/home
+              ./systems/nixos/tomato/configuration.nix
+            ];
+          };
+        };
+
+        darwinConfigurations = {
+          common = {
+            system = "aarch64-darwin";
+            specialArgs = { inherit inputs; };
+            modules = [
+              ./modules/darwin/homebrew.nix
+              ./modules/darwin/security.nix
+              ./modules/darwin/dock.nix
+              ./modules/darwin/linux-builder.nix
+              ./modules/darwin/hardware/focusrite.nix
+              ./modules/darwin/hardware/flipper.nix
+              ./modules/darwin/hardware/meshtastic.nix
+              ./modules/darwin/hardware/worklouder.nix
+              ./systems/darwin/common/configuration.nix
+              ./modules/home
+            ];
+          };
+
+          beefy = nix-darwin.lib.darwinSystem {
+            system = "aarch64-darwin";
+            specialArgs = { inherit inputs; };
+            modules = [
+              ./modules/darwin/homebrew.nix
+              ./modules/darwin/security.nix
+              ./modules/darwin/dock.nix
+              ./modules/darwin/linux-builder.nix
+              ./modules/darwin/hardware/focusrite.nix
+              ./modules/darwin/hardware/flipper.nix
+              ./modules/darwin/hardware/meshtastic.nix
+              ./modules/darwin/hardware/worklouder.nix
+              ./systems/darwin/common/configuration.nix
+              ./modules/home
+            ];
+          };
         };
       };
     };
