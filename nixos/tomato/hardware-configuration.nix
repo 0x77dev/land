@@ -10,9 +10,12 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
+
+  # ZFS
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
   networking.hostId = "4d878a45";
+  services.zfs.autoScrub.enable = true;
 
   fileSystems."/" =
     {
