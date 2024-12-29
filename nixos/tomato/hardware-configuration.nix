@@ -12,6 +12,7 @@
   boot.extraModulePackages = [ ];
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
+  networking.hostId = "4d878a45";
 
   fileSystems."/" =
     {
