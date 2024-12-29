@@ -1,36 +1,18 @@
-{ inputs, pkgs, ... }:
+{ ... }:
 
-let
-  user = if pkgs.stdenv.isDarwin then "0x77" else "mykhailo";
-in
 {
   imports = [
-    inputs.home-manager.darwinModules.home-manager
+    ./fonts.nix
+    ./git.nix
+    ./gpg.nix
+    ./ssh.nix
+    ./shell.nix
+    ./kitty.nix
+    ./vscode.nix
   ];
 
-  environment.systemPackages = with pkgs; [
-    home-manager
-  ];
+  programs.home-manager.enable = true;
+  nixpkgs.config.allowUnfree = true;
 
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    backupFileExtension = "nixhomemgrbak";
-
-    users.${user} = {
-      imports = [
-        ./fonts.nix
-        ./git.nix
-        ./gpg.nix
-        ./ssh.nix
-        ./shell.nix
-        ./kitty.nix
-        ./vscode.nix
-      ];
-
-      programs.home-manager.enable = true;
-
-      home.stateVersion = "24.11";
-    };
-  };
+  home.stateVersion = "24.11";
 }

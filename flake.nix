@@ -13,8 +13,10 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
 
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # darwin specific inputs
     nix-darwin = {
@@ -49,7 +51,46 @@
     allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, nix-darwin, nixpkgs, ... }:
+  outputs = inputs@{ flake-parts, devenv-root, nix-darwin, nixpkgs, home-manager, ... }:
+    let
+      mkHomeConfig = system: username: homeDirectory: home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          inherit system;
+        };
+
+        modules = [
+          ./modules/home
+          {
+            home.username = username;
+            home.homeDirectory = homeDirectory;
+          }
+        ];
+
+        extraSpecialArgs = {
+          inherit inputs system;
+        };
+      };
+
+      mkDarwinConfig = { system ? "aarch64-darwin", modules ? [ ] }: nix-darwin.lib.darwinSystem {
+        inherit system;
+        specialArgs = { inherit inputs; };
+        modules = [
+          ./modules/darwin/homebrew.nix
+          ./modules/darwin/security.nix
+          ./modules/darwin/dock.nix
+          ./modules/darwin/linux-builder.nix
+          ./modules/darwin/hardware/focusrite.nix
+          ./modules/darwin/hardware/flipper.nix
+          ./modules/darwin/hardware/meshtastic.nix
+          ./modules/darwin/hardware/worklouder.nix
+          ./systems/darwin/common/configuration.nix
+        ] ++ modules;
+      };
+
+      mkNixosConfig = { system, modules ? [ ] }: nixpkgs.lib.nixosSystem {
+        inherit system modules;
+      };
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.devenv.flakeModule
@@ -77,49 +118,27 @@
       };
 
       flake = {
+        homeConfigurations = {
+          "0x77@beefy" = mkHomeConfig "aarch64-darwin" "0x77" "/Users/0x77";
+          "mykhailo@tomato" = mkHomeConfig "x86_64-linux" "mykhailo" "/home/mykhailo";
+        };
+
         nixosConfigurations = {
-          tomato = nixpkgs.lib.nixosSystem {
+          tomato = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
-              ./modules/home
               ./systems/nixos/tomato/configuration.nix
             ];
           };
         };
 
         darwinConfigurations = {
-          common = {
+          common = mkDarwinConfig {
             system = "aarch64-darwin";
-            specialArgs = { inherit inputs; };
-            modules = [
-              ./modules/darwin/homebrew.nix
-              ./modules/darwin/security.nix
-              ./modules/darwin/dock.nix
-              ./modules/darwin/linux-builder.nix
-              ./modules/darwin/hardware/focusrite.nix
-              ./modules/darwin/hardware/flipper.nix
-              ./modules/darwin/hardware/meshtastic.nix
-              ./modules/darwin/hardware/worklouder.nix
-              ./systems/darwin/common/configuration.nix
-              ./modules/home
-            ];
           };
 
-          beefy = nix-darwin.lib.darwinSystem {
+          beefy = mkDarwinConfig {
             system = "aarch64-darwin";
-            specialArgs = { inherit inputs; };
-            modules = [
-              ./modules/darwin/homebrew.nix
-              ./modules/darwin/security.nix
-              ./modules/darwin/dock.nix
-              ./modules/darwin/linux-builder.nix
-              ./modules/darwin/hardware/focusrite.nix
-              ./modules/darwin/hardware/flipper.nix
-              ./modules/darwin/hardware/meshtastic.nix
-              ./modules/darwin/hardware/worklouder.nix
-              ./systems/darwin/common/configuration.nix
-              ./modules/home
-            ];
           };
         };
       };
