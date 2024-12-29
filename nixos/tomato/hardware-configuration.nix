@@ -27,6 +27,12 @@
       options = [ "fmask=0077" "dmask=0077" ];
     };
 
+  fileSystems."/data" =
+    {
+      device = "data";
+      fsType = "zfs";
+    };
+
   swapDevices =
     [{ device = "/dev/disk/by-uuid/69ed0d72-8909-44ee-8e66-b47567982cef"; }];
 
