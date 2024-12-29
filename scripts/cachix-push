@@ -2,32 +2,35 @@
 
 set -euo pipefail
 
+# Split NIX_OPTIONS into array
+read -ra NIX_OPTS <<< "${NIX_OPTIONS:-}"
+
 cd "$(git rev-parse --show-toplevel)"
 if [[ -n "$(git status --porcelain)" ]]; then
     echo "Error: Git working directory is not clean. Please commit or stash changes first."
     exit 1
 fi
 
-nix flake archive --json "$NIX_OPTIONS" \
+nix flake archive --json "${NIX_OPTS[@]}" \
   | jq -r '.path,(.inputs|to_entries[].value.path)' \
   | cachix push land
 
 if [[ "$(uname -m)" == "arm64" ]] && [[ "$(uname -s)" == "Darwin" ]]; then
-  nix build .#darwinConfigurations.common.system --json "$NIX_OPTIONS" \
+  nix build .#darwinConfigurations.common.system --json "${NIX_OPTS[@]}" \
     | jq -r '.[].outputs | to_entries[].value' \
     | cachix push land
   
-  nix build .#homeConfigurations."0x77@beefy".activationPackage --json "$NIX_OPTIONS" \
+  nix build .#homeConfigurations."0x77@beefy".activationPackage --json "${NIX_OPTS[@]}" \
     | jq -r '.[].outputs | to_entries[].value' \
     | cachix push land
 fi
 
 if [[ "$(uname -m)" == "x86_64" ]] && [[ "$(uname -s)" == "Linux" ]]; then
-  nix build .#nixosConfigurations.tomato.config.system.build.toplevel --json "$NIX_OPTIONS" \
+  nix build .#nixosConfigurations.tomato.config.system.build.toplevel --json "${NIX_OPTS[@]}" \
     | jq -r '.[].outputs | to_entries[].value' \
     | cachix push land
 
-  nix build .#homeConfigurations."mykhailo@tomato".activationPackage --json "$NIX_OPTIONS" \
+  nix build .#homeConfigurations."mykhailo@tomato".activationPackage --json "${NIX_OPTS[@]}" \
     | jq -r '.[].outputs | to_entries[].value' \
     | cachix push land
 fi
