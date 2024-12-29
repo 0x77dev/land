@@ -73,7 +73,9 @@
 
   virtualisation.docker = {
     enable = true;
-    data-root = "/data/docker";
+    daemon.settings = {
+      data-root = "/data/docker";
+    };
   };
 
   services.openssh.enable = true;
