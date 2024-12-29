@@ -84,11 +84,44 @@
           ./modules/darwin/hardware/meshtastic.nix
           ./modules/darwin/hardware/worklouder.nix
           ./systems/darwin/common/configuration.nix
+          home-manager.darwinModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              extraSpecialArgs = {
+                inherit inputs system;
+              };
+              users."0x77" = import ./modules/home {
+                inherit inputs system;
+                username = "0x77";
+                homeDirectory = "/Users/0x77";
+              };
+            };
+          }
         ] ++ modules;
       };
 
       mkNixosConfig = { system, modules ? [ ] }: nixpkgs.lib.nixosSystem {
-        inherit system modules;
+        inherit system;
+        specialArgs = { inherit inputs; };
+        modules = [
+          home-manager.nixosModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              extraSpecialArgs = {
+                inherit inputs system;
+              };
+              users."mykhailo" = import ./modules/home {
+                inherit inputs system;
+                username = "mykhailo";
+                homeDirectory = "/home/mykhailo";
+              };
+            };
+          }
+        ] ++ modules;
       };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {

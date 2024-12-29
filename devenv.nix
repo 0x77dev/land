@@ -13,4 +13,5 @@
 
   pre-commit.hooks.shellcheck.enable = true;
   pre-commit.hooks.nixpkgs-fmt.enable = true;
+  pre-commit.hooks.mdsh.enable = true;
 }
