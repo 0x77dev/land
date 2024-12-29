@@ -44,7 +44,6 @@
       };
 
       flake = {
-        # NixOS configuration for homenode
         nixosConfigurations.tomato = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux"; # Adjust this to match your target system architecture
           modules = [
