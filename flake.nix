@@ -125,13 +125,6 @@
         specialArgs = { inherit inputs; };
         modules = mkNixosModules { inherit system modules; } ++ [
           nixos-generators.nixosModules.all-formats
-          {
-            formatConfigs.install-iso = { modulesPath, ... }: {
-              imports = [ "${toString modulesPath}/installer/cd-dvd/installation-cd-base.nix" ];
-              formatAttr = "isoImage";
-              fileExtension = ".iso";
-            };
-          }
         ] ++ modules;
       };
     in
@@ -173,6 +166,13 @@
             system = "x86_64-linux";
             modules = [
               ./systems/nixos/tomato/configuration.nix
+            ];
+          };
+          vanilla = nixpkgs.lib.nixosSystem {
+            inherit system;
+            specialArgs = { inherit inputs; };
+            modules = [
+              nixos-generators.nixosModules.all-formats
             ];
           };
         };
