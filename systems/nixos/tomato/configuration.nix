@@ -15,6 +15,7 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+  networking.wireless.enable = false;
 
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
@@ -49,8 +50,6 @@
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
-
-  services.getty.autologinUser = "mykhailo";
 
   nixpkgs.config.allowUnfree = true;
 

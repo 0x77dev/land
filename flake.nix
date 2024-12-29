@@ -18,6 +18,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # darwin specific inputs
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
@@ -51,7 +56,7 @@
     allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, nix-darwin, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ flake-parts, devenv-root, nix-darwin, nixpkgs, home-manager, nixos-generators, ... }:
     let
       mkHomeConfig = system: username: homeDirectory: home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
@@ -102,23 +107,29 @@
         ] ++ modules;
       };
 
+      mkNixosModules = { system, modules ? [ ] }: [
+        home-manager.nixosModules.home-manager
+        {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            extraSpecialArgs = {
+              inherit inputs system;
+            };
+          };
+        }
+      ] ++ modules;
+
       mkNixosConfig = { system, modules ? [ ] }: nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs; };
-        modules = [
-          home-manager.nixosModules.home-manager
+        modules = mkNixosModules { inherit system modules; } ++ [
+          nixos-generators.nixosModules.all-formats
           {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = {
-                inherit inputs system;
-              };
-              users."mykhailo" = import ./modules/home {
-                inherit inputs system;
-                username = "mykhailo";
-                homeDirectory = "/home/mykhailo";
-              };
+            formatConfigs.install-iso = { modulesPath, ... }: {
+              imports = [ "${toString modulesPath}/installer/cd-dvd/installation-cd-base.nix" ];
+              formatAttr = "isoImage";
+              fileExtension = ".iso";
             };
           }
         ] ++ modules;
