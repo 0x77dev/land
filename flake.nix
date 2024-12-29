@@ -120,6 +120,7 @@
       flake = {
         homeConfigurations = {
           "0x77@beefy" = mkHomeConfig "aarch64-darwin" "0x77" "/Users/0x77";
+          "0x77@potato" = mkHomeConfig "aarch64-darwin" "0x77" "/Users/0x77";
           "mykhailo@tomato" = mkHomeConfig "x86_64-linux" "mykhailo" "/home/mykhailo";
         };
 
@@ -138,6 +139,10 @@
           };
 
           beefy = mkDarwinConfig {
+            system = "aarch64-darwin";
+          };
+
+          potato = mkDarwinConfig {
             system = "aarch64-darwin";
           };
         };
