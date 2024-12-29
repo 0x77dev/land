@@ -17,9 +17,9 @@ This repository uses [Nix](https://nixos.org/) to manage:
 
 1. Install Nix following the [official instructions](https://nixos.org/download.html)
 2. Apply configuration:
-   - For macOS: `nix run darwin-rebuild -- switch --flake github:0x77dev/land`
-   - For NixOS: `nix run nixos-rebuild -- switch --flake github:0x77dev/land`
-   - For home-manager: `nix run home-manager -- switch --flake github:0x77dev/land`
+   - For macOS: `nix run nix-darwin --experimental-features 'nix-command flakes' -- switch --flake github:0x77dev/land`
+   - For NixOS: `nix run nixos-rebuild --experimental-features 'nix-command flakes' -- switch --flake github:0x77dev/land`
+   - For home-manager: `nix run home-manager --experimental-features 'nix-command flakes' -- switch --flake github:0x77dev/land`
 
 ## Structure
 
