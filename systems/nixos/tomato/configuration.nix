@@ -14,10 +14,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # networking.hostName = "nixos"; # Define your hostname.
-  # Pick only one of the below networking options.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  # networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.hostName = "tomato";
+  networking.networkmanager.enable = true;
 
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
@@ -37,24 +35,6 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  # Configure keymap in X11
-  # services.xserver.xkb.layout = "us";
-  # services.xserver.xkb.options = "eurosign:e,caps:escape";
-
-  # Enable CUPS to print documents.
-  # services.printing.enable = true;
-
-  # Enable sound.
-  # hardware.pulseaudio.enable = true;
-  # OR
-  # services.pipewire = {
-  #   enable = true;
-  #   pulse.enable = true;
-  # };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.libinput.enable = true;
-
   users.users.mykhailo = {
     isNormalUser = true;
     description = "Mykhailo Marynenko";
@@ -70,12 +50,16 @@
     wheelNeedsPassword = true;
   };
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  # environment.systemPackages = with pkgs; [
-  #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #   wget
-  # ];
+  environment.systemPackages = with pkgs; [
+    neovim
+    aria2
+  ];
+
+
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+  };
 
   programs.mtr.enable = true;
   programs.gnupg.agent = {
@@ -84,6 +68,11 @@
   };
 
   services.openssh.enable = true;
+  services.aria2 = {
+    enable = true;
+    rpc.enable = true;
+    rpc.secret = "mykhailo";
+  };
 
   nixpkgs.config.allowUnfree = true;
 

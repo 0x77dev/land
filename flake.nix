@@ -12,6 +12,8 @@
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
+    agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
@@ -56,7 +58,7 @@
     allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, nix-darwin, nixpkgs, home-manager, nixos-generators, ... }:
+  outputs = inputs@{ flake-parts, devenv-root, agenix, nix-darwin, nixpkgs, home-manager, nixos-generators, ... }:
     let
       mkHomeConfig = system: username: homeDirectory: home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
@@ -80,6 +82,7 @@
         inherit system;
         specialArgs = { inherit inputs; };
         modules = [
+          agenix.darwinModules.default
           ./modules/darwin/homebrew.nix
           ./modules/darwin/security.nix
           ./modules/darwin/dock.nix
@@ -89,6 +92,9 @@
           ./modules/darwin/hardware/meshtastic.nix
           ./modules/darwin/hardware/worklouder.nix
           ./systems/darwin/common/configuration.nix
+          {
+            environment.systemPackages = [ agenix.packages.${system}.default ];
+          }
           home-manager.darwinModules.home-manager
           {
             home-manager = {
@@ -108,6 +114,10 @@
       };
 
       mkNixosModules = { system, modules ? [ ] }: [
+        agenix.nixosModules.default
+        {
+          environment.systemPackages = [ agenix.packages.${system}.default ];
+        }
         home-manager.nixosModules.home-manager
         {
           home-manager = {
@@ -155,6 +165,9 @@
           name = "land";
           imports = [
             ./devenv.nix
+          ];
+          packages = [
+            agenix.packages.${system}.default
           ];
         };
       };
