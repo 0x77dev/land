@@ -21,6 +21,7 @@
     rpcSecretFile = "/etc/machine-id";
     settings = {
       enable-rpc = true;
+      rpc-listen-all = true;
       dir = "/data/share/Downloads";
       max-concurrent-downloads = 16;
       max-connection-per-server = 16;
