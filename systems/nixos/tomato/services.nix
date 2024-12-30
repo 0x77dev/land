@@ -101,4 +101,68 @@
     openFirewall = true;
     mediaLocation = "/data/media/immich";
   };
+
+  nixarr = {
+    enable = true;
+    mediaDir = "/data/media";
+    stateDir = "/data/media/.state/nixarr";
+
+    vpn = {
+      enable = true;
+      wgConf = "/data/.secret/vpn/wg.conf";
+      vpnTestService.enable = true;
+    };
+
+    jellyfin = {
+      enable = true;
+      openFirewall = true;
+    };
+
+    transmission = {
+      enable = true;
+      vpn.enable = true;
+      peerPort = 50000;
+    };
+
+    sabnzbd = {
+      enable = true;
+      vpn.enable = true;
+    };
+
+    bazarr = {
+      enable = true;
+      vpn.enable = true;
+      openFirewall = true;
+    };
+
+    lidarr = {
+      enable = true;
+      vpn.enable = true;
+      openFirewall = true;
+    };
+
+    prowlarr = {
+      enable = true;
+      vpn.enable = true;
+      openFirewall = true;
+    };
+
+    radarr = {
+      enable = true;
+      vpn.enable = true;
+      openFirewall = true;
+    };
+
+    readarr = {
+      enable = true;
+      vpn.enable = true;
+      openFirewall = true;
+    };
+
+    sonarr = {
+      enable = true;
+      vpn.enable = true;
+      openFirewall = true;
+    };
+  };
 }

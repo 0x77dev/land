@@ -14,6 +14,8 @@
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+    nixarr.url = "github:rasmus-kirk/nixarr";
+    nixarr.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
@@ -58,7 +60,7 @@
     allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, agenix, nix-darwin, nixpkgs, home-manager, nixos-generators, ... }:
+  outputs = inputs@{ flake-parts, devenv-root, agenix, nix-darwin, nixpkgs, home-manager, nixos-generators, nixarr, ... }:
     let
       mkHomeConfig = system: username: homeDirectory: home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
@@ -185,6 +187,7 @@
           tomato = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
+              nixarr.nixosModules.default
               ./systems/nixos/tomato/configuration.nix
             ];
           };
