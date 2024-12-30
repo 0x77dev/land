@@ -59,7 +59,7 @@
     allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, agenix, nix-darwin, nixpkgs, home-manager, nixos-generators, nixarr, ... }:
+  outputs = inputs@{ flake-parts, devenv-root, agenix, nix-darwin, nixpkgs, home-manager, nixos-generators, vpn-confinement, ... }:
     let
       mkHomeConfig = system: username: homeDirectory: home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
