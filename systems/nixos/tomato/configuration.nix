@@ -68,11 +68,6 @@
   };
 
   services.openssh.enable = true;
-  services.aria2 = {
-    enable = true;
-    rpc.enable = true;
-    rpc.secret = "mykhailo";
-  };
 
   services.avahi = {
     enable = true;
