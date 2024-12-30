@@ -8,6 +8,10 @@
   imports =
     [
       ./hardware-configuration.nix
+      ./environment.nix
+      ./security.nix
+      ./programs.nix
+      ./services.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -43,46 +47,53 @@
     openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
 
-  programs.fish.enable = true;
+  nixpkgs.config.allowUnfree = true;
+  nix = {
+    package = pkgs.nix;
+    settings = {
+      experimental-features = [ "nix-command" "flakes" ];
 
-  security.sudo = {
-    enable = true;
-    wheelNeedsPassword = true;
-  };
+      # User permissions
+      trusted-users = [ "root" "mykhailo" ];
+      trusted-substituters = [ "root" "mykhailo" ];
 
-  environment.systemPackages = with pkgs; [
-    neovim
-    aria2
-  ];
+      # Binary caches
+      substituters = [
+        "https://cache.nixos.org"
+        "https://nix-community.cachix.org"
+        "https://devenv.cachix.org"
+        "https://land.cachix.org"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
+        "land.cachix.org-1:9KPti8Xi0UJ7eQof7b8VUzSYU5piFy6WVQ8MDTLOqEA="
+      ];
 
+      # Build optimization
+      max-jobs = "auto";
+      cores = 0; # Use all available cores
+      system-features = [ "big-parallel" "benchmark" ];
+      keep-outputs = true;
+      keep-derivations = true;
+      builders-use-substitutes = true; # Allow builders to use substitutes
+      connect-timeout = 5; # Reduce connection timeout
+      download-speed = 0; # No limit on download speed
+      narinfo-cache-negative-ttl = 0; # Don't cache negative lookups
+    };
 
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-  };
+    # Garbage collection
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 14d";
+    };
 
-  programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
-
-  services.openssh.enable = true;
-
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    publish = {
-      enable = true;
-      addresses = true;
-      domain = true;
-      hinfo = true;
-      userServices = true;
-      workstation = true;
+    # Store optimization
+    optimise = {
+      automatic = true;
     };
   };
-
-  nixpkgs.config.allowUnfree = true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
