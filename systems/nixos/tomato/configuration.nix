@@ -64,6 +64,14 @@
 
   programs.fish.enable = true;
 
+  security.sudo = {
+    enable = true;
+    wheelNeedsPassword = true;
+  };
+
+  security.wrapperDir = "/run/wrappers";
+  security.sudo.execWrapperPath = "/run/wrappers/bin/sudo";
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   # environment.systemPackages = with pkgs; [

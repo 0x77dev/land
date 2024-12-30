@@ -21,6 +21,7 @@ let
   };
 
   commonPaths = [
+    "/run/wrappers/bin"
     "/run/current-system/sw/bin"
     "/opt/homebrew/bin"
     "$HOME/.bun/bin"
