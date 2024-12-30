@@ -34,10 +34,11 @@
       allow-overwrite = true;
       disk-cache = "64M";
     };
-    vpnConfinement = {
-      enable = true;
-      vpnNamespace = "wg";
-    };
+  };
+
+  systemd.services.aria2.vpnConfinement = {
+    enable = true;
+    vpnNamespace = "wg";
   };
 
   services.netdata = {
