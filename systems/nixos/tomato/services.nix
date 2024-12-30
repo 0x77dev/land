@@ -22,6 +22,21 @@
     settings = {
       enable-rpc = true;
       dir = "/data/share/Downloads";
+      max-concurrent-downloads = 16;
+      max-connection-per-server = 16;
+      min-split-size = "1M";
+      split = 16;
+      max-overall-download-limit = 0;
+      max-download-limit = 0;
+      max-overall-upload-limit = "1M";
+      max-upload-limit = "50K";
+      continue = true;
+      allow-overwrite = true;
+      disk-cache = "64M";
+    };
+    vpnConfinement = {
+      enable = true;
+      vpnNamespace = "wg";
     };
   };
 
@@ -100,69 +115,5 @@
     enable = true;
     openFirewall = true;
     mediaLocation = "/data/media/immich";
-  };
-
-  nixarr = {
-    enable = true;
-    mediaDir = "/data/media";
-    stateDir = "/data/media/.state/nixarr";
-
-    vpn = {
-      enable = true;
-      wgConf = "/data/.secret/vpn/wg.conf";
-      vpnTestService.enable = true;
-    };
-
-    jellyfin = {
-      enable = true;
-      openFirewall = true;
-    };
-
-    transmission = {
-      enable = true;
-      vpn.enable = true;
-      peerPort = 50000;
-    };
-
-    sabnzbd = {
-      enable = true;
-      vpn.enable = true;
-    };
-
-    bazarr = {
-      enable = true;
-      vpn.enable = true;
-      openFirewall = true;
-    };
-
-    lidarr = {
-      enable = true;
-      vpn.enable = true;
-      openFirewall = true;
-    };
-
-    prowlarr = {
-      enable = true;
-      vpn.enable = true;
-      openFirewall = true;
-    };
-
-    radarr = {
-      enable = true;
-      vpn.enable = true;
-      openFirewall = true;
-    };
-
-    readarr = {
-      enable = true;
-      vpn.enable = true;
-      openFirewall = true;
-    };
-
-    sonarr = {
-      enable = true;
-      vpn.enable = true;
-      openFirewall = true;
-    };
   };
 }

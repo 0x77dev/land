@@ -96,6 +96,15 @@
     };
   };
 
+  vpnNamespaces.wg = {
+    enable = true;
+    wireguardConfigFile = "/data/.secret/vpn/wg.conf";
+    accessibleFrom = [
+      "192.168.0.0/24"
+      "100.64.0.0/10"
+    ];
+  };
+
   networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [ 22 19999 139 445 2283 ];
   networking.firewall.allowedUDPPorts = [ 137 138 ];
