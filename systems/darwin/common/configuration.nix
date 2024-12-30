@@ -43,6 +43,7 @@
       pkgs.iperf3
       pkgs.nodejs-slim
       pkgs.bun
+      pkgs.aria2
     ];
 
   nixpkgs.config.allowUnfree = true;
