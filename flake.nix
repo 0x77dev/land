@@ -116,6 +116,11 @@
             extraSpecialArgs = {
               inherit inputs system;
             };
+            users."mykhailo" = import ./modules/home {
+              inherit inputs system;
+              username = "mykhailo";
+              homeDirectory = "/home/mykhailo";
+            };
           };
         }
       ] ++ modules;
