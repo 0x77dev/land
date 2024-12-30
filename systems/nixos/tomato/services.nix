@@ -13,6 +13,7 @@
   };
 
   services.openssh.enable = true;
+  services.tailscale.enable = true;
 
   services.aria2 = {
     enable = true;
@@ -88,5 +89,16 @@
     discovery = true;
     openFirewall = true;
     workgroup = "WORKGROUP";
+  };
+
+  services.postgresql = {
+    enable = true;
+    dataDir = "/data/postgresql";
+  };
+
+  services.immich = {
+    enable = true;
+    openFirewall = true;
+    mediaLocation = "/data/media/immich";
   };
 }

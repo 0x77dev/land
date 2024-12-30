@@ -43,6 +43,12 @@
       fsType = "zfs";
     };
 
+  fileSystems."/data/postgresql" =
+    {
+      device = "rpool/data/postgresql";
+      fsType = "zfs";
+    };
+
   fileSystems."/data/media" =
     {
       device = "rpool/data/media";
