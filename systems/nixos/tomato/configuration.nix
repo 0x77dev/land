@@ -12,6 +12,7 @@
       ./security.nix
       ./programs.nix
       ./services.nix
+      ./virtualisation.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -42,7 +43,7 @@
   users.users.mykhailo = {
     isNormalUser = true;
     description = "Mykhailo Marynenko";
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [ "wheel" "networkmanager" "docker" ];
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
