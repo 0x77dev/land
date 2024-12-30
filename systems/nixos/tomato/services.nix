@@ -47,6 +47,11 @@
     enableAnalyticsReporting = false;
   };
 
+  services.iperf3 = {
+    enable = true;
+    openFirewall = true;
+  };
+
   services.samba = {
     enable = true;
     openFirewall = true;
