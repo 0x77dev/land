@@ -78,6 +78,8 @@
 
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
+  nixpkgs.config.allowUnfree = true;
+
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
