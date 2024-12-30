@@ -14,7 +14,7 @@
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
-    nixarr.url = "github:rasmus-kirk/nixarr";
+    vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
@@ -186,7 +186,7 @@
           tomato = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
-              nixarr.nixosModules.default
+              vpn-confinement.nixosModules.default
               ./systems/nixos/tomato/configuration.nix
             ];
           };
