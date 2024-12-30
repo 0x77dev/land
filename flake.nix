@@ -107,6 +107,7 @@
                 inherit inputs system;
                 username = "0x77";
                 homeDirectory = "/Users/0x77";
+                openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ./helpers/openssh-authorized-keys.json);
               };
             };
           }
@@ -130,6 +131,7 @@
               inherit inputs system;
               username = "mykhailo";
               homeDirectory = "/home/mykhailo";
+              openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ./helpers/openssh-authorized-keys.json);
             };
           };
         }

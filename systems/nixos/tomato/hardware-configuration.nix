@@ -30,6 +30,31 @@
       options = [ "fmask=0077" "dmask=0077" ];
     };
 
+
+  fileSystems."/data" =
+    {
+      device = "rpool/data";
+      fsType = "zfs";
+    };
+
+  fileSystems."/data/docker" =
+    {
+      device = "rpool/data/docker";
+      fsType = "zfs";
+    };
+
+  fileSystems."/data/media" =
+    {
+      device = "rpool/data/media";
+      fsType = "zfs";
+    };
+
+  fileSystems."/data/share" =
+    {
+      device = "rpool/data/share";
+      fsType = "zfs";
+    };
+
   swapDevices = [ ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
