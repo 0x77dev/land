@@ -60,6 +60,7 @@
     description = "Mykhailo Marynenko";
     extraGroups = [ "wheel" "networkmanager" ];
     shell = pkgs.fish;
+    openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
 
   programs.fish.enable = true;
@@ -83,7 +84,7 @@
   };
 
   services.openssh.enable = true;
-  services.openssh.settings.PermitRootLogin = "yes";
+
   nixpkgs.config.allowUnfree = true;
 
   # Open ports in the firewall.
