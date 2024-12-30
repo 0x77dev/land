@@ -21,12 +21,12 @@ let
   };
 
   commonPaths = [
-    "/run/wrappers/bin"
-    "/run/current-system/sw/bin"
     "/opt/homebrew/bin"
+    "/run/current-system/sw/bin"
     "$HOME/.bun/bin"
     "$HOME/.local/bin"
     "$HOME/go/bin"
+    "/run/wrappers/bin"
   ];
 
   commonFunctions = ''
