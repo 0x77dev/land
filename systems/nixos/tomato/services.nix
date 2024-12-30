@@ -24,37 +24,58 @@
     };
   };
 
+  services.netdata = {
+    enable = true;
+    enableAnalyticsReporting = false;
+  };
+
   services.samba = {
     enable = true;
     openFirewall = true;
+    # Enable both SMB and NetBIOS name services
     smbd.enable = true;
     nmbd.enable = true;
+
     settings = {
       global = {
+        # Basic server configuration
         workgroup = "WORKGROUP";
         "server string" = "Tomato NAS";
         "server role" = "standalone server";
+
+        # Security settings
+        security = "user";
         "map to guest" = "bad user";
         "guest account" = "nobody";
-        security = "user";
+
+        # Network access control
+        "hosts allow" = "192.168.0.0/24 100.64.0.0/10"; # Local network and Tailscale
+        "hosts deny" = "0.0.0.0/0"; # Deny all others
       };
+
+      # Public share configuration
       public = {
         path = "/data/share";
         browseable = "yes";
         "read only" = "no";
-        "guest ok" = "no";
+        "guest ok" = "yes";
+        "force user" = "mykhailo";
+        # Standard Unix permissions
         "create mask" = "0644";
         "directory mask" = "0755";
-        "force user" = "mykhailo";
       };
+
+      # Time Machine backup share
       timemachine = {
         path = "/data/share/TimeMachine";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
+        "force user" = "mykhailo";
+        # Standard Unix permissions
         "create mask" = "0644";
         "directory mask" = "0755";
-        "force user" = "mykhailo";
+        # Apple-specific settings for Time Machine support
         "fruit:aapl" = "yes";
         "fruit:time machine" = "yes";
         "vfs objects" = "catia fruit streams_xattr";
