@@ -21,12 +21,12 @@ let
   };
 
   commonPaths = [
-    "/run/wrappers/bin"
-    "/run/current-system/sw/bin"
-    "/opt/homebrew/bin"
+    "$HOME/go/bin"
     "$HOME/.bun/bin"
     "$HOME/.local/bin"
-    "$HOME/go/bin"
+    "/opt/homebrew/bin"
+    "/run/current-system/sw/bin"
+    "/run/wrappers/bin"
   ];
 
   commonFunctions = ''
@@ -71,7 +71,7 @@ in
 
       # Add all common paths
       ${builtins.concatStringsSep "\n"
-      (map (p: "fish_add_path ${p}") commonPaths)}
+      (map (p: "fish_add_path -m ${p}") commonPaths)}
 
       if command -v conda >/dev/null 2>&1
         eval "$(conda "shell.fish" hook)"
