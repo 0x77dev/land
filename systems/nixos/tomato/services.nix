@@ -120,7 +120,7 @@
       };
 
       downloads = {
-        path = "/data/Downloads";
+        path = "/data/share/Downloads";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
