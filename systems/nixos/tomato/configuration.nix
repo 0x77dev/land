@@ -16,10 +16,18 @@
       ./virtualisation.nix
     ];
 
-  sops.defaultSopsFile = ./secrets/shared.yaml;
-  sops.defaultSopsFormat = "yaml";
-
-  sops.age.keyFile = "/data/.secret/sops/age/keys.txt";
+  sops = {
+    defaultSopsFile = ./secrets/shared.yaml;
+    defaultSopsFormat = "yaml";
+    age.keyFile = "/data/.secret/sops/age/keys.txt";
+    sops.secrets = {
+      "aria2/rpc-secret" = { };
+      "resend/api-key" = { };
+      "plausible/admin-password" = { };
+      "plausible/secret" = { };
+      "vpn/wg.conf" = { };
+    };
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
