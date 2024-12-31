@@ -12,7 +12,7 @@
       # IPFS monitoring
       netdata ALL=(root) NOPASSWD: ${pkgs.ipfs}/bin/ipfs stats *
       # Process monitoring
-      netdata ALL=(root) NOPASSWD: ${pkgs.procps}/bin/ps -C * -O pcpu,pmem,comm
+      netdata ALL=(root) NOPASSWD: ${pkgs.procps}/bin/ps
       netdata ALL=(root) NOPASSWD: ${pkgs.iproute2}/bin/ss -tupl
     '';
   };
