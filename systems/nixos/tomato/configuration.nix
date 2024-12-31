@@ -25,7 +25,6 @@
       "resend/api-key" = { };
       "plausible/admin-password" = { };
       "plausible/secret" = { };
-      "vpn/wg.conf" = { };
     };
   };
 
