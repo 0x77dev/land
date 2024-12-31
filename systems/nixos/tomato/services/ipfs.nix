@@ -7,9 +7,9 @@
     settings = {
       Addresses = {
         # NOTE: Binded to VPN Confinement Bridge Address
-        API = "/ip4/192.168.15.1/tcp/5001";
+        API = "/ip4/192.168.15.5/tcp/5001";
         # NOTE: Binded to VPN Confinement Bridge Address
-        Gateway = "/ip4/192.168.15.1/tcp/8501";
+        Gateway = "/ip4/192.168.15.5/tcp/8501";
         Swarm = [
           "/ip4/0.0.0.0/tcp/4001"
           "/ip6/::/tcp/4001"
