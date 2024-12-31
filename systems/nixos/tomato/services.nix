@@ -141,10 +141,12 @@
   services.plausible = {
     enable = true;
     openFirewall = true;
-    port = 8181;
-    listenAddress = "0.0.0.0";
+    server = {
+      listenAddress = "0.0.0.0";
+      port = 8181;
+      disableRegistration = "invite_only";
+    };
     secretKeybaseFile = "/data/.secret/plausible/secret";
-    server.disableRegistration = "invite_only";
     adminUser = {
       name = "Mykhailo";
       email = "mykhailo@0x77.dev";
