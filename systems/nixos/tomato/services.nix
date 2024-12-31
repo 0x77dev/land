@@ -147,6 +147,7 @@
     server = {
       listenAddress = "0.0.0.0";
       port = 8181;
+      baseUrl = "https://plausible.0x77.computer";
       disableRegistration = "invite_only";
       secretKeybaseFile = "/data/.secret/plausible/secret";
     };
