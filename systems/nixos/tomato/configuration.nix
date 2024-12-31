@@ -17,7 +17,7 @@
     ];
 
   sops = {
-    defaultSopsFile = ./secrets/shared.yaml;
+    defaultSopsFile = ../../../secrets/shared.yaml;
     defaultSopsFormat = "yaml";
     age.keyFile = "/data/.secret/sops/age/keys.txt";
     secrets = {
