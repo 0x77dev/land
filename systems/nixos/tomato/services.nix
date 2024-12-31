@@ -60,53 +60,70 @@
   services.samba = {
     enable = true;
     openFirewall = true;
-    # Enable both SMB and NetBIOS name services
     smbd.enable = true;
     nmbd.enable = true;
 
     settings = {
       global = {
-        # Basic server configuration
         workgroup = "WORKGROUP";
         "server string" = "Tomato NAS";
         "server role" = "standalone server";
-
-        # Security settings
         security = "user";
         "map to guest" = "bad user";
         "guest account" = "nobody";
+        "hosts allow" = "192.168.0.0/24 100.64.0.0/10";
+        "hosts deny" = "0.0.0.0/0";
 
-        # Network access control
-        "hosts allow" = "192.168.0.0/24 100.64.0.0/10"; # Local network and Tailscale
-        "hosts deny" = "0.0.0.0/0"; # Deny all others
+        # Performance optimizations
+        "socket options" = "TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=131072 SO_SNDBUF=131072";
+        "read raw" = "yes";
+        "write raw" = "yes";
+        "strict locking" = "no";
+        "strict sync" = "no";
+        "sync always" = "no";
+        "aio read size" = "1";
+        "aio write size" = "1";
+        "use sendfile" = "yes";
+
+        # macOS compatibility with optimizations
+        "min protocol" = "SMB3";
+        "server min protocol" = "SMB3";
+        "ea support" = "yes";
+        "vfs objects" = "fruit streams_xattr";
+        "fruit:metadata" = "stream";
+        "fruit:model" = "MacSamba";
+        "fruit:posix_rename" = "yes";
+        "fruit:veto_appledouble" = "no";
+        "fruit:wipe_intentionally_left_blank_rfork" = "yes";
+        "fruit:delete_empty_adfiles" = "yes";
       };
 
-      # Public share configuration
       public = {
         path = "/data/share";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "yes";
         "force user" = "mykhailo";
-        # Standard Unix permissions
         "create mask" = "0644";
         "directory mask" = "0755";
+        "vfs objects" = "fruit streams_xattr";
+        "strict sync" = "no";
+        "write cache size" = "1048576";
       };
 
-      # Time Machine backup share
       timemachine = {
         path = "/data/share/TimeMachine";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
         "force user" = "mykhailo";
-        # Standard Unix permissions
         "create mask" = "0644";
         "directory mask" = "0755";
-        # Apple-specific settings for Time Machine support
         "fruit:aapl" = "yes";
         "fruit:time machine" = "yes";
         "vfs objects" = "catia fruit streams_xattr";
+        "strict sync" = "no";
+        "write cache size" = "1048576";
       };
     };
   };
