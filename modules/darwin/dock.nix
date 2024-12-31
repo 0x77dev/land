@@ -5,7 +5,7 @@
     # Arrange items in dock
     persistent-apps = [
       "/System/Applications/Launchpad.app"
-      "/Applications/Safari.app"
+      "/Applications/Arc.app"
       "/Applications/Slack.app"
       "/Applications/Telegram.app"
       "/System/Applications/Messages.app"

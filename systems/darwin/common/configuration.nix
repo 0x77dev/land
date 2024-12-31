@@ -1,4 +1,13 @@
-{ pkgs, ... }: {
+{ inputs, pkgs, ... }: {
+  imports = [
+    inputs.sops-nix.darwinModules.sops
+  ];
+
+  sops.defaultSopsFile = ./secrets/shared.yaml;
+  sops.defaultSopsFormat = "yaml";
+
+  sops.age.keyFile = "/Users/0x77/.config/sops/age/keys.txt";
+
   nix-homebrew.user = "0x77";
   users = {
     users."0x77" = {

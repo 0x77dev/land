@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+KEYS_FILE=~/.config/sops/age/keys.txt
+
+if [[ -f "$KEYS_FILE" ]]; then
+  # Extract and print public key from existing file
+  echo "Already generated, public key:"
+  age-keygen -y "$KEYS_FILE"
+else
+  # Create directory and generate new keypair
+  mkdir -p ~/.config/sops/age
+  chmod 700 ~/.config/sops/age
+  age-keygen -o "$KEYS_FILE"
+  chmod 600 "$KEYS_FILE"
+fi

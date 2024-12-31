@@ -1,8 +1,11 @@
 { pkgs, ... }: {
   packages = with pkgs; [
     git
+    git-crypt
     jq
     cachix
+    age
+    sops
   ];
 
   dotenv.disableHint = true;
@@ -15,4 +18,5 @@
   pre-commit.hooks.nixpkgs-fmt.enable = true;
   pre-commit.hooks.mdsh.enable = true;
   pre-commit.hooks.flake-checker.enable = true;
+  pre-commit.hooks.pre-commit-hook-ensure-sops.enable = true;
 }

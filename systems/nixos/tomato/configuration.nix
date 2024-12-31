@@ -2,11 +2,12 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, lib, pkgs, ... }:
+{ inputs, config, lib, pkgs, ... }:
 
 {
   imports =
     [
+      inputs.sops-nix.nixosModules.sops
       ./hardware-configuration.nix
       ./environment.nix
       ./security.nix
@@ -14,6 +15,11 @@
       ./services
       ./virtualisation.nix
     ];
+
+  sops.defaultSopsFile = ./secrets/shared.yaml;
+  sops.defaultSopsFormat = "yaml";
+
+  sops.age.keyFile = "/data/.secret/sops/age/keys.txt";
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
