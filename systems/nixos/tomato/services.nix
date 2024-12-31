@@ -140,7 +140,6 @@
 
   services.plausible = {
     enable = true;
-    openFirewall = true;
     server = {
       listenAddress = "0.0.0.0";
       port = 8181;
