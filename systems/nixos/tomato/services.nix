@@ -62,7 +62,6 @@
     openFirewall = true;
     smbd.enable = true;
     nmbd.enable = true;
-    securityType = "user";
 
     settings = {
       global = {
@@ -75,10 +74,17 @@
         "hosts allow" = "192.168.0.0/24 100.64.0.0/10";
         "hosts deny" = "0.0.0.0/0";
 
-        # PAM authentication settings
+        # PAM and authentication settings
         "pam password change" = "yes";
         "passdb backend" = "tdbsam";
         "obey pam restrictions" = "yes";
+        "unix extensions" = "yes";
+        "encrypt passwords" = "yes";
+        "client ntlmv2 auth" = "yes";
+        "client lanman auth" = "no";
+        "client plaintext auth" = "no";
+        "lanman auth" = "no";
+        "ntlm auth" = "no";
 
         # Performance optimizations
         "socket options" = "TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=524288 SO_SNDBUF=524288";
@@ -101,7 +107,7 @@
         "min protocol" = "SMB3";
         "server min protocol" = "SMB3";
         "ea support" = "yes";
-        "vfs objects" = "catia fruit streams_xattr";
+        "vfs objects" = "acl_xattr catia fruit streams_xattr";
         "fruit:metadata" = "stream";
         "fruit:model" = "MacPro7,1";
         "fruit:posix_rename" = "yes";
@@ -109,6 +115,8 @@
         "fruit:wipe_intentionally_left_blank_rfork" = "yes";
         "fruit:delete_empty_adfiles" = "yes";
         "fruit:nfs_aces" = "no";
+        "fruit:encoding" = "native";
+        "fruit:zero_file_id" = "yes";
       };
 
       public = {
@@ -120,9 +128,10 @@
         "force user" = "mykhailo";
         "create mask" = "0644";
         "directory mask" = "0755";
-        "vfs objects" = "catia fruit streams_xattr";
+        "vfs objects" = "acl_xattr catia fruit streams_xattr";
         "strict sync" = "no";
         "write cache size" = "1048576";
+        "inherit acls" = "yes";
       };
 
       timemachine = {
@@ -138,7 +147,7 @@
         "directory mask" = "0700";
         "fruit:aapl" = "yes";
         "fruit:time machine" = "yes";
-        "vfs objects" = "catia fruit streams_xattr";
+        "vfs objects" = "acl_xattr catia fruit streams_xattr";
         "strict sync" = "no";
         "write cache size" = "1048576";
         "kernel oplocks" = "no";
@@ -146,6 +155,7 @@
         "posix locking" = "no";
         "allocation roundup size" = "4096";
         "root preexec" = "${pkgs.coreutils}/bin/mkdir -p /data/share/TimeMachine/%U";
+        "inherit acls" = "yes";
       };
     };
   };
