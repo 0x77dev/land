@@ -134,8 +134,12 @@
   services.plex = {
     enable = true;
     openFirewall = true;
-    port = 32400;
-    listenAddress = "0.0.0.0";
+  };
+
+  services.tautulli = {
+    enable = true;
+    openFirewall = true;
+    port = 33000;
   };
 
   services.plausible = {
