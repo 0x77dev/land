@@ -129,6 +129,23 @@
         "root preexec" = "${pkgs.coreutils}/bin/mkdir -p /data/share/TimeMachine/%U";
         "inherit acls" = "yes";
       };
+
+      home = {
+        comment = "Home Directories";
+        path = "/home/%U";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+        "valid users" = "@users";
+        "force user" = "%U";
+        "force group" = "users";
+        "create mask" = "0644";
+        "directory mask" = "0755";
+        "vfs objects" = "acl_xattr catia fruit streams_xattr";
+        "strict sync" = "no";
+        "write cache size" = "1048576";
+        "inherit acls" = "yes";
+      };
     };
   };
 
