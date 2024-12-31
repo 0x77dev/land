@@ -43,6 +43,9 @@
         "hosts allow" = "192.168.0.0/24 100.64.0.0/10";
         "hosts deny" = "0.0.0.0/0";
 
+        # Monitoring
+        "profiling level" = "on";
+
         # PAM and authentication settings
         "pam password change" = "yes";
         "passdb backend" = "tdbsam";
