@@ -19,6 +19,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Power management
+  powerManagement.enable = true;
+  powerManagement.cpuFreqGovernor = "ondemand";
+
   networking.hostName = "tomato";
   networking.networkmanager.enable = true;
 
@@ -106,8 +110,8 @@
   };
 
   networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [ 22 19999 139 445 2283 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 ];
+  networking.firewall.allowedTCPPorts = [ 22 19999 139 445 2283 80 443 ];
+  networking.firewall.allowedUDPPorts = [ 137 138 80 443 ];
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
