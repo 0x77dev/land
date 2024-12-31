@@ -64,11 +64,6 @@
         "CAP_SYS_PTRACE"
         "CAP_NET_RAW"
       ];
-      SupplementaryGroups = [
-        "postgres"
-        "systemd-journal"
-        "proc"
-      ];
     };
   };
 
