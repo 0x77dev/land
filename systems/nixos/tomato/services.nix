@@ -14,6 +14,11 @@
 
   services.openssh.enable = true;
   services.tailscale.enable = true;
+  services.fail2ban.enable = true;
+
+  services.cloudflared = {
+    enable = true;
+  };
 
   services.aria2 = {
     enable = true;
@@ -124,5 +129,37 @@
     port = 2283;
     openFirewall = true;
     mediaLocation = "/data/media/immich";
+  };
+
+  services.plex = {
+    enable = true;
+    openFirewall = true;
+    port = 32400;
+    listenAddress = "0.0.0.0";
+  };
+
+  services.plausible = {
+    enable = true;
+    openFirewall = true;
+    port = 8181;
+    listenAddress = "0.0.0.0";
+    secretKeybaseFile = "/data/.secret/plausible/secret";
+    server.disableRegistration = "invite_only";
+    adminUser = {
+      name = "Mykhailo";
+      email = "mykhailo@0x77.dev";
+      passwordFile = "/data/.secret/plausible/admin_password";
+      activate = true;
+    };
+    mail = {
+      email = "plausible@system.0x77.dev";
+      smtp = {
+        hostAddr = "smtp.resend.com";
+        hostPort = 465;
+        enableSSL = true;
+        user = "resend";
+        passwordFile = "/data/.secret/resend/api_key";
+      };
+    };
   };
 }
