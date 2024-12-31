@@ -146,6 +146,23 @@
         "write cache size" = "1048576";
         "inherit acls" = "yes";
       };
+
+      photos = {
+        comment = "Photos Library";
+        path = "/data/media/immich";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+        "valid users" = "mykhailo";
+        "force user" = "mykhailo";
+        "force group" = "users";
+        "create mask" = "0644";
+        "directory mask" = "0755";
+        "vfs objects" = "acl_xattr catia fruit streams_xattr";
+        "strict sync" = "no";
+        "write cache size" = "1048576";
+        "inherit acls" = "yes";
+      };
     };
   };
 
