@@ -8,7 +8,6 @@
     configDir."python.d.conf" = pkgs.writeText "python.d.conf" ''
       samba: yes
       postgres: yes
-      redis: yes
       fail2ban: yes
     '';
     configDir."go.d.conf" = pkgs.writeText "go.d.conf" ''
@@ -67,7 +66,6 @@
       ];
       SupplementaryGroups = [
         "postgres"
-        "redis"
         "systemd-journal"
         "proc"
       ];
