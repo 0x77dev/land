@@ -49,6 +49,12 @@
       fsType = "zfs";
     };
 
+  fileSystems."/data/kubo" =
+    {
+      device = "rpool/data/kubo";
+      fsType = "zfs";
+    };
+
   fileSystems."/data/media" =
     {
       device = "rpool/data/media";

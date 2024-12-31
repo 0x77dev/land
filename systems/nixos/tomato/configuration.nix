@@ -11,7 +11,7 @@
       ./environment.nix
       ./security.nix
       ./programs.nix
-      ./services.nix
+      ./services
       ./virtualisation.nix
     ];
 
@@ -110,8 +110,8 @@
   };
 
   networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [ 22 19999 139 445 2283 80 443 8181 32400 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 80 443 ];
+  networking.firewall.allowedTCPPorts = [ 22 19999 139 445 2283 80 443 8181 32400 5001 8501 4001 ];
+  networking.firewall.allowedUDPPorts = [ 137 138 80 443 4001 ];
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you

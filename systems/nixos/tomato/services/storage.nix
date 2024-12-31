@@ -1,25 +1,4 @@
 { pkgs, ... }: {
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    publish = {
-      enable = true;
-      addresses = true;
-      domain = true;
-      hinfo = true;
-      userServices = true;
-      workstation = true;
-    };
-  };
-
-  services.openssh.enable = true;
-  services.tailscale.enable = true;
-  services.fail2ban.enable = true;
-
-  services.cloudflared = {
-    enable = true;
-  };
-
   services.aria2 = {
     enable = true;
     # TODO: use a better secret
@@ -45,16 +24,6 @@
   systemd.services.aria2.vpnConfinement = {
     enable = true;
     vpnNamespace = "wg";
-  };
-
-  services.netdata = {
-    enable = true;
-    enableAnalyticsReporting = false;
-  };
-
-  services.iperf3 = {
-    enable = true;
-    openFirewall = true;
   };
 
   services.samba = {
@@ -165,56 +134,5 @@
     discovery = true;
     openFirewall = true;
     workgroup = "WORKGROUP";
-  };
-
-  services.postgresql = {
-    enable = true;
-    dataDir = "/data/postgresql";
-  };
-
-  services.immich = {
-    enable = true;
-    host = "0.0.0.0";
-    port = 2283;
-    openFirewall = true;
-    mediaLocation = "/data/media/immich";
-  };
-
-  services.plex = {
-    enable = true;
-    openFirewall = true;
-  };
-
-  services.tautulli = {
-    enable = true;
-    openFirewall = true;
-    port = 33000;
-  };
-
-  services.plausible = {
-    enable = true;
-    server = {
-      listenAddress = "0.0.0.0";
-      port = 8181;
-      baseUrl = "https://plausible.0x77.computer";
-      disableRegistration = "invite_only";
-      secretKeybaseFile = "/data/.secret/plausible/secret";
-    };
-    adminUser = {
-      name = "Mykhailo";
-      email = "mykhailo@0x77.dev";
-      passwordFile = "/data/.secret/plausible/admin_password";
-      activate = true;
-    };
-    mail = {
-      email = "plausible@system.0x77.dev";
-      smtp = {
-        hostAddr = "smtp.resend.com";
-        hostPort = 465;
-        enableSSL = true;
-        user = "resend";
-        passwordFile = "/data/.secret/resend/api_key";
-      };
-    };
   };
 }
