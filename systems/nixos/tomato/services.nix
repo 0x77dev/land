@@ -69,13 +69,12 @@
         "server string" = "Tomato NAS";
         "server role" = "standalone server";
         security = "user";
-        "map to guest" = "bad user";
-        "guest account" = "nobody";
+        "map to guest" = "never";
         "hosts allow" = "192.168.0.0/24 100.64.0.0/10";
         "hosts deny" = "0.0.0.0/0";
 
         # Performance optimizations
-        "socket options" = "TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=131072 SO_SNDBUF=131072";
+        "socket options" = "TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=524288 SO_SNDBUF=524288";
         "read raw" = "yes";
         "write raw" = "yes";
         "strict locking" = "no";
@@ -84,38 +83,48 @@
         "aio read size" = "1";
         "aio write size" = "1";
         "use sendfile" = "yes";
+        "min receivefile size" = "16384";
+        "max xmit" = "65535";
+        "large readwrite" = "yes";
+
+        # Enable SMB3 multichannel for better performance
+        "server multi channel support" = "yes";
 
         # macOS compatibility with optimizations
         "min protocol" = "SMB3";
         "server min protocol" = "SMB3";
         "ea support" = "yes";
-        "vfs objects" = "fruit streams_xattr";
+        "vfs objects" = "catia fruit streams_xattr";
         "fruit:metadata" = "stream";
-        "fruit:model" = "MacSamba";
+        "fruit:model" = "MacPro7,1";
         "fruit:posix_rename" = "yes";
         "fruit:veto_appledouble" = "no";
         "fruit:wipe_intentionally_left_blank_rfork" = "yes";
         "fruit:delete_empty_adfiles" = "yes";
+        "fruit:nfs_aces" = "no";
       };
 
       public = {
         path = "/data/share";
         browseable = "yes";
         "read only" = "no";
-        "guest ok" = "yes";
+        "guest ok" = "no";
+        "valid users" = "mykhailo";
         "force user" = "mykhailo";
         "create mask" = "0644";
         "directory mask" = "0755";
-        "vfs objects" = "fruit streams_xattr";
+        "vfs objects" = "catia fruit streams_xattr";
         "strict sync" = "no";
         "write cache size" = "1048576";
       };
 
       timemachine = {
+        comment = "Time Machine Backup";
         path = "/data/share/TimeMachine";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
+        "valid users" = "mykhailo";
         "force user" = "mykhailo";
         "create mask" = "0644";
         "directory mask" = "0755";
@@ -124,6 +133,10 @@
         "vfs objects" = "catia fruit streams_xattr";
         "strict sync" = "no";
         "write cache size" = "1048576";
+        "kernel oplocks" = "no";
+        "kernel share modes" = "no";
+        "posix locking" = "no";
+        "allocation roundup size" = "4096";
       };
     };
   };
