@@ -1,4 +1,4 @@
-{ ... }: {
+{ pkgs, ... }: {
   services.avahi = {
     enable = true;
     nssmdns4 = true;
@@ -62,6 +62,12 @@
     openFirewall = true;
     smbd.enable = true;
     nmbd.enable = true;
+    securityType = "user";
+    extraConfig = ''
+      pam password change = yes
+      passdb backend = tdbsam
+      obey pam restrictions = yes
+    '';
 
     settings = {
       global = {
@@ -69,6 +75,7 @@
         "server string" = "Tomato NAS";
         "server role" = "standalone server";
         security = "user";
+        "unix password sync" = "yes";
         "map to guest" = "never";
         "hosts allow" = "192.168.0.0/24 100.64.0.0/10";
         "hosts deny" = "0.0.0.0/0";
@@ -109,7 +116,7 @@
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
-        "valid users" = "mykhailo";
+        "valid users" = "@users";
         "force user" = "mykhailo";
         "create mask" = "0644";
         "directory mask" = "0755";
@@ -120,14 +127,15 @@
 
       timemachine = {
         comment = "Time Machine Backup";
-        path = "/data/share/TimeMachine";
+        path = "/data/share/TimeMachine/%U";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
-        "valid users" = "mykhailo";
-        "force user" = "mykhailo";
-        "create mask" = "0644";
-        "directory mask" = "0755";
+        "valid users" = "@users";
+        "force user" = "%U";
+        "force group" = "users";
+        "create mask" = "0600";
+        "directory mask" = "0700";
         "fruit:aapl" = "yes";
         "fruit:time machine" = "yes";
         "vfs objects" = "catia fruit streams_xattr";
@@ -137,6 +145,7 @@
         "kernel share modes" = "no";
         "posix locking" = "no";
         "allocation roundup size" = "4096";
+        "root preexec" = "${pkgs.coreutils}/bin/mkdir -p /data/share/TimeMachine/%U";
       };
     };
   };
