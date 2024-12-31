@@ -144,8 +144,8 @@
       listenAddress = "0.0.0.0";
       port = 8181;
       disableRegistration = "invite_only";
+      secretKeybaseFile = "/data/.secret/plausible/secret";
     };
-    secretKeybaseFile = "/data/.secret/plausible/secret";
     adminUser = {
       name = "Mykhailo";
       email = "mykhailo@0x77.dev";
