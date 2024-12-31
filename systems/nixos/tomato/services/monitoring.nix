@@ -61,9 +61,9 @@
     serviceConfig = {
       CapabilityBoundingSet = [
         "CAP_SETGID"
-        "CAP_DAC_READ_SEARCH" # For reading system files
-        "CAP_SYS_PTRACE" # For process monitoring
-        "CAP_NET_RAW" # For network monitoring
+        "CAP_DAC_READ_SEARCH"
+        "CAP_SYS_PTRACE"
+        "CAP_NET_RAW"
       ];
       SupplementaryGroups = [
         "postgres"
@@ -71,14 +71,6 @@
         "systemd-journal"
         "proc"
       ];
-      ReadWritePaths = [
-        "/var/log/fail2ban.log"
-        "/var/cache/netdata"
-        "/var/lib/netdata"
-      ];
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      NoNewPrivileges = false; # Required for sudo access
     };
   };
 

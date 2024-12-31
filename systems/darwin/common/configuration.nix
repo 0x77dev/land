@@ -44,6 +44,7 @@
       pkgs.nodejs-slim
       pkgs.bun
       pkgs.aria2
+      pkgs.kubo
     ];
 
   nixpkgs.config.allowUnfree = true;
