@@ -63,11 +63,6 @@
     smbd.enable = true;
     nmbd.enable = true;
     securityType = "user";
-    extraConfig = ''
-      pam password change = yes
-      passdb backend = tdbsam
-      obey pam restrictions = yes
-    '';
 
     settings = {
       global = {
@@ -79,6 +74,11 @@
         "map to guest" = "never";
         "hosts allow" = "192.168.0.0/24 100.64.0.0/10";
         "hosts deny" = "0.0.0.0/0";
+
+        # PAM authentication settings
+        "pam password change" = "yes";
+        "passdb backend" = "tdbsam";
+        "obey pam restrictions" = "yes";
 
         # Performance optimizations
         "socket options" = "TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=524288 SO_SNDBUF=524288";
