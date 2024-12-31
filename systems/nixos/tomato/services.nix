@@ -119,8 +119,8 @@
         "fruit:zero_file_id" = "yes";
       };
 
-      public = {
-        path = "/data/share";
+      downloads = {
+        path = "/data/Downloads";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
