@@ -6,12 +6,12 @@
       port = 8181;
       baseUrl = "https://plausible.0x77.computer";
       disableRegistration = "invite_only";
-      secretKeybaseFile = "/data/.secret/plausible/secret";
+      secretKeybaseFile = "/run/secrets/plausible/secret";
     };
     adminUser = {
       name = "Mykhailo";
       email = "mykhailo@0x77.dev";
-      passwordFile = "/data/.secret/plausible/admin_password";
+      passwordFile = "/run/secrets/plausible/admin-password";
       activate = true;
     };
     mail = {
@@ -21,7 +21,7 @@
         hostPort = 465;
         enableSSL = true;
         user = "resend";
-        passwordFile = "/data/.secret/resend/api_key";
+        passwordFile = "/run/secrets/resend/api-key";
       };
     };
   };

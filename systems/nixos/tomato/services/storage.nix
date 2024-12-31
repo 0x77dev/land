@@ -1,8 +1,7 @@
 { pkgs, ... }: {
   services.aria2 = {
     enable = true;
-    # TODO: use a better secret
-    rpcSecretFile = "/etc/machine-id";
+    rpcSecretFile = "/run/secrets/aria2/rpc-secret";
     settings = {
       enable-rpc = true;
       rpc-listen-all = true;
