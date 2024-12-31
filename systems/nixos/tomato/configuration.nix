@@ -20,7 +20,7 @@
     defaultSopsFile = ./secrets/shared.yaml;
     defaultSopsFormat = "yaml";
     age.keyFile = "/data/.secret/sops/age/keys.txt";
-    sops.secrets = {
+    secrets = {
       "aria2/rpc-secret" = { };
       "resend/api-key" = { };
       "plausible/admin-password" = { };
