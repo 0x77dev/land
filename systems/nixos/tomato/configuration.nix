@@ -26,7 +26,6 @@
       "plausible/admin-password" = { };
       "plausible/secret" = { };
       "cloudflared/credentials" = {
-        user = "cloudflared";
         owner = "cloudflared";
         group = "cloudflared";
       };
