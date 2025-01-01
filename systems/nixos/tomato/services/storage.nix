@@ -5,6 +5,7 @@
     settings = {
       enable-rpc = true;
       rpc-listen-all = true;
+      rpc-listen-port = 6800;
       dir = "/data/share/Downloads";
       max-concurrent-downloads = 16;
       max-connection-per-server = 16;
