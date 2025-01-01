@@ -28,6 +28,7 @@
       "cloudflared/credentials" = {
         owner = "cloudflared";
         group = "cloudflared";
+        mode = "0440";
       };
     };
   };

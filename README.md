@@ -2,7 +2,7 @@
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/0x77dev/land/build.yaml)
 [![Cachix Cache](https://img.shields.io/badge/cachix-land-blue.svg)](https://app.cachix.org/cache/land)
-![Maintenance](https://img.shields.io/maintenance/yes/2024) 
+![Maintenance](https://img.shields.io/maintenance/yes/2025) 
 
 My homelab and dotfiles managed with Nix. This repository contains declarative configurations for my machines.
 
