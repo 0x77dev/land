@@ -25,10 +25,16 @@
       "resend/api-key" = { };
       "plausible/admin-password" = { };
       "plausible/secret" = { };
-      "cloudflared/credentials" = {
+      "cloudflared/tunnel-credentials" = {
         owner = "cloudflared";
         group = "cloudflared";
         mode = "0440";
+      };
+      "cloudflared/cert.pem" = {
+        owner = "cloudflared";
+        group = "cloudflared";
+        mode = "0440";
+        path = "/home/cloudflared/.cloudflared/cert.pem";
       };
     };
   };

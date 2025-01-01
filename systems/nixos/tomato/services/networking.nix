@@ -29,4 +29,6 @@
       };
     };
   };
+
+  users.users.cloudflared.home = "/home/cloudflared";
 }
