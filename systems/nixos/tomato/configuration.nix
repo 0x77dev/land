@@ -25,7 +25,11 @@
       "resend/api-key" = { };
       "plausible/admin-password" = { };
       "plausible/secret" = { };
-      "cloudflared/credentials" = { };
+      "cloudflared/credentials" = {
+        user = "cloudflared";
+        owner = "cloudflared";
+        group = "cloudflared";
+      };
     };
   };
 
