@@ -25,6 +25,7 @@
       "resend/api-key" = { };
       "plausible/admin-password" = { };
       "plausible/secret" = { };
+      "cloudflared/credentials" = { };
     };
   };
 
