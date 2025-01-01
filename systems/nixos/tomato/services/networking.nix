@@ -20,7 +20,7 @@
     enable = true;
     tunnels = {
       "e87e4617-7110-4173-a025-b93460868081" = {
-        credentialsFile = "/run/secrets/cloudflared/credentials";
+        credentialsFile = "/run/secrets/cloudflared/tunnel-credentials";
         ingress = {
           "plausible.0x77.computer" = "http://127.0.0.1:8181";
           "plex.0x77.computer" = "http://127.0.0.1:32400";
