@@ -56,6 +56,7 @@
       "cursor"
       "zed"
       "tuple"
+      "lookaway"
     ];
 
     masApps = {
