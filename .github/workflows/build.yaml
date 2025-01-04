@@ -11,7 +11,7 @@ jobs:
       matrix:
         system:
           - macos-latest
-          - ubuntu-latest
+          - self-hosted
     runs-on: ${{ matrix.system }}
     steps:
       - uses: actions/checkout@v4
