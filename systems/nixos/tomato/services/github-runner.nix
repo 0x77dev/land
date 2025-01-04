@@ -1,4 +1,13 @@
 { ... }: {
+  users.groups.github-runner = { };
+
+  users.users.github-runner = {
+    isSystemUser = true;
+    group = "github-runner";
+    home = "/home/github-runner";
+    createHome = true;
+  };
+
   services.github-runners.land = {
     enable = true;
     url = "https://github.com/0x77dev/land";
