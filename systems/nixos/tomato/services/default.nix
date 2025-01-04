@@ -7,5 +7,6 @@
     ./media.nix
     ./analytics.nix
     ./ipfs.nix
+    ./arr.nix
   ];
 }
