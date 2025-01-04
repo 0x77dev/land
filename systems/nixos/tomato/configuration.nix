@@ -156,6 +156,9 @@
       "100.64.0.0/10"
       "127.0.0.1/32"
     ];
+    portMappings = [
+      { from = 9091; to = 9091; }
+    ];
   };
 
   networking.firewall.enable = true;

@@ -11,6 +11,7 @@
     settings = {
       "rpc-bind-address" = "192.168.15.1";
       "download-dir" = "/data/share/Downloads";
+      "rpc-whitelist-enabled" = false;
     };
   };
 
