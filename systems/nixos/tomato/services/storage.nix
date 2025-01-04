@@ -8,6 +8,7 @@
     enable = true;
     settings = {
       "rpc-bind-address" = "192.168.15.5";
+      "download-dir" = "/data/share/Downloads";
     };
   };
 
