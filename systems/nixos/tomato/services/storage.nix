@@ -9,9 +9,49 @@
     openFirewall = true;
     performanceNetParameters = true;
     settings = {
+      # Network settings
       "rpc-bind-address" = "192.168.15.1";
+      "peer-port" = 51413;
+      "peer-port-random-on-start" = false;
+      "port-forwarding-enabled" = false;
+      "encryption" = 1; # Prefer encrypted connections
+      "utp-enabled" = true; # Enable µTP protocol
+
+      # Download settings
       "download-dir" = "/data/share/Downloads";
+      "incomplete-dir" = "/data/share/Downloads/.incomplete";
+      "incomplete-dir-enabled" = true;
+      "preallocation" = 1; # Faster allocation
+      "cache-size-mb" = 256; # Increase cache size
+
+      # Queue settings
+      "queue-stalled-enabled" = true;
+      "queue-stalled-minutes" = 30;
+      "download-queue-size" = 10;
+      "download-queue-enabled" = true;
+
+      # Speed settings
+      "speed-limit-down" = 0; # Unlimited
+      "speed-limit-up" = 0; # Unlimited
+      "alt-speed-enabled" = false;
+
+      # Peer settings  
+      "peer-limit-global" = 1000;
+      "peer-limit-per-torrent" = 100;
+      "peer-socket-tos" = "lowdelay";
+
+      # RPC settings
       "rpc-whitelist-enabled" = false;
+      "rpc-host-whitelist-enabled" = false;
+
+      # Advanced settings
+      "blocklist-enabled" = true;
+      "blocklist-url" = "https://raw.githubusercontent.com/Naunter/BT_BlockLists/master/bt_blocklists.gz";
+      "dht-enabled" = true;
+      "lpd-enabled" = true;
+      "pex-enabled" = true;
+      "scrape-paused-torrents-enabled" = true;
+      "umask" = 2;
     };
   };
 
