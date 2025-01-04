@@ -1,29 +1,14 @@
 { pkgs, ... }: {
-  services.aria2 = {
-    enable = true;
-    rpcSecretFile = "/run/secrets/aria2/rpc-secret";
-    settings = {
-      enable-rpc = true;
-      rpc-listen-all = true;
-      rpc-listen-port = 6800;
-      dir = "/data/share/Downloads";
-      max-concurrent-downloads = 16;
-      max-connection-per-server = 16;
-      min-split-size = "1M";
-      split = 16;
-      max-overall-download-limit = 0;
-      max-download-limit = 0;
-      max-overall-upload-limit = "1M";
-      max-upload-limit = "50K";
-      continue = true;
-      allow-overwrite = true;
-      disk-cache = "64M";
-    };
-  };
-
-  systemd.services.aria2.vpnConfinement = {
+  systemd.services.transmission.vpnConfinement = {
     enable = true;
     vpnNamespace = "wg";
+  };
+
+  services.transmission = {
+    enable = true;
+    settings = {
+      "rpc-bind-address" = "192.168.15.5";
+    };
   };
 
   services.samba = {
