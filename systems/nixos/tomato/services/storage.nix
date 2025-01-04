@@ -7,7 +7,7 @@
   services.transmission = {
     enable = true;
     settings = {
-      "rpc-bind-address" = "192.168.15.5";
+      "rpc-bind-address" = "192.168.15.1";
       "download-dir" = "/data/share/Downloads";
     };
   };
