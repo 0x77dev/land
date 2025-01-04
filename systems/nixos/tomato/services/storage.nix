@@ -19,6 +19,8 @@
 
       # Download settings
       "download-dir" = "/data/share/Downloads";
+      "watch-dir" = "/data/share/Downloads/tdropbox";
+      "watch-dir-enabled" = true;
       "preallocation" = 1; # Faster allocation
       "cache-size-mb" = 256; # Increase cache size
 
