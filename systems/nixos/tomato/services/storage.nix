@@ -7,7 +7,6 @@
   services.transmission = {
     enable = true;
     openFirewall = true;
-    openPeerPorts = false;
     performanceNetParameters = true;
     settings = {
       "rpc-bind-address" = "192.168.15.1";
