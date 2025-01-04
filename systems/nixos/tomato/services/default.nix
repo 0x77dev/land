@@ -8,5 +8,6 @@
     ./analytics.nix
     ./ipfs.nix
     ./arr.nix
+    ./github-runner.nix
   ];
 }

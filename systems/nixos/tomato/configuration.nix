@@ -35,6 +35,11 @@
         mode = "0440";
         path = "/home/cloudflared/.cloudflared/cert.pem";
       };
+      "github-runner/token" = {
+        owner = "github-runner";
+        group = "github-runner";
+        mode = "0440";
+      };
     };
   };
 
