@@ -29,8 +29,6 @@
 
   environment.systemPackages =
     [
-      pkgs.vim
-      pkgs.neovim
       pkgs.vscode
       pkgs.nil
       pkgs.nixpkgs-fmt

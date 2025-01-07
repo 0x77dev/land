@@ -2,19 +2,29 @@
   description = "@0x77dev homelab/machines land";
 
   inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+
     devenv-root = {
       url = "file+file:///dev/null";
       flake = false;
     };
+
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+
     devenv.url = "github:cachix/devenv";
+
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
+
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
+
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
+
+    nvf.url = "github:notashelf/nvf";
+    nvf.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
