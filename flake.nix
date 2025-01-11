@@ -36,6 +36,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # WSL specific inputs
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+
     # darwin specific inputs
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
@@ -69,7 +72,7 @@
     allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, sops-nix, nix-darwin, nixpkgs, home-manager, nixos-generators, vpn-confinement, ... }:
+  outputs = inputs@{ flake-parts, devenv-root, sops-nix, nix-darwin, nixpkgs, home-manager, nixos-generators, vpn-confinement, nixos-wsl, ... }:
     let
       mkHomeConfig = system: username: homeDirectory: home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
@@ -201,6 +204,11 @@
           wsl = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
+              nixos-wsl.nixosModules.default
+              {
+                system.stateVersion = "24.11";
+                wsl.enable = true;
+              }
               ./systems/nixos/wsl/configuration.nix
             ];
           };
