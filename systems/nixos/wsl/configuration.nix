@@ -35,8 +35,6 @@
     package = pkgs.nix-ld;
   };
 
-  vscode-remote-workaround.enable = true;
-
   nixpkgs.config = {
     allowUnfree = true;
     cudaSupport = true;
