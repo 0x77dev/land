@@ -209,6 +209,7 @@
                 system.stateVersion = "24.11";
                 wsl.enable = true;
                 wsl.defaultUser = "mykhailo";
+                wsl.docker-desktop.enable = true;
               }
               ./systems/nixos/wsl/configuration.nix
             ];
