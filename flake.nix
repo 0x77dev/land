@@ -198,6 +198,12 @@
               nixos-generators.nixosModules.all-formats
             ];
           };
+          wsl = mkNixosConfig {
+            system = "x86_64-linux";
+            modules = [
+              ./systems/nixos/wsl/configuration.nix
+            ];
+          };
         };
 
         darwinConfigurations = {
