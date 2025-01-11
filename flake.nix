@@ -210,6 +210,7 @@
                 wsl.enable = true;
                 wsl.defaultUser = "mykhailo";
                 wsl.docker-desktop.enable = true;
+                wsl.vscode-remote-workaround.enable = true;
               }
               ./systems/nixos/wsl/configuration.nix
             ];
