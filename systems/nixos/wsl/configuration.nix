@@ -1,4 +1,22 @@
 { pkgs, ... }: {
+  system.stateVersion = "24.11";
+  wsl.enable = true;
+  wsl.defaultUser = "mykhailo";
+  wsl.docker-desktop.enable = true;
+  wsl.vscode-remote-workaround.enable = true;
+  systemd.user = {
+    paths.vscode-remote-workaround = {
+      wantedBy = [ "default.target" ];
+      pathConfig.PathChanged = "%h/.vscode-server/bin";
+    };
+
+    services.vscode-remote-workaround.script = ''
+      for i in ~/.vscode-server/bin/*; do
+        echo "Fixing vscode-server in $i..."
+        ln -sf ${pkgs.nodejs-slim}/bin/node $i/node
+      done
+    '';
+  };
   environment = {
     systemPackages = [
       pkgs.wget

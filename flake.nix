@@ -205,13 +205,6 @@
             system = "x86_64-linux";
             modules = [
               nixos-wsl.nixosModules.default
-              {
-                system.stateVersion = "24.11";
-                wsl.enable = true;
-                wsl.defaultUser = "mykhailo";
-                wsl.docker-desktop.enable = true;
-                wsl.vscode-remote-workaround.enable = true;
-              }
               ./systems/nixos/wsl/configuration.nix
             ];
           };
