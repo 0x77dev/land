@@ -94,4 +94,6 @@
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
+
+  programs.fish.enable = true;
 }
