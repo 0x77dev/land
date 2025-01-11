@@ -44,6 +44,16 @@ let
   '';
 in
 {
+  home.packages = with pkgs; [
+    fzf
+    btop
+    bat
+    exa
+    fd
+    zoxide
+    starship
+  ];
+
   programs.bash = {
     enable = true;
     shellAliases = commonAliases // commonAbbrs;
