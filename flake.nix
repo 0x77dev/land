@@ -208,6 +208,7 @@
               {
                 system.stateVersion = "24.11";
                 wsl.enable = true;
+                wsl.defaultUser = "mykhailo";
               }
               ./systems/nixos/wsl/configuration.nix
             ];
