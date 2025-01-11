@@ -45,12 +45,20 @@ This repository uses [Nix](https://nixos.org/) to manage:
      ```
 
      ```powershell
-     # Set the default user
-     wsl.exe -d Land -u mykhailo
      # Run the WSL instance
      wsl.exe -d Land
      # Optional: Set NixOS as the default WSL distribution
      wsl.exe -s Land
+     ```
+
+     ```bash
+     # Post-install
+     wsl.exe -d Land -u mykhailo -e "sudo nix-channel --update"
+     ```
+
+     ```bash
+     # Apply updates
+     wsl.exe -d Land -u root -e "nixos-rebuild switch --refresh --flake github:0x77dev/land#wsl"
      ```
 
 ## Structure
