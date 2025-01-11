@@ -3,7 +3,6 @@
   wsl.enable = true;
   wsl.defaultUser = "mykhailo";
   wsl.docker-desktop.enable = true;
-  wsl.vscode-remote-workaround.enable = true;
   systemd.user = {
     paths.vscode-remote-workaround = {
       wantedBy = [ "default.target" ];
