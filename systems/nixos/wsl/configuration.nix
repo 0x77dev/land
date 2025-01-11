@@ -37,6 +37,8 @@
       pkgs.ncurses5
       pkgs.binutils
       pkgs.fish
+      pkgs.cudaPackages_11.cudnn
+      pkgs.cudaPackages_11.cudatoolkit
     ];
 
     variables = {
