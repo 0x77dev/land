@@ -1,6 +1,5 @@
 # land 🏠
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/0x77dev/land/build.yaml)
 [![Cachix Cache](https://img.shields.io/badge/cachix-land-blue.svg)](https://app.cachix.org/cache/land)
 ![Maintenance](https://img.shields.io/maintenance/yes/2025)
 
@@ -13,6 +12,7 @@ This repository uses [Nix](https://nixos.org/) to manage:
 - macOS machines (via nix-darwin)
 - NixOS systems
 - Home Manager configurations
+- WSL 2 instances
 
 ## Usage
 
