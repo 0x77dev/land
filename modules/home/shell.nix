@@ -48,7 +48,6 @@ in
     fzf
     btop
     bat
-    exa
     fd
     zoxide
     starship
