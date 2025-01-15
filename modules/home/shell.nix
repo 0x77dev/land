@@ -51,6 +51,8 @@ in
     fd
     zoxide
     starship
+    devenv
+    direnv
   ];
 
   programs.bash = {

@@ -194,6 +194,12 @@
               ./systems/nixos/tomato/configuration.nix
             ];
           };
+          muscle = mkNixosConfig {
+            system = "x86_64-linux";
+            modules = [
+              ./systems/nixos/muscle/configuration.nix
+            ];
+          };
           vanilla = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             specialArgs = { inherit inputs; };
