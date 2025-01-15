@@ -242,16 +242,17 @@
   services.openssh.enable = true;
   services.tailscale.enable = true;
 
-  # virtualisation.docker = {
-  #   enable = true;
-  #   daemon.settings = {
-  #     data-root = "/data/docker";
-  #   };
-  #   autoPrune = {
-  #     enable = true;
-  #     dates = "weekly";
-  #   };
-  # };
+  virtualisation.docker = {
+    enable = true;
+    daemon.settings = {
+      data-root = "/data/docker";
+    };
+    autoPrune = {
+      enable = true;
+      dates = "weekly";
+    };
+  };
+  hardware.nvidia-container-toolkit.enable = true;
 
   networking.firewall.enable = false;
 
