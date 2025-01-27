@@ -46,6 +46,7 @@ in
 {
   home.packages = with pkgs; [
     fzf
+    yazi
     btop
     bat
     fd

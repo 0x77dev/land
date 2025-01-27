@@ -7,5 +7,10 @@
       CREATE USER netdata;
       GRANT pg_monitor TO netdata;
     '';
+    ensureDatabases = [ "hass" ];
+    ensureUsers = [{
+      name = "hass";
+      ensureDBOwnership = true;
+    }];
   };
 }

@@ -9,5 +9,6 @@
     ./ipfs.nix
     ./arr.nix
     ./github-runner.nix
+    ./smarthome.nix
   ];
 }
