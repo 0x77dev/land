@@ -224,6 +224,7 @@
       packaging # Package version handling
       aioesphomeapi # Better ESPHome support
       zeroconf # Better mDNS support
+      pyatv # ATV
     ];
   };
 
