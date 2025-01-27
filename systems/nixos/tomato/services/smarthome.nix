@@ -291,7 +291,7 @@
       withings-api
 
       # For UniFi Protect
-      pyunifiprotect
+      uiprotect
 
       # For ONVIF
       onvif-zeep
