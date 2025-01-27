@@ -11,7 +11,6 @@
       "frontend"
       "history"
       "logbook"
-      "map"
       "mobile_app"
       "sun"
       "system_health"
@@ -35,7 +34,6 @@
 
       # Optimization
       "isal" # Fast zlib compression
-      "sonic" # Fast Python text search engine
 
       # Network & Device tracking
       "bluetooth_tracker"
