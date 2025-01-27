@@ -6,6 +6,7 @@
       "default_config"
       "met"
       "analytics"
+      "diagnostics"
       "backup"
       "energy"
       "frontend"
@@ -15,6 +16,31 @@
       "sun"
       "system_health"
       "webhook"
+      "vacuum"
+      "zone"
+      "sensor"
+      "proximity"
+      "tag"
+      "text"
+      "recorder"
+      "stream"
+      "template"
+
+      # Etc
+      "twitter"
+      "telegram"
+      "youtube"
+      "xiaomi"
+      "xiaomi_ble"
+      "xiaomi_miio"
+      "govee_light_local"
+      "fail2ban"
+      "netdata"
+      "openai_conversation"
+      "assist_pipeline"
+      "assist_satellite"
+      "transmission"
+      "withings"
 
       # Device Discovery & Control Protocols
       "zha" # Zigbee Home Automation
@@ -26,16 +52,26 @@
       "ssdp" # Simple Service Discovery Protocol
       "zeroconf" # Zero-configuration networking
       "dhcp" # DHCP discovery
+      "tcp"
 
       # Media
       "cast" # Google Cast support
       "dlna_dmr" # DLNA Digital Media Renderer
       "media_source" # Media browsing
+      "tts"
+      "stt"
+      "unifiprotect"
+      "onvif"
+      "tautulli"
+      "plex"
 
       # Optimization
       "isal" # Fast zlib compression
 
       # Network & Device tracking
+      "tailscale"
+      "unifi"
+      "unifi_direct"
       "bluetooth_tracker"
       "device_tracker"
       "network"
@@ -227,7 +263,6 @@
   # Ensure required system packages
   environment.systemPackages = with pkgs; [
     git
-    bluetooth
     bluez-tools
     openssl
     nano
