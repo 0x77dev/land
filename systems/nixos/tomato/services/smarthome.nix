@@ -287,9 +287,6 @@
       # For OpenAI integration
       openai
 
-      # For Transmission integration
-      transmissionrpc
-
       # For Withings integration
       withings-api
 
