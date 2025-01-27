@@ -198,6 +198,7 @@
       # Bluetooth
       bleak
       bleak-retry-connector
+      govee-ble
       # MQTT
       paho-mqtt
       # Optimization
@@ -227,6 +228,7 @@
       zeroconf # Better mDNS support
       pyatv # ATV
       samsungctl
+      samsungtvws
       aranet4
     ];
   };
