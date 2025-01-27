@@ -98,7 +98,7 @@
       # HTTP Configuration
       http = {
         server_host = [ "0.0.0.0" "::" ];
-        server_port = 8123;
+        server_port = 9123;
         use_x_forwarded_for = true;
         trusted_proxies = [
           "127.0.0.1"
@@ -273,4 +273,11 @@
   # Enable required system services for bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
   hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
+
+  # Allow hass to change config
+  systemd.tmpfiles.rules = [
+    "f /var/lib/hass/automations.yaml 0755 hass hass"
+    "f /var/lib/hass/scenes.yaml 0755 hass hass"
+    "f /var/lib/hass/scripts.yaml 0755 hass hass"
+  ];
 }
