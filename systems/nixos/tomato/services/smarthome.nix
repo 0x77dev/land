@@ -326,7 +326,6 @@
       python-socketio # Socket.IO support
       xmltodict # XML parsing
       voluptuous # Config validation
-      PyJWT # JWT support
       asyncio_mqtt # MQTT async support
       aiodiscover # Network discovery
       ifaddr # Interface addresses
