@@ -284,9 +284,6 @@
       python-miio
       xiaomi-ble
 
-      # For Govee integration
-      govee-api-laggat
-
       # For OpenAI integration
       openai
 
