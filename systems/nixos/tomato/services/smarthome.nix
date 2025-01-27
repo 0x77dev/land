@@ -42,7 +42,6 @@
       "file_upload"
       "image"
       "logger"
-      "map"
       "person"
       "safe_mode"
       "usb"
