@@ -87,9 +87,6 @@
         currency = "USD";
         country = "US";
         language = "en";
-        latitude = "!secret latitude";
-        longitude = "!secret longitude";
-        elevation = "!secret elevation";
       };
 
       # Default Configuration
