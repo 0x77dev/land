@@ -322,7 +322,6 @@
 
       # Additional utilities
       yarl # URL parsing
-      async_timeout # Async timeout
       astral # Sun calculations
       python-socketio # Socket.IO support
       xmltodict # XML parsing
