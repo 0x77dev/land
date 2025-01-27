@@ -28,6 +28,25 @@
       "energy"
       "history"
       "logbook"
+      "counter" # Required for some automations
+      "file_upload" # Required for some UI functions
+      "folder_watcher" # Useful for monitoring config changes
+      "hardware" # Better hardware support
+      "local_ip" # Required for network detection
+      "logger" # Better logging support
+      "notify" # Required for notifications
+      "person" # Required for presence detection
+      "systemmonitor" # System monitoring
+      "auth"
+      "config"
+      "file_upload"
+      "image"
+      "logger"
+      "map"
+      "person"
+      "safe_mode"
+      "usb"
+      "websocket_api"
 
       # Etc
       "twitter"
@@ -42,7 +61,6 @@
       "openai_conversation"
       "assist_pipeline"
       "assist_satellite"
-      "transmission"
       "withings"
 
       # Device Discovery & Control Protocols
@@ -100,10 +118,21 @@
         server_host = [ "0.0.0.0" "::" ];
         server_port = 9123;
         use_x_forwarded_for = true;
+        ip_ban_enabled = true;
+        login_attempts_threshold = 5;
         trusted_proxies = [
           "127.0.0.1"
           "::1"
         ];
+      };
+
+      logger = {
+        default = "info";
+        logs = {
+          "homeassistant.components.zha" = "debug";
+          "homeassistant.components.mqtt" = "debug";
+          "homeassistant.components.bluetooth" = "debug";
+        };
       };
 
       # Database Configuration
@@ -133,6 +162,14 @@
         port = 1883;
         discovery = true;
         discovery_prefix = "homeassistant";
+        birth_message = {
+          topic = "homeassistant/status";
+          payload = "online";
+        };
+        will_message = {
+          topic = "homeassistant/status";
+          payload = "offline";
+        };
       };
 
       # Zigbee Configuration
@@ -160,6 +197,11 @@
             "climate"
           ];
         };
+      };
+
+      backup = {
+        auto_purge = true;
+        backup_path = "/var/lib/hass/backups";
       };
 
       # Matter Configuration
@@ -230,6 +272,77 @@
       samsungctl
       samsungtvws
       aranet4
+      # For Twitter integration
+      tweepy
+
+      # For Telegram integration
+      python-telegram-bot
+
+      # For YouTube integration
+      google-api-python-client
+      oauth2client
+
+      # For Xiaomi integrations
+      python-miio
+      xiaomi-ble
+
+      # For Govee integration
+      govee-api-laggat
+
+      # For OpenAI integration
+      openai
+
+      # For Transmission integration
+      transmissionrpc
+
+      # For Withings integration
+      withings-api
+
+      # For UniFi Protect
+      pyunifiprotect
+
+      # For ONVIF
+      onvif-zeep
+
+      # For Tautulli
+      pytautulli
+
+      # For Plex
+      plexapi
+
+      # For Tailscale
+      tailscale
+
+      # For Netdata
+      netdata
+
+      # For media support
+      mutagen # Audio metadata
+      pillow # Image processing
+
+      # For TTS/STT
+      gtts # Google TTS
+
+      # Network and device tracking
+      requests # HTTP requests
+      netaddr # Network address manipulation
+      pyroute2 # Linux networking
+
+      # Additional utilities
+      yarl # URL parsing
+      async_timeout # Async timeout
+      astral # Sun calculations
+      python-socketio # Socket.IO support
+      xmltodict # XML parsing
+      voluptuous # Config validation
+      PyJWT # JWT support
+      asyncio_mqtt # MQTT async support
+      aiodiscover # Network discovery
+      ifaddr # Interface addresses
+      pyserial # Serial port support
+      pyserial-asyncio # Async serial support
+      typing-extensions # Type hints
+      wakeonlan # Wake on LAN
     ];
   };
 
@@ -285,5 +398,12 @@
     "f /var/lib/hass/automations.yaml 0755 hass hass"
     "f /var/lib/hass/scenes.yaml 0755 hass hass"
     "f /var/lib/hass/scripts.yaml 0755 hass hass"
+    "d /var/lib/hass/www 0755 hass hass"
+    "d /var/lib/hass/custom_components 0755 hass hass"
+    "d /var/lib/hass/themes 0755 hass hass"
   ];
+  systemd.services.home-assistant = {
+    wants = [ "network-online.target" "postgresql.service" "mosquitto.service" ];
+    after = [ "network-online.target" "postgresql.service" "mosquitto.service" ];
+  };
 }
