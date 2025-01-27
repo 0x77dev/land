@@ -210,6 +210,7 @@
       aiohomekit
       # Matter
       python-matter-server
+      python-otbr-api
       # Other
       netdisco
       colorlog
@@ -225,6 +226,9 @@
       aioesphomeapi # Better ESPHome support
       zeroconf # Better mDNS support
       pyatv # ATV
+      samsungctl
+      aranet4
+      python_otbr_api
     ];
   };
 
