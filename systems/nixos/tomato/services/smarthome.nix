@@ -237,7 +237,7 @@
     curl
   ];
 
-  # Enable required system services
-  services.bluetooth.enable = true;
-  hardware.bluetooth.enable = true;
+  # Enable required system services for bluetooth
+  hardware.bluetooth.enable = true; # enables support for Bluetooth
+  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
 }
