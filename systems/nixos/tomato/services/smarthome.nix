@@ -43,7 +43,6 @@
       "image"
       "logger"
       "person"
-      "safe_mode"
       "usb"
       "websocket_api"
 
