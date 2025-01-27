@@ -228,7 +228,6 @@
       pyatv # ATV
       samsungctl
       aranet4
-      python_otbr_api
     ];
   };
 
