@@ -319,20 +319,6 @@
       requests # HTTP requests
       netaddr # Network address manipulation
       pyroute2 # Linux networking
-
-      # Additional utilities
-      yarl # URL parsing
-      astral # Sun calculations
-      python-socketio # Socket.IO support
-      xmltodict # XML parsing
-      voluptuous # Config validation
-      asyncio_mqtt # MQTT async support
-      aiodiscover # Network discovery
-      ifaddr # Interface addresses
-      pyserial # Serial port support
-      pyserial-asyncio # Async serial support
-      typing-extensions # Type hints
-      wakeonlan # Wake on LAN
     ];
   };
 
