@@ -25,6 +25,9 @@
       "recorder"
       "stream"
       "template"
+      "energy"
+      "history"
+      "logbook"
 
       # Etc
       "twitter"
