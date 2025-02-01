@@ -34,6 +34,9 @@
       "speed-limit-down" = 0; # Unlimited
       "speed-limit-up" = 0; # Unlimited
       "alt-speed-enabled" = false;
+      "upload-slots-per-torrent" = 0; # Disable seeding
+      "seed-queue-enabled" = false;
+      "seed-queue-size" = 0;
 
       # Peer settings  
       "peer-limit-global" = 1000;
