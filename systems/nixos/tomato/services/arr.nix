@@ -22,4 +22,9 @@
     enable = true;
     openFirewall = true;
   };
+
+  services.bazarr = {
+    enable = true;
+    openFirewall = true;
+  };
 }
