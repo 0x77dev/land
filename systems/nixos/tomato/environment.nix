@@ -5,5 +5,6 @@
     lsof
     curl
     btop
+    rclone
   ];
 }
