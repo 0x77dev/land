@@ -1,4 +1,9 @@
 { pkgs, ... }: {
+  services.syncthing = {
+    enable = true;
+    openDefaultPorts = true;
+  };
+
   systemd.services.transmission.vpnConfinement = {
     enable = true;
     vpnNamespace = "wg";
