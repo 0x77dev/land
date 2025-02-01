@@ -1,6 +1,6 @@
 { pkgs, ... }: {
   services.immich = {
-    enable = true;
+    enable = false;
     host = "0.0.0.0";
     port = 2283;
     openFirewall = true;
