@@ -41,7 +41,7 @@
 
     # darwin specific inputs
     nix-darwin = {
-      url = "github:LnL7/nix-darwin";
+      url = "github:LnL7/nix-darwin/nix-darwin-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew = {
@@ -72,41 +72,86 @@
     allow-unfree = true;
   };
 
-  outputs = inputs@{ flake-parts, devenv-root, sops-nix, nix-darwin, nixpkgs, home-manager, nixos-generators, vpn-confinement, nixos-wsl, ... }:
+  outputs =
+    inputs @ { flake-parts
+    , devenv-root
+    , sops-nix
+    , nix-darwin
+    , nixpkgs
+    , home-manager
+    , nixos-generators
+    , vpn-confinement
+    , nixos-wsl
+    , ...
+    }:
     let
-      mkHomeConfig = system: username: homeDirectory: home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
+      mkHomeConfig = system: username: homeDirectory:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = import nixpkgs {
+            inherit system;
+          };
+
+          modules = [
+            ./modules/home
+            {
+              home.username = username;
+              home.homeDirectory = homeDirectory;
+            }
+          ];
+
+          extraSpecialArgs = {
+            inherit inputs system;
+          };
+        };
+
+      mkDarwinConfig =
+        { system ? "aarch64-darwin"
+        , modules ? [ ]
+        ,
+        }:
+        nix-darwin.lib.darwinSystem {
           inherit system;
+          specialArgs = { inherit inputs; };
+          modules =
+            [
+              sops-nix.darwinModules.sops
+              ./modules/darwin/homebrew.nix
+              ./modules/darwin/security.nix
+              ./modules/darwin/dock.nix
+              ./modules/darwin/linux-builder.nix
+              ./modules/darwin/hardware/focusrite.nix
+              ./modules/darwin/hardware/flipper.nix
+              ./modules/darwin/hardware/meshtastic.nix
+              ./modules/darwin/hardware/worklouder.nix
+              ./systems/darwin/common/configuration.nix
+              home-manager.darwinModules.home-manager
+              {
+                home-manager = {
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  extraSpecialArgs = {
+                    inherit inputs system;
+                  };
+                  users."0x77" = import ./modules/home {
+                    inherit inputs system;
+                    username = "0x77";
+                    homeDirectory = "/Users/0x77";
+                    openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ./helpers/openssh-authorized-keys.json);
+                  };
+                };
+              }
+            ]
+            ++ modules;
         };
 
-        modules = [
-          ./modules/home
-          {
-            home.username = username;
-            home.homeDirectory = homeDirectory;
-          }
-        ];
-
-        extraSpecialArgs = {
-          inherit inputs system;
-        };
-      };
-
-      mkDarwinConfig = { system ? "aarch64-darwin", modules ? [ ] }: nix-darwin.lib.darwinSystem {
-        inherit system;
-        specialArgs = { inherit inputs; };
-        modules = [
-          sops-nix.darwinModules.sops
-          ./modules/darwin/homebrew.nix
-          ./modules/darwin/security.nix
-          ./modules/darwin/dock.nix
-          ./modules/darwin/linux-builder.nix
-          ./modules/darwin/hardware/focusrite.nix
-          ./modules/darwin/hardware/flipper.nix
-          ./modules/darwin/hardware/meshtastic.nix
-          ./modules/darwin/hardware/worklouder.nix
-          ./systems/darwin/common/configuration.nix
-          home-manager.darwinModules.home-manager
+      mkNixosModules =
+        { system
+        , modules ? [ ]
+        ,
+        }:
+        [
+          sops-nix.nixosModules.sops
+          home-manager.nixosModules.home-manager
           {
             home-manager = {
               useGlobalPkgs = true;
@@ -114,44 +159,32 @@
               extraSpecialArgs = {
                 inherit inputs system;
               };
-              users."0x77" = import ./modules/home {
+              users."mykhailo" = import ./modules/home {
                 inherit inputs system;
-                username = "0x77";
-                homeDirectory = "/Users/0x77";
+                username = "mykhailo";
+                homeDirectory = "/home/mykhailo";
                 openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ./helpers/openssh-authorized-keys.json);
               };
             };
           }
-        ] ++ modules;
-      };
+        ]
+        ++ modules;
 
-      mkNixosModules = { system, modules ? [ ] }: [
-        sops-nix.nixosModules.sops
-        home-manager.nixosModules.home-manager
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = {
-              inherit inputs system;
-            };
-            users."mykhailo" = import ./modules/home {
-              inherit inputs system;
-              username = "mykhailo";
-              homeDirectory = "/home/mykhailo";
-              openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ./helpers/openssh-authorized-keys.json);
-            };
-          };
-        }
-      ] ++ modules;
-
-      mkNixosConfig = { system, modules ? [ ] }: nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit inputs; };
-        modules = mkNixosModules { inherit system modules; } ++ [
-          nixos-generators.nixosModules.all-formats
-        ] ++ modules;
-      };
+      mkNixosConfig =
+        { system
+        , modules ? [ ]
+        ,
+        }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs; };
+          modules =
+            mkNixosModules { inherit system modules; }
+            ++ [
+              nixos-generators.nixosModules.all-formats
+            ]
+            ++ modules;
+        };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
@@ -159,25 +192,32 @@
       ];
       systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
 
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
-        _module.args.pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-        };
+      perSystem =
+        { config
+        , self'
+        , inputs'
+        , pkgs
+        , system
+        , ...
+        }: {
+          _module.args.pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
 
-        devenv.shells.default = {
-          devenv.root =
-            let
-              devenvRootFileContent = builtins.readFile devenv-root.outPath;
-            in
-            pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
+          devenv.shells.default = {
+            devenv.root =
+              let
+                devenvRootFileContent = builtins.readFile devenv-root.outPath;
+              in
+              pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
 
-          name = "land";
-          imports = [
-            ./devenv.nix
-          ];
+            name = "land";
+            imports = [
+              ./devenv.nix
+            ];
+          };
         };
-      };
 
       flake = {
         homeConfigurations = {
