@@ -3,8 +3,8 @@
     enable = true;
     openDefaultPorts = true;
     dataDir = "/data/sync";
-    cert = "/run/secrets/syncthing/keys/tomato/cert";
-    key = "/run/secrets/syncthing/keys/tomato/key";
+    cert = "/run/secrets/syncthing/tomato_cert";
+    key = "/run/secrets/syncthing/tomato_key";
   };
 
   systemd.services.transmission.vpnConfinement = {

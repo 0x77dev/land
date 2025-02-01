@@ -40,7 +40,12 @@
         group = "github-runner";
         mode = "0440";
       };
-      "syncthing" = {
+      "syncthing/tomato_cert" = {
+        owner = "syncthing";
+        group = "syncthing";
+        mode = "0440";
+      };
+      "syncthing/tomato_key" = {
         owner = "syncthing";
         group = "syncthing";
         mode = "0440";
