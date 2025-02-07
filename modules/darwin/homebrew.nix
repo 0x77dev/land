@@ -1,6 +1,4 @@
-{ inputs, ... }:
-
-{
+{ inputs, ... }: {
   imports = [
     inputs.nix-homebrew.darwinModules.nix-homebrew
   ];
@@ -29,6 +27,7 @@
 
     casks = [
       "arc"
+      "homerow"
       "aptakube"
       "spotify"
       "raycast"
