@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     devenv-root = {
       url = "file+file:///dev/null";
@@ -78,6 +79,7 @@
     , sops-nix
     , nix-darwin
     , nixpkgs
+    , nixpkgs-unstable
     , home-manager
     , nixos-generators
     , vpn-confinement
