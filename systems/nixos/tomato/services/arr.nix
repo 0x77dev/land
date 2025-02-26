@@ -13,9 +13,19 @@
     });
   };
 
-  services.flaresolverr = {
-    enable = true;
-    openFirewall = true;
+  virtualisation.oci-containers = {
+    backend = "docker";
+    containers = {
+      flaresolverr = {
+        autoStart = true;
+        ports = [ "127.0.0.1:8191:8191" ];
+        environment = {
+          LOG_LEVEL = "info";
+          LOG_HTML = "false";
+          TZ = "America/Los_Angeles";
+        };
+      };
+    };
   };
 
   services.lidarr = {
