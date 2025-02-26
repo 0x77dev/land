@@ -40,6 +40,11 @@
         group = "github-runner";
         mode = "0440";
       };
+      "netdata/claim-token" = {
+        owner = "netdata";
+        group = "netdata";
+        mode = "0440";
+      };
       "syncthing/tomato_cert" = {
         owner = "syncthing";
         group = "syncthing";

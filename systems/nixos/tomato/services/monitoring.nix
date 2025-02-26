@@ -2,6 +2,7 @@
   services.netdata = {
     enable = true;
     enableAnalyticsReporting = false;
+    claimTokenFile = "/run/secrets/netdata/claim-token";
     package = pkgs.netdata.override {
       withCloudUi = true;
     };
