@@ -6,6 +6,7 @@
     package = pkgs.netdata.override {
       withCloudUi = true;
       withCloud = true;
+      withSystemdJournal = true;
     };
     configDir."python.d.conf" = pkgs.writeText "python.d.conf" ''
       samba: yes
