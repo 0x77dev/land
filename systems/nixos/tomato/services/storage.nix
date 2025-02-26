@@ -71,9 +71,6 @@
     openFirewall = true;
     smbd.enable = true;
     nmbd.enable = true;
-    extraConfig = ''
-      smbd profiling level = on
-    '';
 
     settings = {
       global = {
