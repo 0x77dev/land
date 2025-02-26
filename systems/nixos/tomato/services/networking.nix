@@ -31,4 +31,10 @@
   };
 
   users.users.cloudflared.home = "/home/cloudflared";
+
+
+  services.iperf3 = {
+    enable = true;
+    openFirewall = true;
+  };
 }

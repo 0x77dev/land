@@ -5,6 +5,7 @@
     claimTokenFile = "/run/secrets/netdata/claim-token";
     package = pkgs.netdata.override {
       withCloudUi = true;
+      withCloud = true;
     };
     configDir."python.d.conf" = pkgs.writeText "python.d.conf" ''
       samba: yes
@@ -66,10 +67,5 @@
         "CAP_NET_RAW"
       ];
     };
-  };
-
-  services.iperf3 = {
-    enable = true;
-    openFirewall = true;
   };
 }
