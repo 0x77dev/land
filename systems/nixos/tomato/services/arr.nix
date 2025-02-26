@@ -13,6 +13,11 @@
     });
   };
 
+  services.flaresolverr = {
+    enable = true;
+    openFirewall = true;
+  };
+
   services.lidarr = {
     enable = true;
     openFirewall = true;
