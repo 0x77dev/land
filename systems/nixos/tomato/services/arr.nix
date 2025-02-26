@@ -18,6 +18,7 @@
     containers = {
       flaresolverr = {
         autoStart = true;
+        image = "flaresolverr/flaresolverr:latest";
         ports = [ "127.0.0.1:8191:8191" ];
         environment = {
           LOG_LEVEL = "info";
