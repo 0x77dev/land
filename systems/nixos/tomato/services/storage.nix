@@ -187,9 +187,9 @@
         "inherit acls" = "yes";
       };
 
-      photos = {
-        comment = "Photos Library";
-        path = "/data/media/immich";
+      media = {
+        comment = "Media Library";
+        path = "/data/media";
         browseable = "yes";
         "read only" = "no";
         "guest ok" = "no";
