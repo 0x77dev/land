@@ -43,4 +43,9 @@
     enable = true;
     openFirewall = true;
   };
+
+  services.readarr = {
+    enable = true;
+    openFirewall = true;
+  };
 }
