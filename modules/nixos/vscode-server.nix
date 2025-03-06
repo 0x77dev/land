@@ -28,8 +28,8 @@ with lib;
     };
 
     extraRuntimeDependencies = mkOption {
-      type = types.functionTo (types.listOf types.package);
-      default = pkgs: with pkgs; [
+      type = types.listOf types.package;
+      default = with pkgs; [
         # Common dependencies for development
         curl
         wget
@@ -44,6 +44,15 @@ with lib;
         These packages will be available to VS Code Server extensions.
       '';
     };
+
+    installPath = mkOption {
+      type = types.str;
+      default = "$HOME/.vscode-server";
+      description = ''
+        The installation path for VS Code server.
+        Use "$HOME/.vscode-server-insiders" for the Insiders build.
+      '';
+    };
   };
 
   config = mkIf config.modules.vscode-server.enable {
@@ -52,6 +61,7 @@ with lib;
       enableFHS = config.modules.vscode-server.enableFHS;
       nodejsPackage = config.modules.vscode-server.nodejsPackage;
       extraRuntimeDependencies = config.modules.vscode-server.extraRuntimeDependencies;
+      installPath = config.modules.vscode-server.installPath;
     };
 
     # Ensure SSH server is enabled for remote connections
@@ -63,8 +73,18 @@ with lib;
         echo "Setting up VS Code Server for current user..."
         systemctl --user enable auto-fix-vscode-server.service
         systemctl --user start auto-fix-vscode-server.service
+        
+        # Create a permanent symlink to prevent garbage collection issues
+        mkdir -p ~/.config/systemd/user/
+        ln -sfT /run/current-system/etc/systemd/user/auto-fix-vscode-server.service ~/.config/systemd/user/auto-fix-vscode-server.service
+        
         echo "VS Code Server has been set up for $(whoami)."
         echo "You can now connect to this machine using VS Code's Remote SSH extension."
+        
+        # Add a tip for troubleshooting
+        echo ""
+        echo "Tip: If you encounter connection issues, try adding this to your VS Code settings:"
+        echo '    "remote.SSH.useLocalServer": false'
       '')
     ];
   };
