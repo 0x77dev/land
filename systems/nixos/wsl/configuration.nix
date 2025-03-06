@@ -1,21 +1,17 @@
-{ pkgs, ... }: {
+{ pkgs, inputs, ... }: {
   system.stateVersion = "24.11";
   wsl.enable = true;
   wsl.defaultUser = "mykhailo";
   wsl.docker-desktop.enable = true;
-  systemd.user = {
-    paths.vscode-remote-workaround = {
-      wantedBy = [ "default.target" ];
-      pathConfig.PathChanged = "%h/.vscode-server/bin";
-    };
 
-    services.vscode-remote-workaround.script = ''
-      for i in ~/.vscode-server/bin/*; do
-        echo "Fixing vscode-server in $i..."
-        ln -sf ${pkgs.nodejs-slim}/bin/node $i/node
-      done
-    '';
-  };
+  imports = [
+    inputs.nixos-vscode-server.nixosModules.default
+    ../../../modules/nixos/vscode-server.nix
+  ];
+
+  # Enable VS Code Server with optimal settings
+  modules.vscode-server.enable = true;
+
   environment = {
     systemPackages = [
       pkgs.wget

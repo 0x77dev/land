@@ -37,6 +37,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # VS Code Server
+    nixos-vscode-server = {
+      url = "github:nix-community/nixos-vscode-server";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # WSL specific inputs
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
 
@@ -84,6 +90,7 @@
     , nixos-generators
     , vpn-confinement
     , nixos-wsl
+    , nixos-vscode-server
     , ...
     }:
     let

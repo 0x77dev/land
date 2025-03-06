@@ -1,0 +1,4 @@
+# NixOS modules
+{
+  vscode-server = import ./vscode-server.nix;
+}

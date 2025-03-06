@@ -8,12 +8,14 @@
   imports =
     [
       inputs.sops-nix.nixosModules.sops
+      inputs.nixos-vscode-server.nixosModules.default
       ./hardware-configuration.nix
       ./environment.nix
       ./security.nix
       ./programs.nix
       ./services
       ./virtualisation.nix
+      ../../../modules/nixos/vscode-server.nix
     ];
 
   sops = {
@@ -179,6 +181,9 @@
   networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [ 22 19999 139 445 2283 80 443 8181 32400 5001 8501 4001 6800 9091 ];
   networking.firewall.allowedUDPPorts = [ 137 138 80 443 4001 ];
+
+  # Enable VS Code Server with optimal settings
+  modules.vscode-server.enable = true;
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
