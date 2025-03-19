@@ -118,7 +118,7 @@
 
     # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
     # Enable this if you have graphical corruption issues or application crashes after waking
-    # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead 
+    # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead
     # of just the bare essentials.
     powerManagement.enable = true;
 
@@ -128,9 +128,9 @@
 
     # Use the NVidia open source kernel module (not to be confused with the
     # independent third-party "nouveau" open source driver).
-    # Support is limited to the Turing and later architectures. Full list of 
-    # supported GPUs is at: 
-    # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
+    # Support is limited to the Turing and later architectures. Full list of
+    # supported GPUs is at:
+    # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus
     # Only available from driver 515.43.04+
     # Currently alpha-quality/buggy, so false is currently the recommended setting.
     open = false;
@@ -141,10 +141,6 @@
 
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
     package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
-
-  environment.variables = {
-    STEAM_EXTRA_COMPAT_TOOLS_PATHS = "/home/mykhailo/.steam/root/compatibilitytools.d";
   };
 
   # Enable the GNOME Desktop Environment.
@@ -186,7 +182,7 @@
   users.users.mykhailo = {
     isNormalUser = true;
     description = "Mykhailo Marynenko";
-    extraGroups = [ "wheel" "networkmanager" "docker" ];
+    extraGroups = [ "wheel" "networkmanager" "docker" "dialout" "libvirtd" ];
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
@@ -194,16 +190,15 @@
   # Install chromium.
   programs.chromium.enable = true;
 
+  # virt-manager
+  programs.virt-manager.enable = true;
+  users.groups.libvirtd.members = [ "mykhailo" ];
+  virtualisation.libvirtd.enable = true;
+
+  virtualisation.spiceUSBRedirection.enable = true;
+
   # fish
   programs.fish.enable = true;
-
-  # steam
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
-    gamescopeSession.enable = true;
-  };
 
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
@@ -235,7 +230,6 @@
     export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
   '';
 
-  programs.gamemode.enable = true;
   programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
@@ -246,9 +240,27 @@
 
   services.openssh.enable = true;
   services.tailscale.enable = true;
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    publish = {
+      enable = true;
+      addresses = true;
+      domain = true;
+      hinfo = true;
+      userServices = true;
+      workstation = true;
+    };
+  };
+  programs._1password.enable = true;
+  programs._1password-gui = {
+    enable = true;
+    polkitPolicyOwners = [ "mykhailo" ];
+  };
 
   virtualisation.docker = {
     enable = true;
+    enableNvidia = true;
     daemon.settings = {
       data-root = "/data/docker";
     };
@@ -268,5 +280,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
-
 }

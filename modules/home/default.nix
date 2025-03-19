@@ -10,6 +10,7 @@
     ./kitty.nix
     ./vscode.nix
     ./neovim.nix
+    ./chromium.nix
   ];
 
   programs.home-manager.enable = true;

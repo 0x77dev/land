@@ -209,7 +209,7 @@
       assistant = {
         chatgpt.enable = false;
         copilot = {
-          enable = false;
+          enable = true;
           cmp.enable = true;
         };
       };
