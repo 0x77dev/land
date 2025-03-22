@@ -37,6 +37,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
     # VS Code Server
     nixos-vscode-server = {
       url = "github:nix-community/nixos-vscode-server";
@@ -91,6 +94,7 @@
     , vpn-confinement
     , nixos-wsl
     , nixos-vscode-server
+    , disko
     , ...
     }:
     let
@@ -241,6 +245,14 @@
             modules = [
               vpn-confinement.nixosModules.default
               ./systems/nixos/tomato/configuration.nix
+            ];
+          };
+          pickle = mkNixosConfig {
+            system = "x86_64-linux";
+            modules = [
+              disko.nixosModules.disko
+              vpn-confinement.nixosModules.default
+              ./systems/nixos/pickle/configuration.nix
             ];
           };
           muscle = mkNixosConfig {
