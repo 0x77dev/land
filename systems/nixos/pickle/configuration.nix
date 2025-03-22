@@ -39,8 +39,13 @@
   # Enable the X11 windowing system.
   # services.xserver.enable = true;
 
-
-
+  users.users.mykhailo = {
+    isNormalUser = true;
+    description = "Mykhailo Marynenko";
+    extraGroups = [ "wheel" "networkmanager" "docker" ];
+    shell = pkgs.fish;
+    openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
+  };
 
   # Configure keymap in X11
   # services.xserver.xkb.layout = "us";
