@@ -27,6 +27,23 @@ This repository uses [Nix](https://nixos.org/) to manage:
      ```shell
      nixos-rebuild switch --refresh --flake github:0x77dev/land#<hostname>
      ```
+   - For installing NixOS on a new machine:
+
+     ```shell
+     HOSTNAME=...
+     mkdir -p systems/nixos/$HOSTNAME
+
+     curl https://raw.githubusercontent.com/nix-community/disko/master/example/hybrid.nix -o systems/nixos/$HOSTNAME/disko-config.nix
+     # edit disko-config.nix
+     # download disko-config.nix to the target machine at /tmp
+     sudo nix \
+      --experimental-features "nix-command flakes" \
+      run github:nix-community/disko -- \
+      --mode disko /tmp/disko-config.nix
+
+     sudo nixos-install --root /mnt --flake 'github:0x77dev/land#<hostname>'
+     ```
+
    - For home-manager (if not defined in NixOS or nix-darwin):
      ```shell
      nix run home-manager --experimental-features 'nix-command flakes' -- switch --refresh --experimental-features 'nix-command flakes' --flake github:0x77dev/land#<username>@<hostname> -b backup
