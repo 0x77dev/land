@@ -52,6 +52,17 @@ This repository uses [Nix](https://nixos.org/) to manage:
      nixos-anywhere --flake 'github:0x77dev/land#<hostname>' <username>@<hostname>
      ```
 
+   - Applying NixOS configuration on a machine remotely:
+
+     ```shell
+     nixos-rebuild \
+        --flake .#tomato \
+        --target-host mykhailo@tomato \
+        --build-host mykhailo@tomato \
+        --use-remote-sudo \
+        switch --accept-flake-config
+     ```
+
    - For home-manager (if not defined in NixOS or nix-darwin):
      ```shell
      nix run home-manager --experimental-features 'nix-command flakes' -- switch --refresh --experimental-features 'nix-command flakes' --flake github:0x77dev/land#<username>@<hostname> -b backup
@@ -99,3 +110,13 @@ This repository uses [Nix](https://nixos.org/) to manage:
 If you want to use this repository as a starting point for your own homelab, you can do so by forking it and customizing it to your needs.
 
 You can start by adding your own machines to the `flake.nix` file, and then customize the `modules/` and `systems/` directories to your liking.
+
+## Cheat sheet
+
+### sops
+
+- Getting target machine public key
+
+  ```bash
+  ssh-keyscan tomato | ssh-to-age
+  ```

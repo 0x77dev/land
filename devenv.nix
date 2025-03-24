@@ -7,6 +7,7 @@
     age
     sops
     nixos-anywhere
+    ssh-to-age
   ];
 
   dotenv.disableHint = true;

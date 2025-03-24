@@ -1,6 +1,7 @@
 keys:
   - &pgp_fingerprint C33BFD3230B660CF147762D2BF5C81B531164955
-  - &tomato age1dzqkau3k38cclp6rw6hlhzp99d9gruv7u4rg2vcry9krze9ry97qemuqvm
+  - &tomato age1a26rq52n42wn9u8436led7hspc7tny6w26mc8a32qyg3puv4j4vs7at72w
+  - &pickle age1z4v4t3s0vmsvwvvmzrrss57hyl0h4al4wsz3jv5zufk6r9qmzggqfsuz4a
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
@@ -8,3 +9,4 @@ creation_rules:
           - *pgp_fingerprint
         age:
           - *tomato
+          - *pickle
