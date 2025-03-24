@@ -1,6 +1,6 @@
 keys:
   - &pgp_fingerprint C33BFD3230B660CF147762D2BF5C81B531164955
-  - &tomato age1t658m4yv4q3sfpfu8y458lv963y2lmtlqkhkezgndzk0pu8xvvyq3rsvzw
+  - &tomato age1dzqkau3k38cclp6rw6hlhzp99d9gruv7u4rg2vcry9krze9ry97qemuqvm
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
