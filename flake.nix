@@ -22,8 +22,6 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
-    vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
-
     nvf.url = "github:notashelf/nvf";
     nvf.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -94,7 +92,6 @@
     , nixpkgs-unstable
     , home-manager
     , nixos-generators
-    , vpn-confinement
     , nixos-wsl
     , nixos-vscode-server
     , disko
@@ -248,7 +245,6 @@
             system = "x86_64-linux";
             modules = [
               disko.nixosModules.disko
-              vpn-confinement.nixosModules.default
               ./systems/nixos/tomato/configuration.nix
             ];
           };
@@ -256,7 +252,6 @@
             system = "x86_64-linux";
             modules = [
               disko.nixosModules.disko
-              vpn-confinement.nixosModules.default
               ./systems/nixos/pickle/configuration.nix
             ];
           };
