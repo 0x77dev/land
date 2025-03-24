@@ -105,28 +105,25 @@ in
       ];
     };
 
-    # Sudo without password for wheel group
-    security.sudo.wheelNeedsPassword = false;
+    # # Longhorn prerequisites
+    # environment.systemPackages = mkIf cfg.storageSupport.longhorn [
+    #   pkgs.nfs-utils
+    #   pkgs.util-linux
+    #   pkgs.e2fsprogs
+    #   pkgs.xfsprogs
+    # ];
 
-    # Longhorn prerequisites
-    environment.systemPackages = mkIf cfg.storageSupport.longhorn [
-      pkgs.nfs-utils
-      pkgs.util-linux
-      pkgs.e2fsprogs
-      pkgs.xfsprogs
-    ];
-
-    services.openiscsi = mkIf cfg.storageSupport.longhorn {
-      enable = true;
-      name = "${config.networking.hostName}-initiatorhost";
-    };
+    # services.openiscsi = mkIf cfg.storageSupport.longhorn {
+    #   enable = true;
+    #   name = "${config.networking.hostName}-initiatorhost";
+    # };
 
     # NFS support
-    boot.supportedFilesystems = mkIf cfg.storageSupport.nfs [ "nfs" ];
-    services.rpcbind.enable = mkIf cfg.storageSupport.nfs true;
+    # boot.supportedFilesystems = mkIf cfg.storageSupport.nfs [ "nfs" ];
+    # services.rpcbind.enable = mkIf cfg.storageSupport.nfs true;
 
     # ZFS support for containers
-    boot.kernelModules = mkIf cfg.storageSupport.zfs [ "rbd" ];
+    # boot.kernelModules = mkIf cfg.storageSupport.zfs [ "rbd" ];
 
     # NOTE: Instead of merging datasets here (which causes recursion), add these directly to your disko-config.nix:
     # 
