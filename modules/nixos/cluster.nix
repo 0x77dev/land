@@ -111,7 +111,6 @@ in
     # Longhorn prerequisites
     environment.systemPackages = mkIf cfg.storageSupport.longhorn [
       pkgs.nfs-utils
-      pkgs.open-iscsi
       pkgs.util-linux
       pkgs.e2fsprogs
       pkgs.xfsprogs
