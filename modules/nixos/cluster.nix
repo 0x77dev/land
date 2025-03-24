@@ -78,7 +78,7 @@ in
 
     # Sops secrets configuration
     sops = {
-      defaultSopsFile = ../../../secrets/shared.yaml;
+      defaultSopsFile = ../../secrets/shared.yaml;
       defaultSopsFormat = "yaml";
       secrets = {
         "k3s/token" = {
