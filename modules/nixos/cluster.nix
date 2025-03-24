@@ -135,28 +135,43 @@ in
     # ZFS support for containers
     boot.kernelModules = mkIf cfg.storageSupport.zfs [ "rbd" ];
 
-    # Conditionally add disko ZFS datasets if disko is enabled and we've enabled addDiskoDatasets
-    # This uses a cleaner approach to modify the ZFS datasets without overriding existing ones
-    disko.devices.zpool = mkIf (cfg.addDiskoDatasets && config.disko.devices.zpool ? "zroot") {
-      zroot.datasets = lib.mkMerge [
-        { } # Empty set as base case
-        # Add k3s dataset
-        {
-          "k3s" = {
-            type = "zfs_fs";
-            mountpoint = "/var/lib/rancher/k3s";
-            options."com.sun:auto-snapshot" = "true";
+    # Add k3s and longhorn ZFS datasets as separate module options
+    # instead of trying to modify the existing disko config
+    disko.extraModules = mkIf (cfg.addDiskoDatasets && config.boot.supportedFilesystems ? "zfs") [{
+      disk.devices.nodev.k3s_datasets = {
+        type = "nodev";
+        zfs = {
+          type = "zfs_fs";
+          pool = "zroot";
+          options.mountpoint = "legacy";
+          dataset = {
+            k3s = {
+              options = {
+                mountpoint = "/var/lib/rancher/k3s";
+                "com.sun:auto-snapshot" = "true";
+              };
+            };
           };
-        }
-        # Add longhorn dataset if longhorn support is enabled
-        (mkIf cfg.storageSupport.longhorn {
-          "longhorn" = {
-            type = "zfs_fs";
-            mountpoint = "/var/lib/longhorn";
-            options."com.sun:auto-snapshot" = "true";
+        };
+      };
+
+      # Only add longhorn dataset if longhorn support is enabled
+      disk.devices.nodev.longhorn_datasets = mkIf cfg.storageSupport.longhorn {
+        type = "nodev";
+        zfs = {
+          type = "zfs_fs";
+          pool = "zroot";
+          options.mountpoint = "legacy";
+          dataset = {
+            longhorn = {
+              options = {
+                mountpoint = "/var/lib/longhorn";
+                "com.sun:auto-snapshot" = "true";
+              };
+            };
           };
-        })
-      ];
-    };
+        };
+      };
+    }];
   };
 }
