@@ -63,12 +63,6 @@ in
         description = "Enable ZFS storage prerequisites";
       };
     };
-
-    addDiskoDatasets = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Whether to add k3s and longhorn ZFS datasets to disko configuration";
-    };
   };
 
   config = mkIf cfg.enable {
@@ -135,43 +129,18 @@ in
     # ZFS support for containers
     boot.kernelModules = mkIf cfg.storageSupport.zfs [ "rbd" ];
 
-    # Add k3s and longhorn ZFS datasets as separate module options
-    # instead of trying to modify the existing disko config
-    disko.extraModules = mkIf (cfg.addDiskoDatasets && config.boot.supportedFilesystems ? "zfs") [{
-      disk.devices.nodev.k3s_datasets = {
-        type = "nodev";
-        zfs = {
-          type = "zfs_fs";
-          pool = "zroot";
-          options.mountpoint = "legacy";
-          dataset = {
-            k3s = {
-              options = {
-                mountpoint = "/var/lib/rancher/k3s";
-                "com.sun:auto-snapshot" = "true";
-              };
-            };
-          };
-        };
-      };
-
-      # Only add longhorn dataset if longhorn support is enabled
-      disk.devices.nodev.longhorn_datasets = mkIf cfg.storageSupport.longhorn {
-        type = "nodev";
-        zfs = {
-          type = "zfs_fs";
-          pool = "zroot";
-          options.mountpoint = "legacy";
-          dataset = {
-            longhorn = {
-              options = {
-                mountpoint = "/var/lib/longhorn";
-                "com.sun:auto-snapshot" = "true";
-              };
-            };
-          };
-        };
-      };
-    }];
+    # NOTE: Instead of merging datasets here (which causes recursion), add these directly to your disko-config.nix:
+    # 
+    # k3s = {
+    #   type = "zfs_fs";
+    #   mountpoint = "/var/lib/rancher/k3s";
+    #   options."com.sun:auto-snapshot" = "true";
+    # };
+    # 
+    # longhorn = {
+    #   type = "zfs_fs"; 
+    #   mountpoint = "/var/lib/longhorn";
+    #   options."com.sun:auto-snapshot" = "true";
+    # };
   };
 }
