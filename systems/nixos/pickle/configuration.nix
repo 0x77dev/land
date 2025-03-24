@@ -18,7 +18,6 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "pickle";
-  networking.domain = "0x77.computer";
 
   # Enable K3s cluster as worker (agent) node
   modules.cluster = {
@@ -27,26 +26,11 @@
     serverAddr = "https://192.168.2.82:6443";
     storageSupport = {
       longhorn = true;
-      nfs = true;
-      zfs = false;
     };
   };
 
-  users.users.mykhailo = {
-    isNormalUser = true;
-    initialPassword = "wakeupneo";
-    description = "Mykhailo Marynenko";
-    extraGroups = [ "wheel" "networkmanager" "docker" ];
-    shell = pkgs.fish;
-    openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
-  };
-  security.sudo.wheelNeedsPassword = false;
-
-  programs.fish.enable = true;
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
   nixpkgs.config.allowUnfree = true;
+  services.openssh.enable = true;
 
   system.stateVersion = "24.11"; # Did you read the comment?
 }
