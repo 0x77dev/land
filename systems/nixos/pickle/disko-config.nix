@@ -103,6 +103,18 @@
             mountpoint = "/data/documents";
             options."com.sun:auto-snapshot" = "true";
           };
+          # K3s dataset
+          k3s = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/rancher/k3s";
+            options."com.sun:auto-snapshot" = "true";
+          };
+          # Longhorn dataset for storage
+          longhorn = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/longhorn";
+            options."com.sun:auto-snapshot" = "true";
+          };
         };
       };
     };
