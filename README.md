@@ -44,6 +44,14 @@ This repository uses [Nix](https://nixos.org/) to manage:
      sudo nixos-install --root /mnt --flake 'github:0x77dev/land#<hostname>'
      ```
 
+   - For installing NixOS on a new machine remotely:
+
+     ```shell
+     # Boot into the NixOS minimal ISO or any Linux distribution with kexec support, ensure passwordless sudo user and ssh.
+     # NixOS minimal is the easiest to use (ssh is enabled by default, passwordless sudo user is created): boot, run `sudo passwd nixos`, and then execute the following command on another machine:
+     nixos-anywhere --flake 'github:0x77dev/land#<hostname>' <username>@<hostname>
+     ```
+
    - For home-manager (if not defined in NixOS or nix-darwin):
      ```shell
      nix run home-manager --experimental-features 'nix-command flakes' -- switch --refresh --experimental-features 'nix-command flakes' --flake github:0x77dev/land#<username>@<hostname> -b backup
