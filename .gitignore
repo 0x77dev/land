@@ -3,3 +3,14 @@
 .pre-commit-config.yaml
 result
 *~
+# Local .terraform directories
+**/.terraform/*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.tfstate.lock.info
+.terraformrc
+terraform.rc

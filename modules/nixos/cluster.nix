@@ -50,18 +50,6 @@ in
         default = true;
         description = "Enable Longhorn storage prerequisites";
       };
-
-      nfs = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Enable NFS storage prerequisites";
-      };
-
-      zfs = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable ZFS storage prerequisites";
-      };
     };
   };
 
@@ -106,24 +94,17 @@ in
     };
 
     # # Longhorn prerequisites
-    # environment.systemPackages = mkIf cfg.storageSupport.longhorn [
-    #   pkgs.nfs-utils
-    #   pkgs.util-linux
-    #   pkgs.e2fsprogs
-    #   pkgs.xfsprogs
-    # ];
+    environment.systemPackages = mkIf cfg.storageSupport.longhorn [
+      pkgs.nfs-utils
+      pkgs.util-linux
+      pkgs.e2fsprogs
+      pkgs.xfsprogs
+    ];
 
-    # services.openiscsi = mkIf cfg.storageSupport.longhorn {
-    #   enable = true;
-    #   name = "${config.networking.hostName}-initiatorhost";
-    # };
-
-    # NFS support
-    # boot.supportedFilesystems = mkIf cfg.storageSupport.nfs [ "nfs" ];
-    # services.rpcbind.enable = mkIf cfg.storageSupport.nfs true;
-
-    # ZFS support for containers
-    # boot.kernelModules = mkIf cfg.storageSupport.zfs [ "rbd" ];
+    services.openiscsi = mkIf cfg.storageSupport.longhorn {
+      enable = true;
+      name = "${config.networking.hostName}-initiatorhost";
+    };
 
     # NOTE: Instead of merging datasets here (which causes recursion), add these directly to your disko-config.nix:
     # 
