@@ -28,6 +28,16 @@
     };
   };
 
+  users.users.mykhailo = {
+    isNormalUser = true;
+    initialPassword = "wakeupneo";
+    description = "Mykhailo Marynenko";
+    extraGroups = [ "wheel" "networkmanager" "docker" ];
+    shell = pkgs.fish;
+    openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
+  };
+  security.sudo.wheelNeedsPassword = false;
+
   programs.fish.enable = true;
 
   nixpkgs.config.allowUnfree = true;
