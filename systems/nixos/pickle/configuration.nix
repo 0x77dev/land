@@ -17,6 +17,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  networking.vlans = {
+    vlan4 = { id = 4; interface = "enp2s0f0"; };
+  };
+
   networking.hostName = "pickle";
 
   # Enable K3s cluster as worker (agent) node
