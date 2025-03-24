@@ -27,6 +27,7 @@
     enable = true;
     role = "server";
     clusterInit = true;
+    extraFlags = [ "--disable=servicelb" ];
     storageSupport = {
       longhorn = true;
     };

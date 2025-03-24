@@ -28,6 +28,7 @@
     enable = true;
     role = "agent";
     serverAddr = "https://192.168.2.82:6443";
+    extraFlags = [ "--disable=servicelb" ];
     storageSupport = {
       longhorn = true;
     };
