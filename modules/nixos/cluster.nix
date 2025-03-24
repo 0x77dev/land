@@ -137,29 +137,26 @@ in
 
     # Conditionally add disko ZFS datasets if disko is enabled and we've enabled addDiskoDatasets
     # This uses a cleaner approach to modify the ZFS datasets without overriding existing ones
-    disko.devices.zpool.zroot.datasets = mkIf (cfg.addDiskoDatasets && config.disko.devices.zpool ? "zroot") (
-      let
-        # Get the existing datasets or an empty set if none exist
-        existingDatasets =
-          if config.disko.devices.zpool.zroot ? "datasets"
-          then config.disko.devices.zpool.zroot.datasets
-          else { };
-      in
-      existingDatasets // {
+    disko.devices.zpool = mkIf (cfg.addDiskoDatasets && config.disko.devices.zpool ? "zroot") {
+      zroot.datasets = lib.mkMerge [
+        { } # Empty set as base case
         # Add k3s dataset
-        "k3s" = {
-          type = "zfs_fs";
-          mountpoint = "/var/lib/rancher/k3s";
-          options."com.sun:auto-snapshot" = "true";
-        };
-
+        {
+          "k3s" = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/rancher/k3s";
+            options."com.sun:auto-snapshot" = "true";
+          };
+        }
         # Add longhorn dataset if longhorn support is enabled
-        "longhorn" = mkIf cfg.storageSupport.longhorn {
-          type = "zfs_fs";
-          mountpoint = "/var/lib/longhorn";
-          options."com.sun:auto-snapshot" = "true";
-        };
-      }
-    );
+        (mkIf cfg.storageSupport.longhorn {
+          "longhorn" = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/longhorn";
+            options."com.sun:auto-snapshot" = "true";
+          };
+        })
+      ];
+    };
   };
 }
