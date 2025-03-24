@@ -1,17 +1,17 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running 'nixos-help').
-
-{ config, pkgs, inputs, ... }:
-
-{
-  imports =
-    [
-      # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      inputs.nixos-vscode-server.nixosModules.default
-      ../../../modules/nixos/vscode-server.nix
-    ];
+{ config
+, pkgs
+, inputs
+, ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+    inputs.nixos-vscode-server.nixosModules.default
+    ../../../modules/nixos/vscode-server.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -48,7 +48,7 @@
       # Build optimization
       max-jobs = "auto";
       cores = 0; # Use all available cores
-      system-features = [ "big-parallel" "benchmark" ];
+      system-features = [ "big-parallel" "benchmark" "kvm" "nixos-test" ];
       keep-outputs = true;
       keep-derivations = true;
       builders-use-substitutes = true; # Allow builders to use substitutes
