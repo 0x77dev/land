@@ -6,6 +6,7 @@
     cachix
     age
     sops
+    nixos-anywhere
   ];
 
   dotenv.disableHint = true;

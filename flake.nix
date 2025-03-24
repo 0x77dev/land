@@ -27,6 +27,9 @@
     nvf.url = "github:notashelf/nvf";
     nvf.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixos-anywhere.url = "github:nix-community/nixos-anywhere";
+    nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
+
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -95,6 +98,7 @@
     , nixos-wsl
     , nixos-vscode-server
     , disko
+    , nixos-anywhere
     , ...
     }:
     let
@@ -243,6 +247,7 @@
           tomato = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
+              disko.nixosModules.disko
               vpn-confinement.nixosModules.default
               ./systems/nixos/tomato/configuration.nix
             ];
