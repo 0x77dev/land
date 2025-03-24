@@ -9,7 +9,7 @@
     [
       ./hardware-configuration.nix
       ./disko-config.nix
-      ../../../modules/nixos
+      # ../../../modules/nixos/cluster.nix
     ];
 
   boot.loader.systemd-boot.enable = true;
@@ -19,19 +19,20 @@
   networking.domain = "0x77.computer";
 
   # Enable K3s cluster as primary server node
-  modules.cluster = {
-    enable = true;
-    role = "server";
-    clusterInit = true;
-    storageSupport = {
-      longhorn = true;
-      nfs = true;
-      zfs = true;
-    };
-  };
+  # modules.cluster = {
+  #   enable = true;
+  #   role = "server";
+  #   clusterInit = true;
+  #   storageSupport = {
+  #     longhorn = true;
+  #     nfs = true;
+  #     zfs = true;
+  #   };
+  # };
 
   users.users.mykhailo = {
     isNormalUser = true;
+    initialPassword = "wakeupneo";
     description = "Mykhailo Marynenko";
     extraGroups = [ "wheel" "networkmanager" "docker" ];
     shell = pkgs.fish;

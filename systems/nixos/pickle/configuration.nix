@@ -10,7 +10,7 @@
       # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./disko-config.nix
-      ../../../modules/nixos
+      # ../../../modules/nixos/cluster.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -21,19 +21,20 @@
   networking.domain = "0x77.computer";
 
   # Enable K3s cluster as worker (agent) node
-  modules.cluster = {
-    enable = true;
-    role = "agent";
-    serverAddr = "https://tomato:6443";
-    storageSupport = {
-      longhorn = true;
-      nfs = true;
-      zfs = false;
-    };
-  };
+  # modules.cluster = {
+  #   enable = true;
+  #   role = "agent";
+  #   serverAddr = "https://tomato:6443";
+  #   storageSupport = {
+  #     longhorn = true;
+  #     nfs = true;
+  #     zfs = false;
+  #   };
+  # };
 
   users.users.mykhailo = {
     isNormalUser = true;
+    initialPassword = "wakeupneo";
     description = "Mykhailo Marynenko";
     extraGroups = [ "wheel" "networkmanager" "docker" ];
     shell = pkgs.fish;
