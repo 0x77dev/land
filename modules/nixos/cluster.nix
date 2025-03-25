@@ -99,6 +99,7 @@ in
       pkgs.util-linux
       pkgs.e2fsprogs
       pkgs.xfsprogs
+      pkgs.openiscsi
     ];
 
     services.openiscsi = mkIf cfg.storageSupport.longhorn {
