@@ -61,7 +61,10 @@ in
       clusterInit = cfg.clusterInit;
       serverAddr = cfg.serverAddr;
       tokenFile = config.sops.secrets."k3s/token".path;
-      extraFlags = cfg.extraFlags;
+      extraFlags = [
+        "--flannel-backend=none"
+        "--disable-network-policy"
+      ] ++ cfg.extraFlags;
     };
 
     # Sops secrets configuration
