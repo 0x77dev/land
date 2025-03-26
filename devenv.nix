@@ -7,8 +7,8 @@
     age
     sops
     nixos-anywhere
+    nixos-rebuild
     ssh-to-age
-    git-crypt
   ];
 
   dotenv.disableHint = true;
@@ -24,5 +24,6 @@
   pre-commit.hooks.nixpkgs-fmt.enable = true;
   pre-commit.hooks.mdsh.enable = true;
   pre-commit.hooks.flake-checker.enable = true;
+  pre-commit.hooks.terraform-format.enable = true;
   pre-commit.hooks.pre-commit-hook-ensure-sops.enable = true;
 }

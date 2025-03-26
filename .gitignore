@@ -3,7 +3,6 @@
 .pre-commit-config.yaml
 result
 *~
-# Local .terraform directories
 **/.terraform/*
 crash.log
 crash.*.log
@@ -14,3 +13,5 @@ override.tf.json
 .terraform.tfstate.lock.info
 .terraformrc
 terraform.rc
+.devenv.flake.nix
+.DS_Store
