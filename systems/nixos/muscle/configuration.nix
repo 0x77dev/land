@@ -180,6 +180,7 @@
     description = "Mykhailo Marynenko";
     extraGroups = [ "wheel" "networkmanager" "docker" "dialout" "libvirtd" ];
     shell = pkgs.fish;
+    initialPassword = "wakeupneo";
     openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
   security.sudo.wheelNeedsPassword = false;
