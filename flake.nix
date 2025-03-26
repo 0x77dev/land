@@ -258,6 +258,7 @@
           muscle = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
+              disko.nixosModules.disko
               ./systems/nixos/muscle/configuration.nix
             ];
           };
