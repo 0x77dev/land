@@ -181,6 +181,7 @@
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
   };
+  security.sudo.wheelNeedsPassword = false;
 
   # Install chromium.
   programs.chromium.enable = true;
