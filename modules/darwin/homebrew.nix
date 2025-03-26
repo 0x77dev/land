@@ -23,8 +23,6 @@
     onActivation.autoUpdate = true;
     onActivation.upgrade = true;
 
-    brews = [ "yubikey-personalization" "ykman" ];
-
     casks = [
       "arc"
       "homerow"
@@ -44,17 +42,16 @@
       "1password"
       "1password-cli"
       "orbstack"
+      "docker"
       "slack"
       "linear-linear"
       "zoom"
       "steam"
       "keka"
       "miniconda"
-      "ultimaker-cura"
       "notion"
       "cursor"
       "zed"
-      "tuple"
       "lookaway"
     ];
 
