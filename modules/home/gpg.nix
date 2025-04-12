@@ -26,6 +26,7 @@
       armor = true;
       use-agent = true;
       throw-keyids = true;
+      auto-key-retrieve = true;
     };
   };
 
