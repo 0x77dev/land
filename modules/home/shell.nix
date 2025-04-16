@@ -1,6 +1,11 @@
-{ pkgs, ... }:
+{ pkgs, inputs ? { }, ... }:
 
 let
+  pkgs-unstable = import inputs.nixpkgs-unstable {
+    system = pkgs.system;
+    config.allowUnfree = true;
+  };
+
   commonAliases = {
     aria2p = "aria2p -s aria2";
     pbdownload = ''aria2p -s aria2 add "$(pbpaste)"'';
@@ -18,6 +23,9 @@ let
     gpl = "git pull";
     gps = "git push";
     tf = "terraform";
+    of = "tofu";
+    ai = "aichat";
+    aie = "aichat -e";
   };
 
   commonPaths = [
@@ -52,8 +60,11 @@ in
     fd
     zoxide
     starship
-    devenv
+    pkgs-unstable.devenv
     direnv
+    gitui
+    aichat
+    bun
   ];
 
   programs.bash = {
