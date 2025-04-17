@@ -71,7 +71,7 @@ This repository uses [Nix](https://nixos.org/) to manage:
 
      ```shell
      # Build the tarball
-     sudo nix run --experimental-features 'nix-command flakes' github:0x77dev/land#nixosConfigurations.wsl.config.system.build.tarballBuilder
+     sudo nix run --experimental-features 'nix-command flakes' github:0x77dev/land#nixosConfigurations.muscleWSL.config.system.build.tarballBuilder
      ```
 
      ```powershell
@@ -94,7 +94,7 @@ This repository uses [Nix](https://nixos.org/) to manage:
 
      ```bash
      # Apply updates
-     wsl.exe -d Land -u root -e "nixos-rebuild switch --refresh --flake github:0x77dev/land#wsl"
+     wsl.exe -d Land -u root -e "nixos-rebuild switch --refresh --flake github:0x77dev/land#muscleWSL"
      ```
 
 ## Structure

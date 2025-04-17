@@ -84,7 +84,7 @@
   };
 
   outputs =
-    inputs @ { flake-parts
+    inputs@{ flake-parts
     , devenv-root
     , sops-nix
     , nix-darwin
@@ -99,7 +99,8 @@
     , ...
     }:
     let
-      mkHomeConfig = system: username: homeDirectory:
+      mkHomeConfig =
+        system: username: homeDirectory:
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
@@ -126,36 +127,35 @@
         nix-darwin.lib.darwinSystem {
           inherit system;
           specialArgs = { inherit inputs; };
-          modules =
-            [
-              sops-nix.darwinModules.sops
-              ./modules/darwin/homebrew.nix
-              ./modules/darwin/security.nix
-              ./modules/darwin/dock.nix
-              ./modules/darwin/linux-builder.nix
-              ./modules/darwin/hardware/focusrite.nix
-              ./modules/darwin/hardware/flipper.nix
-              ./modules/darwin/hardware/meshtastic.nix
-              ./modules/darwin/hardware/worklouder.nix
-              ./systems/darwin/common/configuration.nix
-              home-manager.darwinModules.home-manager
-              {
-                home-manager = {
-                  useGlobalPkgs = true;
-                  useUserPackages = true;
-                  extraSpecialArgs = {
-                    inherit inputs system;
-                  };
-                  users."0x77" = import ./modules/home {
-                    inherit inputs system;
-                    username = "0x77";
-                    homeDirectory = "/Users/0x77";
-                    openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ./helpers/openssh-authorized-keys.json);
-                  };
+          modules = [
+            sops-nix.darwinModules.sops
+            ./modules/darwin/homebrew.nix
+            ./modules/darwin/security.nix
+            ./modules/darwin/dock.nix
+            ./modules/darwin/linux-builder.nix
+            ./modules/darwin/hardware/focusrite.nix
+            ./modules/darwin/hardware/flipper.nix
+            ./modules/darwin/hardware/meshtastic.nix
+            ./systems/darwin/common/configuration.nix
+            home-manager.darwinModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = {
+                  inherit inputs system;
                 };
-              }
-            ]
-            ++ modules;
+                users."0x77" = import ./modules/home {
+                  inherit inputs system;
+                  username = "0x77";
+                  homeDirectory = "/Users/0x77";
+                  openssh.authorizedKeys.keys = builtins.fromJSON (
+                    builtins.readFile ./helpers/openssh-authorized-keys.json
+                  );
+                };
+              };
+            }
+          ] ++ modules;
         };
 
       mkNixosModules =
@@ -177,7 +177,9 @@
                 inherit inputs system;
                 username = "mykhailo";
                 homeDirectory = "/home/mykhailo";
-                openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ./helpers/openssh-authorized-keys.json);
+                openssh.authorizedKeys.keys = builtins.fromJSON (
+                  builtins.readFile ./helpers/openssh-authorized-keys.json
+                );
               };
             };
           }
@@ -204,7 +206,13 @@
       imports = [
         inputs.devenv.flakeModule
       ];
-      systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "i686-linux"
+        "x86_64-darwin"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
 
       perSystem =
         { config
@@ -213,7 +221,8 @@
         , pkgs
         , system
         , ...
-        }: {
+        }:
+        {
           _module.args.pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
@@ -269,11 +278,11 @@
               nixos-generators.nixosModules.all-formats
             ];
           };
-          wsl = mkNixosConfig {
+          muscleWSL = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
               nixos-wsl.nixosModules.default
-              ./systems/nixos/wsl/configuration.nix
+              ./systems/nixos/muscle-wsl/configuration.nix
             ];
           };
         };
