@@ -285,6 +285,20 @@
               ./systems/nixos/muscle-wsl/configuration.nix
             ];
           };
+
+          lxc-nix-rendezvous = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            specialArgs = { inherit inputs; };
+            modules = [
+              nixos-generators.nixosModules.all-formats
+              ./containers/nix-rendezvous/configuration.nix
+              ./modules/nixos
+              {
+                # Enable our custom proxmox-lxc module
+                modules.proxmox-lxc.enable = true;
+              }
+            ];
+          };
         };
 
         darwinConfigurations = {

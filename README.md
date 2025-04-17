@@ -13,6 +13,7 @@ This repository uses [Nix](https://nixos.org/) to manage:
 - NixOS systems
 - Home Manager configurations
 - WSL 2 instances
+- Containers (Proxmox LXC)
 
 ## Usage
 
@@ -97,11 +98,40 @@ This repository uses [Nix](https://nixos.org/) to manage:
      wsl.exe -d Land -u root -e "nixos-rebuild switch --refresh --flake github:0x77dev/land#muscleWSL"
      ```
 
+   - For nix-rendezvous container:
+     
+     ```shell
+     # Build the Proxmox LXC container image
+     nix build .#nixosConfigurations.nix-rendezvous.config.formats.proxmox-lxc
+     ```
+     
+     ```shell
+     # Copy the tarball to your Proxmox host
+     scp result root@proxmox:/var/lib/vz/template/cache/nix-rendezvous.tar.xz
+     ```
+     
+     ```shell
+     # On Proxmox, create a new container using the tarball
+     # Either use the web interface or the command line:
+     pct create 228 /var/lib/vz/template/cache/nix-rendezvous.tar.xz \
+       --hostname nix-rendezvous \
+       --cores 4 \
+       --memory 4096 \
+       --net0 name=eth0,bridge=vmbr0,ip=dhcp \
+       --unprivileged 1
+     ```
+     
+     ```shell
+     # Start the container
+     pct start 228
+     ```
+
 ## Structure
 
 - `modules/` - Shared configuration modules
 - `modules/home/` - Home Manager configuration modules
 - `systems/` - Machine-specific configurations
+- `containers/` - Container configurations
 - `flake.nix` - Flake
 - `.envrc` - Direnv configuration
 
@@ -120,3 +150,25 @@ You can start by adding your own machines to the `flake.nix` file, and then cust
   ```bash
   ssh-keyscan tomato | ssh-to-age
   ```
+
+### Using the nix-rendezvous container for remote builds
+
+To use the container for remote builds:
+
+```bash
+# Set up SSH config on your client machine
+cat >> ~/.ssh/config << EOF
+Host nix-rendezvous
+  Hostname <container-ip>
+  User builder
+  IdentityFile ~/.ssh/id_ed25519
+EOF
+
+# Configure remote builder in nix.conf
+cat >> /etc/nix/nix.conf << EOF
+builders = ssh://builder@nix-rendezvous x86_64-linux
+EOF
+
+# Test a remote build
+nix build --builders 'ssh://builder@nix-rendezvous' nixpkgs#hello
+```
