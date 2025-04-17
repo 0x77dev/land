@@ -9,7 +9,7 @@ resource "helm_release" "cilium" {
   namespace  = kubernetes_namespace.cilium.metadata[0].name
   repository = "https://helm.cilium.io/"
   chart      = "cilium"
-  version    = "1.14.4" # Specify the desired Cilium version
+  version    = "1.17.3" # Specify the desired Cilium version
 
   values = [yamlencode({
     # Core Cilium configuration
