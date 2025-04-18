@@ -99,8 +99,7 @@
     , ...
     }:
     let
-      mkHomeConfig =
-        system: username: homeDirectory:
+      mkHomeConfig = { system, username, homeDirectory, modules ? [ ] }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
@@ -112,7 +111,7 @@
               home.username = username;
               home.homeDirectory = homeDirectory;
             }
-          ];
+          ] ++ modules;
 
           extraSpecialArgs = {
             inherit inputs system;
@@ -244,9 +243,27 @@
 
       flake = {
         homeConfigurations = {
-          "0x77@beefy" = mkHomeConfig "aarch64-darwin" "0x77" "/Users/0x77";
-          "0x77@potato" = mkHomeConfig "aarch64-darwin" "0x77" "/Users/0x77";
-          "mykhailo@tomato" = mkHomeConfig "x86_64-linux" "mykhailo" "/home/mykhailo";
+          "0x77@beefy" = mkHomeConfig {
+            system = "aarch64-darwin";
+            username = "0x77";
+            homeDirectory = "/Users/0x77";
+          };
+          "0x77@potato" = mkHomeConfig {
+            system = "aarch64-darwin";
+            username = "0x77";
+            homeDirectory = "/Users/0x77";
+          };
+          "mykhailo@tomato" = mkHomeConfig {
+            system = "x86_64-linux";
+            username = "mykhailo";
+            homeDirectory = "/home/mykhailo";
+          };
+          "mykhailo@muscle" = mkHomeConfig {
+            system = "x86_64-linux";
+            username = "mykhailo";
+            homeDirectory = "/home/mykhailo";
+            modules = [{ targets.genericLinux.enable = true; }];
+          };
         };
 
         nixosConfigurations = {
