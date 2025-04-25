@@ -74,6 +74,10 @@
       url = "github:LyraPhase/homebrew-av-casks";
       flake = false;
     };
+    homebrew-assemblyai = {
+      url = "github:assemblyai/homebrew-assemblyai";
+      flake = false;
+    };
   };
 
   nixConfig = {

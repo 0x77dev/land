@@ -1,5 +1,7 @@
-{ config, lib, pkgs, inputs, ... }:
-
+{ pkgs
+, inputs
+, ...
+}:
 let
   unstable = import inputs.nixpkgs-unstable {
     system = pkgs.system;
@@ -11,7 +13,7 @@ in
     enable = true;
     package = unstable.kitty;
     font = {
-      name = "JetBrains Mono";
+      name = "Berkeley Mono";
       size = 14;
     };
   };

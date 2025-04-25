@@ -9,7 +9,7 @@
 
     userSettings = {
       "editor.inlineSuggest.suppressSuggestions" = true;
-      "editor.fontFamily" = "'JetBrains Mono', monospace";
+      "editor.fontFamily" = "'Berkeley Mono', monospace";
       "editor.fontLigatures" = true;
       "editor.detectIndentation" = true;
       "editor.accessibilitySupport" = "off";

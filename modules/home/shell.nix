@@ -65,6 +65,8 @@ in
     gitui
     aichat
     bun
+    bat
+    glow
   ];
 
   programs.bash = {
