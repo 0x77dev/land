@@ -62,6 +62,7 @@ in
     starship
     inputs.devenv.packages.${pkgs.system}.devenv
     direnv
+    cachix
     gitui
     aichat
     bun
