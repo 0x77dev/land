@@ -60,7 +60,7 @@ in
     fd
     zoxide
     starship
-    pkgs-unstable.devenv
+    inputs.devenv.packages.${pkgs.system}.devenv
     direnv
     gitui
     aichat

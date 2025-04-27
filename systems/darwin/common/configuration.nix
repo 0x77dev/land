@@ -46,7 +46,6 @@
       pkgs.zoxide
       pkgs.bat
       pkgs.direnv
-      pkgs.devenv
       pkgs.iperf3
       pkgs.nodejs-slim
       pkgs.bun
