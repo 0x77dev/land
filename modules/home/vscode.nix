@@ -17,7 +17,6 @@
         "editor.detectIndentation" = true;
         "editor.accessibilitySupport" = "off";
         "editor.fontSize" = 16;
-        "workbench.iconTheme" = "catppuccin-mocha";
         "workbench.colorTheme" = "GitHub Dark Default";
         "workbench.preferredDarkColorTheme" = "GitHub Dark Default";
         "workbench.preferredLightColorTheme" = "GitHub Light Default";
@@ -62,8 +61,6 @@
           "editor.defaultFormatter" = "jnoortheen.nix-ide";
         };
         "git.autofetch" = true;
-        "cody.telemetry.level" = "off";
-        "openctx.providers" = { };
       };
 
       extensions = with pkgs.vscode-extensions; [
