@@ -119,6 +119,7 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
+            config.allowUnfree = true;
           };
 
           modules = [
@@ -185,6 +186,7 @@
           sops-nix.nixosModules.sops
           home-manager.nixosModules.home-manager
           {
+            nixpkgs.config.allowUnfree = true;
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -291,6 +293,7 @@
             specialArgs = { inherit inputs; };
             modules = [
               nixos-generators.nixosModules.all-formats
+              { nixpkgs.config.allowUnfree = true; }
             ];
           };
 
@@ -311,6 +314,7 @@
                 ./containers/attic/configuration.nix
                 {
                   proxmox.lxc.enable = true;
+                  nixpkgs.config.allowUnfree = true;
                 }
               ]
               ++ (import ./modules/nixos);
