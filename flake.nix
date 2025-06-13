@@ -143,7 +143,7 @@
           inherit system;
           specialArgs = { inherit inputs; };
           modules = [
-            lix-module.darwinModules.default
+            lix-module.nixosModules.default
             sops-nix.darwinModules.sops
             ./modules/darwin/homebrew.nix
             ./modules/darwin/security.nix
