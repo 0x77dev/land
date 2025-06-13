@@ -7,7 +7,7 @@
 
 {
   # Basic system configuration
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
   networking.hostName = "nix-rendezvous";
   time.timeZone = "America/Los_Angeles";
 

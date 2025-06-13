@@ -4,7 +4,6 @@
   system.defaults.dock = {
     # Arrange items in dock
     persistent-apps = [
-      "/System/Applications/Launchpad.app"
       "/Applications/Arc.app"
       "/Applications/Slack.app"
       "/Applications/Telegram.app"

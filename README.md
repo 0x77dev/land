@@ -102,7 +102,7 @@ This repository uses [Nix](https://nixos.org/) to manage:
      
      ```shell
      # Build the Proxmox LXC container image
-     nix build .#nixosConfigurations.nix-rendezvous.config.formats.proxmox-lxc
+     nix build .#nixosConfigurations.nix-rendezvous.config.formats.lxc-nix-rendezvous
      ```
      
      ```shell

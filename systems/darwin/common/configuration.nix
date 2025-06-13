@@ -1,4 +1,5 @@
-{ inputs, pkgs, ... }: {
+{ inputs, pkgs, ... }:
+{
   imports = [
     inputs.sops-nix.darwinModules.sops
   ];
@@ -13,13 +14,16 @@
     users."0x77" = {
       home = "/Users/0x77";
       uid = 501;
-      openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
+      openssh.authorizedKeys.keys = builtins.fromJSON (
+        builtins.readFile ../../../helpers/openssh-authorized-keys.json
+      );
 
       shell = pkgs.fish;
     };
 
     knownUsers = [ "0x77" ];
   };
+  system.primaryUser = "0x77";
 
   environment.shells = with pkgs; [
     bashInteractive
@@ -27,45 +31,54 @@
     fish
   ];
 
-  environment.systemPackages =
-    [
-      pkgs.vscode
-      pkgs.nil
-      pkgs.nixpkgs-fmt
-      pkgs.kitty
-      pkgs.btop
-      pkgs.eza
-      pkgs.git
-      pkgs.glow
-      pkgs.openssl
-      pkgs.git-lfs
-      pkgs.git-crypt
-      pkgs.ripgrep
-      pkgs.fd
-      pkgs.fzf
-      pkgs.zoxide
-      pkgs.bat
-      pkgs.direnv
-      pkgs.iperf3
-      pkgs.nodejs-slim
-      pkgs.bun
-      pkgs.aria2
-      pkgs.kubo
-    ];
+  environment.systemPackages = [
+    pkgs.vscode
+    pkgs.nil
+    pkgs.nixpkgs-fmt
+    pkgs.kitty
+    pkgs.btop
+    pkgs.eza
+    pkgs.git
+    pkgs.glow
+    pkgs.openssl
+    pkgs.git-lfs
+    pkgs.git-crypt
+    pkgs.ripgrep
+    pkgs.fd
+    pkgs.fzf
+    pkgs.zoxide
+    pkgs.bat
+    pkgs.direnv
+    pkgs.iperf3
+    pkgs.nodejs-slim
+    pkgs.bun
+    pkgs.aria2
+    pkgs.kubo
+  ];
 
   nixpkgs.config.allowUnfree = true;
-
-  services.nix-daemon.enable = true;
 
   nix = {
     package = pkgs.nix;
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
-      extra-platforms = [ "x86_64-darwin" "aarch64-darwin" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      extra-platforms = [
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
 
       # User permissions
-      trusted-users = [ "root" "0x77" ];
-      trusted-substituters = [ "root" "0x77" ];
+      trusted-users = [
+        "root"
+        "0x77"
+      ];
+      trusted-substituters = [
+        "root"
+        "0x77"
+      ];
 
       # Binary caches
       substituters = [
@@ -82,7 +95,10 @@
       # Build optimization
       max-jobs = "auto";
       cores = 0; # Use all available cores
-      system-features = [ "big-parallel" "benchmark" ];
+      system-features = [
+        "big-parallel"
+        "benchmark"
+      ];
       keep-outputs = true;
       keep-derivations = true;
       builders-use-substitutes = true; # Allow builders to use substitutes

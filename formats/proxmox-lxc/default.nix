@@ -1,8 +1,3 @@
-# formats/proxmox-lxc/default.nix
-#
-# Custom format for Proxmox LXC containers
-# Based on the tarball format but optimized for Proxmox LXC
-
 { config
 , lib
 , pkgs

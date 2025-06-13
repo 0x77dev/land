@@ -2,7 +2,7 @@
 
 {
   # Enable Touch ID authentication for sudo
-  security.pam.enableSudoTouchIdAuth = true;
+  security.pam.services.sudo_local.touchIdAuth = true;
 
   # Disable console access from login window for security
   system.defaults.loginwindow.DisableConsoleAccess = true;

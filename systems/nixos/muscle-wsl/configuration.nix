@@ -1,5 +1,6 @@
-{ pkgs, inputs, ... }: {
-  system.stateVersion = "24.11";
+{ pkgs, inputs, ... }:
+{
+  system.stateVersion = "25.05";
   wsl.enable = true;
   wsl.defaultUser = "mykhailo";
   wsl.docker-desktop.enable = true;
@@ -58,11 +59,20 @@
   nix = {
     package = pkgs.nix;
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
 
       # User permissions
-      trusted-users = [ "root" "mykhailo" ];
-      trusted-substituters = [ "root" "mykhailo" ];
+      trusted-users = [
+        "root"
+        "mykhailo"
+      ];
+      trusted-substituters = [
+        "root"
+        "mykhailo"
+      ];
 
       # Binary caches
       substituters = [
@@ -81,7 +91,10 @@
       # Build optimization
       max-jobs = "auto";
       cores = 0; # Use all available cores
-      system-features = [ "big-parallel" "benchmark" ];
+      system-features = [
+        "big-parallel"
+        "benchmark"
+      ];
       keep-outputs = true;
       keep-derivations = true;
       builders-use-substitutes = true; # Allow builders to use substitutes
@@ -105,9 +118,14 @@
   users.users.mykhailo = {
     isNormalUser = true;
     description = "Mykhailo Marynenko";
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+    ];
     shell = pkgs.fish;
-    openssh.authorizedKeys.keys = builtins.fromJSON (builtins.readFile ../../../helpers/openssh-authorized-keys.json);
+    openssh.authorizedKeys.keys = builtins.fromJSON (
+      builtins.readFile ../../../helpers/openssh-authorized-keys.json
+    );
   };
 
   programs.fish.enable = true;
