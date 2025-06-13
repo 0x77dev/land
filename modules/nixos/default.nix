@@ -1,5 +1,5 @@
 # NixOS modules
-{
-  vscode-server = import ./vscode-server.nix;
-  proxmox-lxc = import ./proxmox-lxc.nix;
-}
+[
+  (import ./vscode-server.nix)
+  (import ./proxmox.nix)
+]

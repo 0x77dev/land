@@ -10,7 +10,7 @@
 with lib;
 
 {
-  options.modules.proxmox-lxc = {
+  options.proxmox.lxc = {
     enable = mkEnableOption "Proxmox LXC container configuration";
 
     unprivilegedContainer = mkOption {
@@ -50,24 +50,24 @@ with lib;
     };
   };
 
-  config = mkIf config.modules.proxmox-lxc.enable {
+  config = mkIf config.proxmox.lxc.enable {
     # Essential Proxmox LXC container configurations
 
     # Boot configurations - typically disabled for containers
-    boot.loader.grub.enable = config.modules.proxmox-lxc.bootLoader;
-    boot.loader.systemd-boot.enable = config.modules.proxmox-lxc.bootLoader;
+    boot.loader.grub.enable = config.proxmox.lxc.bootLoader;
+    boot.loader.systemd-boot.enable = config.proxmox.lxc.bootLoader;
 
     # Ensure system.stateVersion is set in your system configuration
 
     # Set console configuration for proper Proxmox console access
-    systemd.services."getty@tty1".enable = config.modules.proxmox-lxc.enableSerialConsole;
-    systemd.services."getty@ttyS0".enable = config.modules.proxmox-lxc.enableSerialConsole;
-    systemd.services."serial-getty@ttyS0".enable = config.modules.proxmox-lxc.enableSerialConsole;
+    systemd.services."getty@tty1".enable = config.proxmox.lxc.enableSerialConsole;
+    systemd.services."getty@ttyS0".enable = config.proxmox.lxc.enableSerialConsole;
+    systemd.services."serial-getty@ttyS0".enable = config.proxmox.lxc.enableSerialConsole;
 
     # Basic networking configuration
     networking = {
       useDHCP = mkDefault false;
-      interfaces.${config.modules.proxmox-lxc.networkInterface}.useDHCP = mkDefault true;
+      interfaces.${config.proxmox.lxc.networkInterface}.useDHCP = mkDefault true;
     };
 
     # tmpfs configuration for optimal performance
@@ -75,20 +75,20 @@ with lib;
       device = "tmpfs";
       fsType = "tmpfs";
       options = [
-        "size=${config.modules.proxmox-lxc.tmpfsSize}"
+        "size=${config.proxmox.lxc.tmpfsSize}"
         "mode=1777"
       ];
     };
 
     # Security adjustments for Proxmox containers
-    security = mkIf config.modules.proxmox-lxc.unprivilegedContainer {
-      # For unprivileged containers, adjust capability bounding set
-      sysctls = {
-        "kernel.unprivileged_userns_clone" = mkDefault 1;
-      };
-
+    security = mkIf config.proxmox.lxc.unprivilegedContainer {
       # Adjust AppArmor/SELinux as necessary for your environment
       apparmor.enable = mkDefault false;
+    };
+
+    # For unprivileged containers, adjust kernel parameters
+    boot.kernel.sysctl = mkIf config.proxmox.lxc.unprivilegedContainer {
+      "kernel.unprivileged_userns_clone" = mkDefault 1;
     };
 
     # Container optimization
@@ -109,5 +109,6 @@ with lib;
       "nix-command"
       "flakes"
     ];
+    nix.settings.trusted-users = [ "root" "@wheel" ];
   };
 }

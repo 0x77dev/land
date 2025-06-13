@@ -10,6 +10,11 @@
       flake = false;
     };
 
+    lix-module = {
+      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.93.0.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     devenv.url = "github:cachix/devenv/v1.6";
@@ -100,6 +105,7 @@
     , nixos-vscode-server
     , disko
     , nixos-anywhere
+    , lix-module
     , ...
     }:
     let
@@ -137,6 +143,7 @@
           inherit system;
           specialArgs = { inherit inputs; };
           modules = [
+            lix-module.darwinModules.default
             sops-nix.darwinModules.sops
             ./modules/darwin/homebrew.nix
             ./modules/darwin/security.nix
@@ -174,6 +181,7 @@
         ,
         }:
         [
+          lix-module.nixosModules.default
           sops-nix.nixosModules.sops
           home-manager.nixosModules.home-manager
           {
@@ -278,27 +286,6 @@
         };
 
         nixosConfigurations = {
-          tomato = mkNixosConfig {
-            system = "x86_64-linux";
-            modules = [
-              disko.nixosModules.disko
-              ./systems/nixos/tomato/configuration.nix
-            ];
-          };
-          pickle = mkNixosConfig {
-            system = "x86_64-linux";
-            modules = [
-              disko.nixosModules.disko
-              ./systems/nixos/pickle/configuration.nix
-            ];
-          };
-          muscle = mkNixosConfig {
-            system = "x86_64-linux";
-            modules = [
-              disko.nixosModules.disko
-              ./systems/nixos/muscle/configuration.nix
-            ];
-          };
           vanilla = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             specialArgs = { inherit inputs; };
@@ -306,6 +293,7 @@
               nixos-generators.nixosModules.all-formats
             ];
           };
+
           muscleWSL = mkNixosConfig {
             system = "x86_64-linux";
             modules = [
@@ -314,18 +302,18 @@
             ];
           };
 
-          lxc-nix-rendezvous = nixpkgs.lib.nixosSystem {
+          attic = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             specialArgs = { inherit inputs; };
-            modules = [
-              nixos-generators.nixosModules.all-formats
-              ./containers/nix-rendezvous/configuration.nix
-              ./modules/nixos
-              {
-                # Enable our custom proxmox-lxc module
-                modules.proxmox-lxc.enable = true;
-              }
-            ];
+            modules =
+              [
+                nixos-generators.nixosModules.all-formats
+                ./containers/attic/configuration.nix
+                {
+                  proxmox.lxc.enable = true;
+                }
+              ]
+              ++ (import ./modules/nixos);
           };
         };
 
