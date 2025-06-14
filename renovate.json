@@ -1,31 +1,52 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices"],
+  "extends": [
+    "config:best-practices"
+  ],
   "nix": {
     "enabled": true
   },
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "schedule": [
+      "before 6am on monday"
+    ]
   },
   "packageRules": [
     {
-      "matchManagers": ["nix"],
-      "matchDepNames": ["nixpkgs"],
-      "schedule": ["every weekend"],
+      "matchManagers": [
+        "nix"
+      ],
+      "matchDepNames": [
+        "nixpkgs"
+      ],
+      "schedule": [
+        "every weekend"
+      ],
       "commitMessagePrefix": "nix(nixpkgs):",
       "automerge": false,
-      "reviewers": ["team:maintainers"]
+      "reviewers": [
+        "team:maintainers"
+      ]
     },
     {
-      "matchManagers": ["nix"],
-      "excludeDepNames": ["nixpkgs"],
-      "schedule": ["after 10pm every weekday", "every weekend"],
+      "matchManagers": [
+        "nix"
+      ],
+      "schedule": [
+        "after 10pm every weekday",
+        "every weekend"
+      ],
       "commitMessagePrefix": "nix:",
       "groupName": "nix flake inputs",
       "automerge": true,
       "automergeType": "pr",
-      "matchUpdateTypes": ["lockFileMaintenance"]
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "matchDepNames": [
+        "!nixpkgs"
+      ]
     }
   ],
   "prConcurrentLimit": 3,
