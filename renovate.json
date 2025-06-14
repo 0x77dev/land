@@ -1,85 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices"
-  ],
+  "extends": ["config:best-practices"],
   "nix": {
     "enabled": true
   },
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": [
-      "before 5am on monday"
-    ],
-    "automerge": true,
-    "automergeType": "pr",
-    "platformAutomerge": true
-  },
   "packageRules": [
     {
-      "matchManagers": [
-        "nix"
-      ],
-      "matchDatasources": [
-        "git-refs"
-      ],
-      "groupName": "nix flake inputs",
-      "semanticCommitType": "chore",
-      "commitMessageTopic": "nix flake inputs"
-    },
-    {
-      "matchManagers": [
-        "nix"
-      ],
-      "matchDepTypes": [
-        "nixpkgs"
-      ],
-      "matchPackageNames": [
-        "github.com/NixOS/nixpkgs"
-      ],
-      "semanticCommitType": "fix",
-      "commitMessageTopic": "nixpkgs",
-      "extends": [
-        "schedule:monthly"
-      ]
-    },
-    {
-      "matchManagers": [
-        "nix"
-      ],
-      "matchDepNames": [
-        "devenv",
-        "flake-parts",
-        "home-manager",
-        "nix-darwin"
-      ],
-      "semanticCommitType": "feat",
-      "commitMessageTopic": "core nix infrastructure",
-      "labels": [
-        "nix-core"
-      ],
-      "prPriority": 3
-    },
-    {
-      "matchManagers": [
-        "nix"
-      ],
-      "matchDepNames": [
-        "sops-nix",
-        "nvf",
-        "nix-homebrew",
-        "nixos-generators",
-        "nixos-wsl"
-      ],
-      "semanticCommitType": "fix",
-      "commitMessageTopic": "nix utility",
-      "labels": [
-        "nix-utils"
-      ]
+      "matchManagers": ["nix"],
+      "matchDepNames": ["nixpkgs"],
+      "schedule": ["every weekend"]
     }
-  ],
-  "dependencyDashboard": true,
-  "minimumReleaseAge": "3 days",
-  "prCreation": "not-pending",
-  "prConcurrentLimit": 5
+  ]
 }
