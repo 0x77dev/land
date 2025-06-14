@@ -17,7 +17,7 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    devenv.url = "github:cachix/devenv/v1.6";
+    devenv.url = "github:cachix/devenv/v1.6.1";
 
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
@@ -308,16 +308,14 @@
           attic = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             specialArgs = { inherit inputs; };
-            modules =
-              [
-                nixos-generators.nixosModules.all-formats
-                ./containers/attic/configuration.nix
-                {
-                  proxmox.lxc.enable = true;
-                  nixpkgs.config.allowUnfree = true;
-                }
-              ]
-              ++ (import ./modules/nixos);
+            modules = [
+              nixos-generators.nixosModules.all-formats
+              ./containers/attic/configuration.nix
+              {
+                proxmox.lxc.enable = true;
+                nixpkgs.config.allowUnfree = true;
+              }
+            ] ++ (import ./modules/nixos);
           };
         };
 
