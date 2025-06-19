@@ -9,6 +9,8 @@ let
   commonAliases = {
     aria2p = "aria2p -s aria2";
     pbdownload = ''aria2p -s aria2 add "$(pbpaste)"'';
+    cd = "z";
+    cdi = "zi";
   };
 
   commonAbbrs = {
@@ -76,15 +78,17 @@ in
     initExtra = ''
       ${commonFunctions}
       export PATH="${builtins.concatStringsSep ":" commonPaths}:$PATH"
+      eval "$(zoxide init bash)"
     '';
   };
 
   programs.zsh = {
     enable = true;
     shellAliases = commonAliases // commonAbbrs;
-    initContent = ''
+    initExtra = ''
       ${commonFunctions}
       export PATH="${builtins.concatStringsSep ":" commonPaths}:$PATH"
+      eval "$(zoxide init zsh)"
     '';
   };
 
@@ -98,6 +102,9 @@ in
       # Add all common paths
       ${builtins.concatStringsSep "\n"
       (map (p: "fish_add_path -m ${p}") commonPaths)}
+
+      # Initialize zoxide
+      zoxide init fish | source
 
       if command -v conda >/dev/null 2>&1
         eval "$(conda "shell.fish" hook)"

@@ -106,6 +106,7 @@
     , disko
     , nixos-anywhere
     , lix-module
+    , nvf
     , ...
     }:
     let
@@ -123,6 +124,7 @@
           };
 
           modules = [
+            nvf.homeManagerModules.default
             ./modules/home
             {
               home.username = username;
