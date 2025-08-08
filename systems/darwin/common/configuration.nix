@@ -32,7 +32,7 @@
   ];
 
   environment.systemPackages = [
-    pkgs.vscode
+    pkgs.vscodium
     pkgs.nil
     pkgs.nixpkgs-fmt
     pkgs.kitty

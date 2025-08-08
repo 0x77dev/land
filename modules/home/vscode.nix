@@ -6,56 +6,73 @@
     enableUpdateCheck = true;
     enableExtensionUpdateCheck = true;
     mutableExtensionsDir = true;
+    package = pkgs.vscodium;
 
     userSettings = {
-      "editor.inlineSuggest.suppressSuggestions" = true;
-      "editor.fontFamily" = "'TX-02-Variable', 'Berkeley Mono', monospace";
-      "editor.fontLigatures" = true;
-      "editor.detectIndentation" = true;
-      "editor.accessibilitySupport" = "off";
+      "editor.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
       "editor.fontSize" = 16;
-      "workbench.iconTheme" = "catppuccin-mocha";
-      "workbench.colorTheme" = "GitHub Dark Default";
-      "workbench.preferredDarkColorTheme" = "GitHub Dark Default";
-      "workbench.preferredLightColorTheme" = "GitHub Light Default";
-      "window.autoDetectColorScheme" = true;
-      "telemetry.telemetryLevel" = "off";
-      "files.autoSave" = "afterDelay";
-      "cody.autocomplete.formatOnAccept" = true;
-      "files.autoSaveWhenNoErrors" = true;
-      "rust-analyzer.cachePriming.enable" = false;
-      "rust-analyzer.checkOnSave" = false;
-      "terminal.integrated.profiles.osx" = {
-        "bash" = {
-          "path" = "bash";
-          "args" = [ "-l" ];
-          "icon" = "terminal-bash";
-        };
-
-        "zsh" = {
-          "path" = "zsh";
-          "args" = [ "-l" ];
-        };
-        "fish" = {
-          "path" = "fish";
-          "args" = [ "-l" ];
-        };
+      "editor.lineHeight" = 1.5;
+      "editor.fontWeight" = "400";
+      "editor.fontVariations" = true;
+      "editor.renderWhitespace" = "boundary";
+      "editor.renderControlCharacters" = true;
+      "editor.fontLigatures" = "'calt', 'liga', 'dlig', 'ss01', 'ss02'";
+      "editor.tabSize" = 2;
+      "editor.accessibilitySupport" = "off";
+      "editor.smoothScrolling" = true;
+      "editor.cursorSmoothCaretAnimation" = "on";
+      "editor.largeFileOptimizations" = false;
+      "editor.codeActionsOnSave" = {
+        "source.fixAll" = "always";
       };
 
-      "security.workspace.trust.enabled" = false;
+      "terminal.integrated.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
+      "terminal.integrated.fontSize" = 12;
+      "terminal.integrated.fontWeight" = "400";
+      "terminal.integrated.lineHeight" = 1.2;
+      "terminal.integrated.letterSpacing" = 0;
+      "terminal.integrated.smoothScrolling" = true;
+
+      "workbench.colorTheme" = "GitHub Dark Default";
+      "workbench.preferredLightColorTheme" = "GitHub Light Default";
+      "workbench.preferredDarkColorTheme" = "GitHub Dark Default";
+      "workbench.list.smoothScrolling" = true;
+      "workbench.colorCustomizations" = { };
+
+      "window.autoDetectColorScheme" = true;
+
+      "files.autoSave" = "afterDelay";
+
+      "git.autofetch" = true;
+      "git.confirmSync" = false;
+
+      "[nix]" = {
+        "editor.defaultFormatter" = "jnoortheen.nix-ide";
+      };
+
+      "[javascript]" = {
+        "editor.fontLigatures" = "'calt', 'liga', 'ss01'";
+      };
+      "[python]" = {
+        "editor.fontLigatures" = "'calt', 'liga', 'dlig'";
+      };
+      "[rust]" = {
+        "editor.fontLigatures" = true;
+      };
+
+      "json.schemaDownload.enable" = true;
+
       "nix.enableLanguageServer" = true;
       "nix.formatterPath" = "${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt";
-      "direnv.path.executable" = "${pkgs.direnv}/bin/direnv";
-      "git.confirmSync" = false;
-      "git.autofetch" = true;
-      "cody.telemetry.level" = "off";
-      "openctx.providers" = { };
+      "telemetry.telemetryLevel" = "off";
+      "security.workspace.trust.enabled" = false;
     };
 
     extensions = with pkgs.vscode-extensions; [
       github.github-vscode-theme
       jnoortheen.nix-ide
       rust-lang.rust-analyzer
+      golang.go
       vue.volar
       ms-azuretools.vscode-docker
       ms-vscode-remote.remote-ssh

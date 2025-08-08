@@ -43,7 +43,6 @@
       "1password"
       "1password-cli"
       "orbstack"
-      "docker"
       "slack"
       "linear-linear"
       "zoom"
@@ -52,18 +51,13 @@
       "miniconda"
       "notion"
       "cursor"
-      "zed"
-      "lookaway"
     ];
 
     masApps = {
       "Things" = 904280696;
       "WireGuard" = 1451685025;
       "Xcode" = 497799835;
-      "Copilot" = 1447330651;
       "Parcel" = 639968404;
-      "Home Assistant" = 1099568401;
-      "Craft" = 1487937127;
     };
   };
 }

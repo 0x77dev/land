@@ -17,7 +17,7 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    devenv.url = "github:cachix/devenv/v1.6.1";
+    devenv.url = "github:cachix/devenv/v1.7";
 
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
@@ -32,6 +32,12 @@
 
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
     nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Apple Silicon (Asahi) support for NixOS
+    nixos-apple-silicon = {
+      url = "github:nix-community/nixos-apple-silicon";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
@@ -266,11 +272,6 @@
 
       flake = {
         homeConfigurations = {
-          "0x77@beefy" = mkHomeConfig {
-            system = "aarch64-darwin";
-            username = "0x77";
-            homeDirectory = "/Users/0x77";
-          };
           "0x77@potato" = mkHomeConfig {
             system = "aarch64-darwin";
             username = "0x77";
@@ -319,14 +320,18 @@
               }
             ] ++ (import ./modules/nixos);
           };
+
+          beefy = mkNixosConfig {
+            system = "aarch64-linux";
+            modules = [
+              inputs.nixos-apple-silicon.nixosModules.apple-silicon-support
+              ./systems/nixos/beefy/configuration.nix
+            ];
+          };
         };
 
         darwinConfigurations = {
           common = mkDarwinConfig {
-            system = "aarch64-darwin";
-          };
-
-          beefy = mkDarwinConfig {
             system = "aarch64-darwin";
           };
 

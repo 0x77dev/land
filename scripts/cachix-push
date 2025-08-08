@@ -19,10 +19,6 @@ if [[ "$(uname -m)" == "arm64" ]] && [[ "$(uname -s)" == "Darwin" ]]; then
   nix build .#darwinConfigurations.common.system --json "${NIX_OPTS[@]}" \
     | jq -r '.[].outputs | to_entries[].value' \
     | cachix push land
-  
-  nix build .#homeConfigurations."0x77@beefy".activationPackage --json "${NIX_OPTS[@]}" \
-    | jq -r '.[].outputs | to_entries[].value' \
-    | cachix push land
 fi
 
 if [[ "$(uname -m)" == "x86_64" ]] && [[ "$(uname -s)" == "Linux" ]]; then
