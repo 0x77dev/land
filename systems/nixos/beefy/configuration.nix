@@ -32,7 +32,8 @@
     settings.General.EnableNetworkConfiguration = true;
   };
 
-  # Asahi-specific options are managed by the system's existing setup; no overrides here for now
+  # Peripheral firmware from EFI system partition on the host (no files in repo)
+  hardware.asahi.peripheralFirmwareDirectory = "/boot/asahi";
 
   # Base packages
   environment.systemPackages = with pkgs; [ vim wget git ];
