@@ -37,6 +37,7 @@
     useExperimentalGPUDriver = lib.mkDefault true;
     experimentalGPUInstallMode = lib.mkDefault "replace";
     setupAsahiSound = lib.mkDefault true;
+    firmwareDirectory = lib.mkDefault "/boot/asahi";
   };
 
   # Base packages

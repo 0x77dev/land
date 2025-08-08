@@ -143,6 +143,21 @@
       }
     },
     "flake-compat_2": {
+      "locked": {
+        "lastModified": 1688025799,
+        "narHash": "sha256-ktpB4dRtnksm9F5WawoIkEneh1nrEvuxb5lJFt1iOyw=",
+        "owner": "nix-community",
+        "repo": "flake-compat",
+        "rev": "8bf105319d44f6b9f0d764efa4fdef9f1cc9ba1c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "flake-compat_3": {
       "flake": false,
       "locked": {
         "lastModified": 1747046372,
@@ -679,6 +694,28 @@
         "type": "github"
       }
     },
+    "nixos-apple-silicon": {
+      "inputs": {
+        "flake-compat": "flake-compat_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "treefmt-nix": "treefmt-nix_2"
+      },
+      "locked": {
+        "lastModified": 1754152461,
+        "narHash": "sha256-UNPGhPvjMGond6bTq2JXPjH0yyUj0g6nhG/wjEH/Vfo=",
+        "owner": "nix-community",
+        "repo": "nixos-apple-silicon",
+        "rev": "9c936c2686017de6adec644880451bdf3c323306",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixos-apple-silicon",
+        "type": "github"
+      }
+    },
     "nixos-generators": {
       "inputs": {
         "nixlib": "nixlib",
@@ -764,7 +801,7 @@
     },
     "nixos-wsl": {
       "inputs": {
-        "flake-compat": "flake-compat_2",
+        "flake-compat": "flake-compat_3",
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
@@ -919,6 +956,7 @@
         "nix-homebrew": "nix-homebrew",
         "nix2container": "nix2container",
         "nixos-anywhere": "nixos-anywhere",
+        "nixos-apple-silicon": "nixos-apple-silicon",
         "nixos-generators": "nixos-generators",
         "nixos-vscode-server": "nixos-vscode-server",
         "nixos-wsl": "nixos-wsl",
@@ -1006,6 +1044,27 @@
         "owner": "numtide",
         "repo": "treefmt-nix",
         "rev": "a05be418a1af1198ca0f63facb13c985db4cb3c5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "treefmt-nix_2": {
+      "inputs": {
+        "nixpkgs": [
+          "nixos-apple-silicon",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1753006367,
+        "narHash": "sha256-tzbhc4XttkyEhswByk5R38l+ztN9UDbnj0cTcP6Hp9A=",
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "rev": "421b56313c65a0815a52b424777f55acf0b56ddf",
         "type": "github"
       },
       "original": {
