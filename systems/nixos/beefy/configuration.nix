@@ -32,13 +32,7 @@
     settings.General.EnableNetworkConfiguration = true;
   };
 
-  # Optional: Asahi GPU/audio setup
-  hardware.asahi = {
-    useExperimentalGPUDriver = lib.mkDefault true;
-    experimentalGPUInstallMode = lib.mkDefault "replace";
-    setupAsahiSound = lib.mkDefault true;
-    firmwareDirectory = lib.mkDefault "/boot/asahi";
-  };
+  # Asahi-specific options are managed by the system's existing setup; no overrides here for now
 
   # Base packages
   environment.systemPackages = with pkgs; [ vim wget git ];

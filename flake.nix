@@ -324,7 +324,6 @@
           beefy = mkNixosConfig {
             system = "aarch64-linux";
             modules = [
-              inputs.nixos-apple-silicon.nixosModules.apple-silicon-support
               ./systems/nixos/beefy/configuration.nix
             ];
           };
