@@ -10,6 +10,7 @@
         url = "https://builds.uaudio.com/apps/UA_Connect/UA_Connect_${builtins.replaceStrings ["."] ["_"] version}_Mac.dmg";
         hash = "sha256-oeKLjUuBuxywvbCUhnOKU3CsHoKrs2957pQDxmG7shU=";
       };
+      sourceRoot = ".";
 
       nativeBuildInputs = [ pkgs.undmg ];
 
