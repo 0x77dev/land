@@ -1,14 +1,7 @@
 { pkgs, inputs ? { }, ... }:
 
 let
-  pkgs-unstable = import inputs.nixpkgs-unstable {
-    system = pkgs.system;
-    config.allowUnfree = true;
-  };
-
   commonAliases = {
-    aria2p = "aria2p -s aria2";
-    pbdownload = ''aria2p -s aria2 add "$(pbpaste)"'';
     cd = "z";
     cdi = "zi";
   };

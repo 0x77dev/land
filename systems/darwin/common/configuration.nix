@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }:
+{ inputs, pkgs, pkgsUnstable, ... }:
 {
   imports = [
     inputs.sops-nix.darwinModules.sops
@@ -35,7 +35,6 @@
     pkgs.vscodium
     pkgs.nil
     pkgs.nixpkgs-fmt
-    pkgs.kitty
     pkgs.btop
     pkgs.eza
     pkgs.git
@@ -120,6 +119,8 @@
     optimise = {
       automatic = true;
     };
+
+    distributedBuilds = true;
   };
 
   programs.fish.enable = true;

@@ -7,7 +7,7 @@
     ./gpg.nix
     ./ssh.nix
     ./shell.nix
-    ./kitty.nix
+    ./ghostty.nix
     ./vscode.nix
     ./chromium.nix
     ./neovim.nix

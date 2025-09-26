@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{ ... }: {
   system.defaults.dock = {
     # Arrange items in dock
     persistent-apps = [
@@ -14,7 +12,7 @@
       "/Applications/Notion Calendar.app"
       "/Applications/Setapp/Spark Mail.app"
       "/Applications/Cursor.app"
-      "/Applications/Nix Apps/kitty.app"
+      "/Users/0x77/Applications/Home Manager Apps/Ghostty.app"
       "/Applications/Spotify.app"
       "/System/Applications/System Settings.app"
     ];

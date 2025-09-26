@@ -17,7 +17,7 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    devenv.url = "github:cachix/devenv/v1.7";
+    devenv.url = "github:cachix/devenv/v1.9";
 
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
@@ -140,6 +140,10 @@
 
           extraSpecialArgs = {
             inherit inputs system;
+            pkgsUnstable = import nixpkgs-unstable {
+              inherit system;
+              config.allowUnfree = true;
+            };
           };
         };
 
@@ -150,7 +154,13 @@
         }:
         nix-darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+            pkgsUnstable = import nixpkgs-unstable {
+              inherit system;
+              config.allowUnfree = true;
+            };
+          };
           modules = [
             lix-module.nixosModules.default
             sops-nix.darwinModules.sops
@@ -170,6 +180,10 @@
                 backupFileExtension = "hmbak";
                 extraSpecialArgs = {
                   inherit inputs system;
+                  pkgsUnstable = import nixpkgs-unstable {
+                    inherit system;
+                    config.allowUnfree = true;
+                  };
                 };
                 users."0x77" = import ./modules/home {
                   inherit inputs system;

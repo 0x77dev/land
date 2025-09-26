@@ -34,7 +34,7 @@
       "google-chrome"
       "setapp"
       "telegram"
-      "tailscale"
+      "homebrew/cask/tailscale"
       "balenaetcher"
       "audio-hijack"
       "gpg-suite"

@@ -16,6 +16,11 @@
         forwardAgent = true;
       };
     };
+
+    extraConfig = ''
+      Host *
+        SetEnv TERM=xterm-256color
+    '';
   };
 
   home.file.".config/1Password/ssh/agent.toml".source =
