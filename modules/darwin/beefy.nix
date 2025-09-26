@@ -1,6 +1,13 @@
 { pkgs, ... }:
 
 {
+  services = {
+    netdata.enable = true;
+    tailscale.enable = true;
+    prometheus.exporters.node.enable = true;
+    ipfs.enable = true;
+  };
+
   environment.systemPackages = [ pkgs.ollama ];
 
   launchd = {
