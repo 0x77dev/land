@@ -4,7 +4,6 @@
   services = {
     netdata.enable = true;
     tailscale.enable = true;
-    prometheus.exporters.node.enable = true;
     ipfs.enable = true;
   };
 
