@@ -334,14 +334,6 @@
               }
             ] ++ (import ./modules/nixos);
           };
-
-          beefy = mkNixosConfig {
-            system = "aarch64-linux";
-            modules = [
-              inputs.nixos-apple-silicon.nixosModules.apple-silicon-support
-              ./systems/nixos/beefy/configuration.nix
-            ];
-          };
         };
 
         darwinConfigurations = {
@@ -350,6 +342,10 @@
           };
 
           potato = mkDarwinConfig {
+            system = "aarch64-darwin";
+          };
+
+          beefy = mkDarwinConfig {
             system = "aarch64-darwin";
           };
         };
