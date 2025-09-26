@@ -168,8 +168,8 @@
             ./modules/darwin/security.nix
             ./modules/darwin/dock.nix
             ./modules/darwin/linux-builder.nix
-            ./modules/darwin/hardware/focusrite.nix
             ./modules/darwin/hardware/flipper.nix
+            ./modules/darwin/hardware/uad.nix
             ./modules/darwin/hardware/meshtastic.nix
             ./systems/darwin/common/configuration.nix
             home-manager.darwinModules.home-manager
@@ -347,6 +347,9 @@
 
           beefy = mkDarwinConfig {
             system = "aarch64-darwin";
+            modules = [
+              ./modules/darwin/beefy.nix
+            ];
           };
         };
       };
