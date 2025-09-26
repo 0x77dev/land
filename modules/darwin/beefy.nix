@@ -2,7 +2,6 @@
 
 {
   services = {
-    netdata.enable = true;
     tailscale.enable = true;
     ipfs.enable = true;
   };
