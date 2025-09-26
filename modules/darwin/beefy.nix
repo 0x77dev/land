@@ -6,7 +6,7 @@
     ipfs.enable = true;
   };
 
-  environment.systemPackages = [ pkgs.ollama ];
+  environment.systemPackages = [ pkgs.ollama pkgs.ffmpeg ];
 
   launchd = {
     user = {
