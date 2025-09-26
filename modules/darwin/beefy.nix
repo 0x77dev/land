@@ -4,18 +4,20 @@
   environment.systemPackages = [ pkgs.ollama ];
 
   launchd = {
-    user.agents.ollama-serve = {
-      command = "${pkgs.ollama}/bin/ollama serve";
-      serviceConfig = {
-        KeepAlive = true;
-        RunAtLoad = true;
-      };
+    user = {
+      agents.ollama-serve = {
+        command = "${pkgs.ollama}/bin/ollama serve";
+        serviceConfig = {
+          KeepAlive = true;
+          RunAtLoad = true;
+        };
 
-      envVariables = {
-        # Expose ollama on the network
-        OLLAMA_HOST = "0.0.0.0";
-        # Enable Flash Attention for better performance
-        OLLAMA_FLASH_ATTENTION = "1";
+        envVariables = {
+          # Expose ollama on the network
+          OLLAMA_HOST = "0.0.0.0";
+          # Enable Flash Attention for better performance
+          OLLAMA_FLASH_ATTENTION = "1";
+        };
       };
     };
   };
