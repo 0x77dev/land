@@ -32,6 +32,7 @@
   ];
 
   environment.systemPackages = [
+    pkgs.macpm
     pkgs.vscodium
     pkgs.nil
     pkgs.nixpkgs-fmt
