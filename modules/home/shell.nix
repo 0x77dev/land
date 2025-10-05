@@ -64,6 +64,7 @@ in
     bat
     glow
     nix-output-monitor
+    figlet
   ];
 
   programs.bash = {
