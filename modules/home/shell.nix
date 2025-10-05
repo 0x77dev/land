@@ -63,6 +63,7 @@ in
     bun
     bat
     glow
+    nix-output-monitor
   ];
 
   programs.bash = {
