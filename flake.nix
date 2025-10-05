@@ -17,7 +17,7 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    devenv.url = "github:cachix/devenv/v1.9";
+    devenv.url = "github:cachix/devenv/v1.9.2";
 
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
