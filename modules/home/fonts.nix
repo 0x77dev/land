@@ -1,11 +1,12 @@
 { pkgs, ... }:
 
+let
+  tx-02-variable = pkgs.callPackage ../../packages/tx-02-variable { };
+in
 {
-  # TODO: add TX-02 from Berkeley Mono
-  # home.packages = with pkgs; [
-  #   (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
-  #   jetbrains-mono
-  # ];
+  home.packages = [
+    tx-02-variable
+  ];
 
   fonts.fontconfig.enable = true;
 }

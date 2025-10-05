@@ -78,7 +78,7 @@ in
   programs.zsh = {
     enable = true;
     shellAliases = commonAliases // commonAbbrs;
-    initExtra = ''
+    initContent = ''
       ${commonFunctions}
       export PATH="${builtins.concatStringsSep ":" commonPaths}:$PATH"
       eval "$(zoxide init zsh)"

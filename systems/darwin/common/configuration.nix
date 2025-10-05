@@ -23,6 +23,7 @@
 
     knownUsers = [ "0x77" ];
   };
+
   system.primaryUser = "0x77";
 
   environment.shells = with pkgs; [
@@ -59,6 +60,8 @@
   nixpkgs.config.allowUnfree = true;
 
   nix = {
+    package = pkgs.lixPackageSets.stable.lix;
+
     settings = {
       experimental-features = [
         "nix-command"
@@ -94,20 +97,9 @@
       # Build optimization
       max-jobs = "auto";
       cores = 0; # Use all available cores
-      system-features = [
-        "big-parallel"
-        "benchmark"
-      ];
-      keep-outputs = true;
-      keep-derivations = true;
-      builders-use-substitutes = true; # Allow builders to use substitutes
       connect-timeout = 5; # Reduce connection timeout
       download-speed = 0; # No limit on download speed
       narinfo-cache-negative-ttl = 0; # Don't cache negative lookups
-
-      # Sandbox settings
-      sandbox = true;
-      extra-sandbox-paths = [ "/nix/store" ];
     };
 
     # Garbage collection

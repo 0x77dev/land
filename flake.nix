@@ -10,28 +10,30 @@
       flake = false;
     };
 
-    lix-module = {
-      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.93.0.tar.gz";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    devenv.url = "github:cachix/devenv/v1.9.2";
+
+    nix2container = {
+      url = "github:nlewo/nix2container";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    flake-parts.url = "github:hercules-ci/flake-parts";
-
-    devenv.url = "github:cachix/devenv/v1.9.2";
-
-    nix2container.url = "github:nlewo/nix2container";
-    nix2container.inputs.nixpkgs.follows = "nixpkgs";
-
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
 
-    sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    nvf.url = "github:notashelf/nvf";
-    nvf.inputs.nixpkgs.follows = "nixpkgs";
+    nvf = {
+      url = "github:notashelf/nvf";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    nixos-anywhere.url = "github:nix-community/nixos-anywhere";
-    nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-anywhere = {
+      url = "github:nix-community/nixos-anywhere";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Apple Silicon (Asahi) support for NixOS
     nixos-apple-silicon = {
@@ -49,8 +51,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # VS Code Server
     nixos-vscode-server = {
@@ -66,36 +70,33 @@
       url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-homebrew = {
-      url = "github:zhaofengli-wip/nix-homebrew";
-    };
+
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
       flake = false;
     };
+
     homebrew-cask = {
       url = "github:homebrew/homebrew-cask";
       flake = false;
     };
+
     homebrew-bundle = {
       url = "github:homebrew/homebrew-bundle";
       flake = false;
     };
+
     lyraphase-av-casks = {
       url = "github:LyraPhase/homebrew-av-casks";
       flake = false;
     };
+
     homebrew-assemblyai = {
       url = "github:assemblyai/homebrew-assemblyai";
       flake = false;
     };
-  };
-
-  nixConfig = {
-    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= land.cachix.org-1:9KPti8Xi0UJ7eQof7b8VUzSYU5piFy6WVQ8MDTLOqEA= cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o=";
-    extra-substituters = "https://devenv.cachix.org https://land.cachix.org https://cache.lix.systems";
-    warn-dirty = false;
-    allow-unfree = true;
   };
 
   outputs =
@@ -111,143 +112,20 @@
     , nixos-vscode-server
     , disko
     , nixos-anywhere
-    , lix-module
     , nvf
     , ...
     }:
     let
-      mkHomeConfig =
-        { system
-        , username
-        , homeDirectory
-        , modules ? [ ]
-        ,
-        }:
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
-
-          modules = [
-            nvf.homeManagerModules.default
-            ./modules/home
-            {
-              home.username = username;
-              home.homeDirectory = homeDirectory;
-            }
-          ] ++ modules;
-
-          extraSpecialArgs = {
-            inherit inputs system;
-            pkgsUnstable = import nixpkgs-unstable {
-              inherit system;
-              config.allowUnfree = true;
-            };
-          };
-        };
-
-      mkDarwinConfig =
-        { system ? "aarch64-darwin"
-        , modules ? [ ]
-        ,
-        }:
-        nix-darwin.lib.darwinSystem {
-          inherit system;
-          specialArgs = {
-            inherit inputs;
-            pkgsUnstable = import nixpkgs-unstable {
-              inherit system;
-              config.allowUnfree = true;
-            };
-          };
-          modules = [
-            lix-module.nixosModules.default
-            sops-nix.darwinModules.sops
-            ./modules/darwin/homebrew.nix
-            ./modules/darwin/security.nix
-            ./modules/darwin/dock.nix
-            ./modules/darwin/linux-builder.nix
-            ./modules/darwin/hardware/flipper.nix
-            ./modules/darwin/hardware/uad.nix
-            ./modules/darwin/hardware/meshtastic.nix
-            ./systems/darwin/common/configuration.nix
-            home-manager.darwinModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                backupFileExtension = "hmbak";
-                extraSpecialArgs = {
-                  inherit inputs system;
-                  pkgsUnstable = import nixpkgs-unstable {
-                    inherit system;
-                    config.allowUnfree = true;
-                  };
-                };
-                users."0x77" = import ./modules/home {
-                  inherit inputs system;
-                  username = "0x77";
-                  homeDirectory = "/Users/0x77";
-                  openssh.authorizedKeys.keys = builtins.fromJSON (
-                    builtins.readFile ./helpers/openssh-authorized-keys.json
-                  );
-                };
-              };
-            }
-          ] ++ modules;
-        };
-
-      mkNixosModules =
-        { system
-        , modules ? [ ]
-        ,
-        }:
-        [
-          lix-module.nixosModules.default
-          sops-nix.nixosModules.sops
-          home-manager.nixosModules.home-manager
-          {
-            nixpkgs.config.allowUnfree = true;
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = {
-                inherit inputs system;
-              };
-              users."mykhailo" = import ./modules/home {
-                inherit inputs system;
-                username = "mykhailo";
-                homeDirectory = "/home/mykhailo";
-                openssh.authorizedKeys.keys = builtins.fromJSON (
-                  builtins.readFile ./helpers/openssh-authorized-keys.json
-                );
-              };
-            };
-          }
-        ]
-        ++ modules;
-
-      mkNixosConfig =
-        { system
-        , modules ? [ ]
-        ,
-        }:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = { inherit inputs; };
-          modules =
-            mkNixosModules { inherit system modules; }
-            ++ [
-              nixos-generators.nixosModules.all-formats
-            ]
-            ++ modules;
-        };
+      mkHomeConfig = import ./utils/mkHomeConfig.nix inputs;
+      mkDarwinConfig = import ./utils/mkDarwinConfig.nix inputs;
+      mkNixosModules = import ./utils/mkNixosModules.nix inputs;
+      mkNixosConfig = import ./utils/mkNixosConfig.nix inputs;
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.devenv.flakeModule
       ];
+
       systems = [
         "x86_64-linux"
         "i686-linux"
@@ -263,8 +141,7 @@
         , pkgs
         , system
         , ...
-        }:
-        {
+        }: {
           _module.args.pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
@@ -291,16 +168,20 @@
             username = "0x77";
             homeDirectory = "/Users/0x77";
           };
+
           "mykhailo@tomato" = mkHomeConfig {
             system = "x86_64-linux";
             username = "mykhailo";
             homeDirectory = "/home/mykhailo";
           };
+
           "mykhailo@muscle" = mkHomeConfig {
             system = "x86_64-linux";
             username = "mykhailo";
             homeDirectory = "/home/mykhailo";
-            modules = [{ targets.genericLinux.enable = true; }];
+            modules = [
+              { targets.genericLinux.enable = true; }
+            ];
           };
         };
 
@@ -337,10 +218,6 @@
         };
 
         darwinConfigurations = {
-          common = mkDarwinConfig {
-            system = "aarch64-darwin";
-          };
-
           potato = mkDarwinConfig {
             system = "aarch64-darwin";
           };
@@ -348,7 +225,7 @@
           beefy = mkDarwinConfig {
             system = "aarch64-darwin";
             modules = [
-              ./modules/darwin/beefy.nix
+              ./systems/darwin/beefy/configuration.nix
             ];
           };
         };

@@ -4,30 +4,17 @@
   "nix": {
     "enabled": true
   },
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["before 6am on monday"]
-  },
   "packageRules": [
     {
       "matchManagers": ["nix"],
       "matchDepNames": ["nixpkgs"],
-      "schedule": ["every weekend"],
-      "commitMessagePrefix": "nix(nixpkgs):",
-      "automerge": false,
-      "reviewers": ["team:maintainers"]
+      "automerge": false
     },
     {
       "matchManagers": ["nix"],
       "excludeDepNames": ["nixpkgs"],
-      "schedule": ["after 10pm every weekday", "every weekend"],
-      "commitMessagePrefix": "nix:",
       "groupName": "nix flake inputs",
-      "automerge": true,
-      "automergeType": "pr",
-      "matchUpdateTypes": ["lockFileMaintenance"]
+      "automerge": true
     }
-  ],
-  "prConcurrentLimit": 3,
-  "prHourlyLimit": 2
+  ]
 }
