@@ -12,8 +12,6 @@
       "homebrew/homebrew-core" = inputs.homebrew-core;
       "homebrew/homebrew-cask" = inputs.homebrew-cask;
       "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
-      "lyraphase/av-casks" = inputs.lyraphase-av-casks;
-      "assemblyai/assemblyai" = inputs.homebrew-assemblyai;
     };
     mutableTaps = true;
   };

@@ -98,6 +98,15 @@ This repository uses [Nix](https://nixos.org/) to manage:
      wsl.exe -d Land -u root -e "nixos-rebuild switch --refresh --flake github:0x77dev/land#muscleWSL"
      ```
 
+   - For Raspberry Pi (`rubus`) OS Image:
+
+     ```shell
+     # Build the SD card image
+     nix build .#nixosConfigurations.rubus.config.formats.sd-aarch64
+     ```
+     
+     Once the build is complete, flash the image to your SD card, image is in the `result` directory.
+
    - For nix-rendezvous container:
      
      ```shell

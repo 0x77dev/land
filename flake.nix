@@ -25,6 +25,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware";
+    };
+
     nvf = {
       url = "github:notashelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -85,16 +89,6 @@
 
     homebrew-bundle = {
       url = "github:homebrew/homebrew-bundle";
-      flake = false;
-    };
-
-    lyraphase-av-casks = {
-      url = "github:LyraPhase/homebrew-av-casks";
-      flake = false;
-    };
-
-    homebrew-assemblyai = {
-      url = "github:assemblyai/homebrew-assemblyai";
       flake = false;
     };
   };
@@ -200,6 +194,14 @@
             modules = [
               nixos-wsl.nixosModules.default
               ./systems/nixos/muscle-wsl/configuration.nix
+            ];
+          };
+
+          rubus = mkNixosConfig {
+            system = "aarch64-linux";
+            modules = [
+              inputs.nixos-hardware.nixosModules.raspberry-pi-4
+              ./systems/nixos/rubus/configuration.nix
             ];
           };
 

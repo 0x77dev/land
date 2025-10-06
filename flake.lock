@@ -358,22 +358,6 @@
         "type": "github"
       }
     },
-    "homebrew-assemblyai": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1712077782,
-        "narHash": "sha256-raS9PlkXz3sMVksvtBlM/SoSt2L3Iq9U7ux1PIKm6XI=",
-        "owner": "assemblyai",
-        "repo": "homebrew-assemblyai",
-        "rev": "d75aebc247dd4539b456fd9512d5762b1def577b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "assemblyai",
-        "repo": "homebrew-assemblyai",
-        "type": "github"
-      }
-    },
     "homebrew-bundle": {
       "flake": false,
       "locked": {
@@ -419,22 +403,6 @@
       "original": {
         "owner": "homebrew",
         "repo": "homebrew-core",
-        "type": "github"
-      }
-    },
-    "lyraphase-av-casks": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1741945729,
-        "narHash": "sha256-iOkO85Kltwl/DdKFCtLlzzKNPWbs7xnziPjUUKu7YoE=",
-        "owner": "LyraPhase",
-        "repo": "homebrew-av-casks",
-        "rev": "f27a01d4fe1c9a3a0dab4f0a7aab61d70fb973f4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LyraPhase",
-        "repo": "homebrew-av-casks",
         "type": "github"
       }
     },
@@ -671,6 +639,21 @@
         "type": "github"
       }
     },
+    "nixos-hardware": {
+      "locked": {
+        "lastModified": 1759582739,
+        "narHash": "sha256-spZegilADH0q5OngM86u6NmXxduCNv5eX9vCiUPhOYc=",
+        "owner": "NixOS",
+        "repo": "nixos-hardware",
+        "rev": "3441b5242af7577230a78ffb03542add264179ab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixos-hardware",
+        "type": "github"
+      }
+    },
     "nixos-images": {
       "inputs": {
         "nixos-stable": [
@@ -863,11 +846,9 @@
         "disko": "disko",
         "flake-parts": "flake-parts_2",
         "home-manager": "home-manager",
-        "homebrew-assemblyai": "homebrew-assemblyai",
         "homebrew-bundle": "homebrew-bundle",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
-        "lyraphase-av-casks": "lyraphase-av-casks",
         "mk-shell-bin": "mk-shell-bin",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
@@ -875,6 +856,7 @@
         "nixos-anywhere": "nixos-anywhere",
         "nixos-apple-silicon": "nixos-apple-silicon",
         "nixos-generators": "nixos-generators",
+        "nixos-hardware": "nixos-hardware",
         "nixos-vscode-server": "nixos-vscode-server",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_3",
