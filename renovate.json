@@ -1,20 +1,30 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices"],
+  "extends": [
+    "config:best-practices"
+  ],
   "nix": {
     "enabled": true
   },
   "packageRules": [
     {
-      "matchManagers": ["nix"],
-      "matchDepNames": ["nixpkgs"],
+      "matchManagers": [
+        "nix"
+      ],
+      "matchDepNames": [
+        "nixpkgs"
+      ],
       "automerge": false
     },
     {
-      "matchManagers": ["nix"],
-      "excludeDepNames": ["nixpkgs"],
+      "matchManagers": [
+        "nix"
+      ],
       "groupName": "nix flake inputs",
-      "automerge": true
+      "automerge": true,
+      "matchDepNames": [
+        "!nixpkgs"
+      ]
     }
   ]
 }
