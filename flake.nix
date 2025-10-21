@@ -11,7 +11,7 @@
     };
 
     flake-parts.url = "github:hercules-ci/flake-parts";
-    devenv.url = "github:cachix/devenv/v1.9.2";
+    devenv.url = "github:cachix/devenv/v1.10";
 
     nix2container = {
       url = "github:nlewo/nix2container";
@@ -29,8 +29,8 @@
       url = "github:NixOS/nixos-hardware";
     };
 
-    nvf = {
-      url = "github:notashelf/nvf";
+    nixvim = {
+      url = "github:nix-community/nixvim/nixos-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -106,7 +106,7 @@
     , nixos-vscode-server
     , disko
     , nixos-anywhere
-    , nvf
+    , nixvim
     , ...
     }:
     let

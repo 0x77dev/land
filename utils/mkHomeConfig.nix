@@ -1,7 +1,7 @@
 { nixpkgs
 , nixpkgs-unstable
 , home-manager
-, nvf
+, nixvim
 , ...
 }@inputs:
 { system
@@ -17,7 +17,6 @@ home-manager.lib.homeManagerConfiguration {
   };
 
   modules = [
-    nvf.homeManagerModules.default
     ../modules/home
     {
       home.username = username;

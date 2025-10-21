@@ -35,6 +35,7 @@
   environment.systemPackages = [
     pkgs.macpm
     pkgs.vscodium
+    pkgs.nightlight
     pkgs.nil
     pkgs.nixpkgs-fmt
     pkgs.btop

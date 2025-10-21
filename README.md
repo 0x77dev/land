@@ -21,13 +21,17 @@ This repository uses [Nix](https://nixos.org/) to manage:
 2. Apply configuration:
 
    - For macOS:
+
      ```shell
      nix run nix-darwin --experimental-features 'nix-command flakes' -- switch --refresh --flake github:0x77dev/land#<hostname>
      ```
+
    - For NixOS:
+
      ```shell
      nixos-rebuild switch --refresh --flake github:0x77dev/land#<hostname>
      ```
+
    - For installing NixOS on a new machine:
 
      ```shell
@@ -65,9 +69,11 @@ This repository uses [Nix](https://nixos.org/) to manage:
      ```
 
    - For home-manager (if not defined in NixOS or nix-darwin):
+
      ```shell
      nix run home-manager --experimental-features 'nix-command flakes' -- switch --refresh --experimental-features 'nix-command flakes' --flake github:0x77dev/land#<username>@<hostname> -b backup
      ```
+
    - For WSL:
 
      ```shell
@@ -104,21 +110,21 @@ This repository uses [Nix](https://nixos.org/) to manage:
      # Build the SD card image
      nix build .#nixosConfigurations.rubus.config.formats.sd-aarch64
      ```
-     
+
      Once the build is complete, flash the image to your SD card, image is in the `result` directory.
 
    - For nix-rendezvous container:
-     
+
      ```shell
      # Build the Proxmox LXC container image
      nix build .#nixosConfigurations.nix-rendezvous.config.formats.lxc-nix-rendezvous
      ```
-     
+
      ```shell
      # Copy the tarball to your Proxmox host
      scp result root@proxmox:/var/lib/vz/template/cache/nix-rendezvous.tar.xz
      ```
-     
+
      ```shell
      # On Proxmox, create a new container using the tarball
      # Either use the web interface or the command line:
@@ -129,7 +135,7 @@ This repository uses [Nix](https://nixos.org/) to manage:
        --net0 name=eth0,bridge=vmbr0,ip=dhcp \
        --unprivileged 1
      ```
-     
+
      ```shell
      # Start the container
      pct start 228
@@ -151,6 +157,91 @@ If you want to use this repository as a starting point for your own homelab, you
 You can start by adding your own machines to the `flake.nix` file, and then customize the `modules/` and `systems/` directories to your liking.
 
 ## Cheat sheet
+
+### Neovim Keybindings
+
+All keybindings use `<space>` as the leader key.
+
+**Features:**
+- 🤖 **AI Code Completion**: Supermaven provides fast, context-aware code suggestions
+- 🔧 **Nix LSP**: Enhanced Nix support with `nixd` - includes flake options, formatting, and diagnostics
+- 📦 **Modern Completion**: Using `blink-cmp` for blazing-fast completions
+- 🎨 **Catppuccin Theme**: Beautiful Mocha colorscheme
+- 🔍 **Fuzzy Finding**: Telescope with fzf-native for instant file/text search
+
+#### File Management
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `<leader>e` | Toggle file explorer | Open/close Neo-tree |
+| `<leader>w` | Save file | Write current buffer |
+| `<leader>q` | Quit | Close current window |
+
+#### Finding & Searching
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `<leader>ff` | Find files | Search files in project |
+| `<leader>fg` | Live grep | Search text in project |
+| `<leader>fb` | Buffers | List open buffers |
+| `<leader>fh` | Help tags | Search help documentation |
+| `<leader>fr` | Recent files | Open recent files |
+
+#### Window Navigation
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `<C-h>` | Move left | Go to left window |
+| `<C-j>` | Move down | Go to lower window |
+| `<C-k>` | Move up | Go to upper window |
+| `<C-l>` | Move right | Go to right window |
+
+#### Git Operations
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `<leader>gg` | LazyGit | Open LazyGit interface |
+| `<leader>gd` | Git diff | Show diff of current file |
+| `]g` | Next hunk | Jump to next git hunk |
+| `[g` | Previous hunk | Jump to previous git hunk |
+
+#### LSP Actions
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `K` | Hover | Show documentation |
+| `gd` | Go to definition | Jump to definition |
+| `gD` | Go to declaration | Jump to declaration |
+| `gi` | Go to implementation | Jump to implementation |
+| `gr` | Go to references | Show references |
+| `<leader>lr` | Rename | Rename symbol |
+| `<leader>la` | Code action | Show code actions |
+| `<leader>lf` | Format | Format document |
+| `]e` | Next diagnostic | Jump to next error |
+| `[e` | Previous diagnostic | Jump to previous error |
+
+#### Insert Mode
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `jk` | Exit insert mode | Return to normal mode |
+| `jj` | Exit insert mode | Return to normal mode |
+| `<C-y>` | Accept AI suggestion | Accept Supermaven completion |
+| `<C-]>` | Clear AI suggestion | Dismiss Supermaven suggestion |
+| `<C-j>` | Accept word | Accept next word from Supermaven |
+
+#### Visual Mode
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `<` | Indent left | Decrease indentation (stay in visual) |
+| `>` | Indent right | Increase indentation (stay in visual) |
+
+#### Other
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `<Esc>` | Clear search | Remove search highlighting |
 
 ### sops
 
