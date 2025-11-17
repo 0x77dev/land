@@ -93,23 +93,26 @@ Verifies commit signatures before updating system. Stages updates for next boot.
 ### Configuration
 
 ```nix
-# Darwin
-services.verified-auto-update = {
-  enable = true;
-  flakeUrl = "github:0x77dev/land";
-  allowedWorkflowRepository = "0x77dev/land";  # Recommended
-  schedule = [{ Hour = 3; Minute = 0; }];
-};
+# Minimal configuration (uses defaults from lib.land.shared.verified-auto-update)
+services.verified-auto-update.enable = true;
 
-# NixOS
+# Custom configuration (override defaults if needed)
 services.verified-auto-update = {
   enable = true;
-  flakeUrl = "github:0x77dev/land";
-  allowedWorkflowRepository = "0x77dev/land";  # Recommended
+  flakeUrl = "github:your-org/your-repo";  # Optional: override default
+  allowedGpgKey = "YOUR_GPG_KEY";  # Optional: override default
+  allowedWorkflowRepository = "your-org/your-repo";  # Optional: override default
+
+  # Darwin: override schedule (default: 3 AM, 9 AM, 3 PM, 9 PM)
+  schedule = [{ Hour = 3; Minute = 0; }];
+
+  # NixOS: override schedule (default: "*-*-* 03,09,15,21:00:00")
   schedule = "03:00";
   randomizedDelaySec = "1h";
 };
 ```
+
+Defaults are configured in `nix/lib/shared/verified-auto-update/default.nix`.
 
 ### Testing
 

@@ -10,4 +10,5 @@
   home-config = import ./home-config { inherit lib inputs namespace; };
   home-manager-config = import ./home-manager-config { inherit lib inputs namespace; };
   user-config = import ./user-config { inherit lib inputs namespace; };
+  verified-auto-update = import ./verified-auto-update { inherit lib inputs namespace; };
 }

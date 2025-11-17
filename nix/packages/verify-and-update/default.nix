@@ -93,14 +93,14 @@ writeShellApplication {
         return 1
       fi
 
-      # Verify it matches the allowed key
-      signing_key=$(git log --format="%GK" -n1 "$commit")
+      # Verify it matches the allowed key (use primary key fingerprint)
+      signing_key=$(git log --format="%GP" -n1 "$commit")
       if [[ "$signing_key" != "$ALLOWED_GPG_KEY" ]]; then
         log "✗ Signed by unauthorized key: $signing_key (expected: $ALLOWED_GPG_KEY)"
         return 1
       fi
 
-      log "✓ GPG signature valid (key: $signing_key)"
+      log "✓ GPG signature valid (primary key: $signing_key)"
       return 0
     }
 

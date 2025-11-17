@@ -136,7 +136,7 @@ automatic discovery and loading.
 nix develop
 
 # Run hooks manually
-pre-commit run --all-files
+nix flake check
 
 # Update flake inputs
 nix flake update

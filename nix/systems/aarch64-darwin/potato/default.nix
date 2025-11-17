@@ -42,10 +42,6 @@ in
 
   programs.fish.enable = true;
 
-  # Verified auto-updates
-  services.verified-auto-update = {
-    enable = true;
-    flakeUrl = "github:0x77dev/land";
-    allowedWorkflowRepository = "0x77dev/land";
-  };
+  # Verified auto-updates (defaults from lib.land.shared.verified-auto-update)
+  services.verified-auto-update.enable = true;
 }

@@ -8,35 +8,45 @@
 
 let
   cfg = config.services.verified-auto-update;
+  defaults = lib.${namespace}.shared.verified-auto-update;
 in
 {
   options.services.verified-auto-update = {
-    enable = lib.mkEnableOption "verified automatic system updates";
+    enable = lib.mkEnableOption ''
+      verified automatic system updates with GPG/gitsign verification.
+
+      Handles missed schedules by:
+      - Persistent timer (runs missed schedules after wake/boot)
+      - Multiple daily schedule times (3 AM, 9 AM, 3 PM, 9 PM)
+      - Randomized delay to prevent thundering herd
+      - Prevents duplicate runs via lock file
+    '';
 
     flakeUrl = lib.mkOption {
       type = lib.types.str;
+      default = defaults.flakeUrl;
       example = "github:0x77dev/land";
       description = "Flake URL to update from";
     };
 
     allowedGpgKey = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
-      default = null;
+      default = defaults.allowedGpgKey;
       example = "C33BFD3230B660CF147762D2BF5C81B531164955";
       description = "GPG key fingerprint (required for GPG signatures)";
     };
 
     allowedWorkflowRepository = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
-      default = null;
+      default = defaults.allowedWorkflowRepository;
       example = "0x77dev/land";
       description = "GitHub repository to enforce (recommended)";
     };
 
     schedule = lib.mkOption {
       type = lib.types.str;
-      default = "03:00";
-      description = "Update schedule (systemd OnCalendar)";
+      default = "*-*-* 03,09,15,21:00:00";
+      description = "Update schedule (systemd OnCalendar format, runs at 3 AM, 9 AM, 3 PM, 9 PM)";
     };
 
     randomizedDelaySec = lib.mkOption {
