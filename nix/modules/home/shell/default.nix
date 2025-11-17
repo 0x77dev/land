@@ -54,10 +54,8 @@ in
     config.programs.gpg.settings.default-key or "C33BFD3230B660CF147762D2BF5C81B531164955";
 
   home.packages = with pkgs; [
-    aichat
     bat
     btop
-    cachix
     coreutils
     devenv
     direnv
@@ -66,7 +64,6 @@ in
     fzf
     glow
     hwatch
-    nix-output-monitor
     starship
     watchexec
     yazi

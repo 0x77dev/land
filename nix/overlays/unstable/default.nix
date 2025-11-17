@@ -13,5 +13,8 @@ _final: _prev: {
     oha
     prek
     ssh-to-age
+    aichat
+    ollama
+    opencode
     ;
 }

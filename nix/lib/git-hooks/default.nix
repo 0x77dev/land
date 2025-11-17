@@ -12,6 +12,7 @@ let
     mdsh.enable = true;
     shellcheck.enable = true;
     actionlint.enable = true;
+    editorconfig-checker.enable = true;
   };
 
   mkRun =
