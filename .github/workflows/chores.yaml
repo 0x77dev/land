@@ -1,6 +1,9 @@
 name: Chores
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/chores.yaml'
   schedule:
     - cron: '0 0 * * *'
 
