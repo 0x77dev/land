@@ -305,18 +305,18 @@ custom value in `specialArgs`.
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
+  outputs = inputs:
         inputs.snowfall-lib.mkFlake {
             inherit inputs;
             src = ./.;
@@ -858,18 +858,18 @@ custom value in `specialArgs`.
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
+  outputs = inputs:
         inputs.snowfall-lib.mkFlake {
             inherit inputs;
             src = ./.;
@@ -1311,32 +1311,32 @@ library instance with `mkLib`.
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
+  outputs = inputs:
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
 
-				# You can optionally place your Snowfall-related files in another
-				# directory.
-				snowfall.root = ./nix;
-			};
-		in
-		# We'll cover what to do here next.
-		{ };
+        # You can optionally place your Snowfall-related files in another
+        # directory.
+        snowfall.root = ./nix;
+      };
+    in
+    # We'll cover what to do here next.
+    { };
 }
 ```
 
@@ -1349,14 +1349,14 @@ A convenience wrapper for writing the following.
 
 ```nix
 let
-	lib = inputs.snowfall-lib.mkLib {
-		inherit inputs;
-		src = ./.;
+  lib = inputs.snowfall-lib.mkLib {
+    inherit inputs;
+    src = ./.;
 
-		# You can optionally place your Snowfall-related files in another
-		# directory.
-		snowfall.root = ./nix;
-	};
+    # You can optionally place your Snowfall-related files in another
+    # directory.
+    snowfall.root = ./nix;
+  };
 in lib.mkFlake {
 }
 ```
@@ -1365,8 +1365,8 @@ Instead, with `mkFlake` you can combine these calls into one like the following.
 
 ```nix
 inputs.snowfall-lib.mkFlake {
-	inherit inputs;
-	src = ./.;
+  inherit inputs;
+  src = ./.;
 };
 ```
 
@@ -1542,29 +1542,29 @@ packages, overlays, and shells specified by the [Flake Structure](#flake-structu
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
-		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
-		# directly unless you explicitly need a feature of `lib`.
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
-			};
-		in
-			lib.mkFlake { };
+  outputs = inputs:
+    # This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+    # directly unless you explicitly need a feature of `lib`.
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
+      };
+    in
+      lib.mkFlake { };
 }
 ```
 
@@ -1575,39 +1575,39 @@ the `snowfall` attribute passed to `mkLib`.
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
-		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
-		# directly unless you explicitly need a feature of `lib`.
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
+  outputs = inputs:
+    # This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+    # directly unless you explicitly need a feature of `lib`.
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
 
-				snowfall = {
-				namespace = "my-namespace";
-					meta = {
-						# Your flake's preferred name in the flake registry.
-						name = "my-flake";
-						# A pretty name for your flake.
-						title = "My Flake";
-					};
-				};
-			};
-		in
-			lib.mkFlake { };
+        snowfall = {
+        namespace = "my-namespace";
+          meta = {
+            # Your flake's preferred name in the flake registry.
+            name = "my-flake";
+            # A pretty name for your flake.
+            title = "My Flake";
+          };
+        };
+      };
+    in
+      lib.mkFlake { };
 }
 ```
 
@@ -1617,64 +1617,64 @@ You can apply overlays and modules from your flake's inputs with the following o
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-		home-manager = {
-			url = "github:nix-community/home-manager";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
-		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
-		# directly unless you explicitly need a feature of `lib`.
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
-			};
-		in
-			lib.mkFlake {
-				# Add overlays for the `nixpkgs` channel.
-				overlays = with inputs; [
-					# my-inputs.overlays.my-overlay
-				];
+  outputs = inputs:
+    # This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+    # directly unless you explicitly need a feature of `lib`.
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
+      };
+    in
+      lib.mkFlake {
+        # Add overlays for the `nixpkgs` channel.
+        overlays = with inputs; [
+          # my-inputs.overlays.my-overlay
+        ];
 
-				# Add modules to all NixOS systems.
-				systems.modules.nixos = with inputs; [
-					# my-input.nixosModules.my-module
-				];
+        # Add modules to all NixOS systems.
+        systems.modules.nixos = with inputs; [
+          # my-input.nixosModules.my-module
+        ];
 
-				# Add modules to all Darwin systems.
-				systems.modules.darwin = with inputs; [
-					# my-input.darwinModules.my-module
-				];
+        # Add modules to all Darwin systems.
+        systems.modules.darwin = with inputs; [
+          # my-input.darwinModules.my-module
+        ];
 
-				# Add modules to a specific system.
-				systems.hosts.my-host = with inputs; [
-					# my-input.nixosModules.my-module
-				];
+        # Add modules to a specific system.
+        systems.hosts.my-host = with inputs; [
+          # my-input.nixosModules.my-module
+        ];
 
-				# Add modules to all homes.
-				homes.modules = with inputs; [
-					# my-input.homeModules.my-module
-				];
+        # Add modules to all homes.
+        homes.modules = with inputs; [
+          # my-input.homeModules.my-module
+        ];
 
-				# Add modules to a specific home.
-				homes.users."my-user@my-host".modules = with inputs; [
-					# my-input.homeModules.my-module
-				];
-			};
+        # Add modules to a specific home.
+        homes.users."my-user@my-host".modules = with inputs; [
+          # my-input.homeModules.my-module
+        ];
+      };
 }
 ```
 
@@ -1686,47 +1686,47 @@ on `pkgs` and consumers of your flake can use the generated `<your-flake>.overla
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-		comma = {
-			url = "github:nix-community/comma";
-			inputs.nixpkgs.follows = "unstable";
-		};
-	};
+    comma = {
+      url = "github:nix-community/comma";
+      inputs.nixpkgs.follows = "unstable";
+    };
+  };
 
-	outputs = inputs:
-		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
-		# directly unless you explicitly need a feature of `lib`.
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
-			};
-		in
-			lib.mkFlake {
-				# Optionally place all packages under a namespace when used in an overlay.
-				# Instead of accessing packages with `pkgs.<name>`, your internal packages
-				# will be available at `pkgs.<namespace>.<name>`.
-				snowfall.namespace = "my-namespace";
+  outputs = inputs:
+    # This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+    # directly unless you explicitly need a feature of `lib`.
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
+      };
+    in
+      lib.mkFlake {
+        # Optionally place all packages under a namespace when used in an overlay.
+        # Instead of accessing packages with `pkgs.<name>`, your internal packages
+        # will be available at `pkgs.<namespace>.<name>`.
+        snowfall.namespace = "my-namespace";
 
-				# You can also pass through external packages or dynamically create new ones
-				# in addition to the ones that `lib` will create from your `packages/` directory.
-				outputs-builder = channels: {
-					packages = {
-						comma = inputs.comma.packages.${channels.nixpkgs.system}.comma;
-					};
-				};
-			};
+        # You can also pass through external packages or dynamically create new ones
+        # in addition to the ones that `lib` will create from your `packages/` directory.
+        outputs-builder = channels: {
+          packages = {
+            comma = inputs.comma.packages.${channels.nixpkgs.system}.comma;
+          };
+        };
+      };
 }
 ```
 
@@ -1739,53 +1739,53 @@ mapping the `default` package or shell to the name of the one you want.
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
-		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
-		# directly unless you explicitly need a feature of `lib`.
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
-			};
-		in
-			lib.mkFlake {
-				alias = {
-					packages = {
-						default = "my-package";
-					};
+  outputs = inputs:
+    # This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+    # directly unless you explicitly need a feature of `lib`.
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
+      };
+    in
+      lib.mkFlake {
+        alias = {
+          packages = {
+            default = "my-package";
+          };
 
-					shells = {
-						default = "my-shell";
-					};
+          shells = {
+            default = "my-shell";
+          };
 
-					checks = {
-						default = "my-check";
-					};
+          checks = {
+            default = "my-check";
+          };
 
-					modules = {
-						nixos.default = "my-nixos-module";
-						darwin.default = "my-darwin-module";
-						home.default = "my-home-module";
-					};
+          modules = {
+            nixos.default = "my-nixos-module";
+            darwin.default = "my-darwin-module";
+            home.default = "my-home-module";
+          };
 
-					templates = {
-						default = "my-template";
-					};
-				};
-			};
+          templates = {
+            default = "my-template";
+          };
+        };
+      };
 }
 ```
 
@@ -1797,43 +1797,43 @@ include `darwin` and/or `nixos-generators` as inputs.
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-		# In order to configure macOS systems.
-		darwin = {
-			url = "github:lnl7/nix-darwin";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+    # In order to configure macOS systems.
+    darwin = {
+      url = "github:lnl7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-		# In order to build system images and artifacts supported by nixos-generators.
-		nixos-generators = {
-			url = "github:nix-community/nixos-generators";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    # In order to build system images and artifacts supported by nixos-generators.
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
-		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
-		# directly unless you explicitly need a feature of `lib`.
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
-			};
-		in
-			# No additional configuration is required to use this feature, you only
-			# have to add darwin or nixos-generators to your flake inputs.
-			lib.mkFlake { };
+  outputs = inputs:
+    # This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+    # directly unless you explicitly need a feature of `lib`.
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
+      };
+    in
+      # No additional configuration is required to use this feature, you only
+      # have to add darwin or nixos-generators to your flake inputs.
+      lib.mkFlake { };
 }
 ```
 
@@ -1880,37 +1880,37 @@ your flake must include `home-manager` as an input.
 
 ```nix
 {
-	description = "My Flake";
+  description = "My Flake";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
-		snowfall-lib = {
-			url = "github:snowfallorg/lib";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-		# In order to use Home Manager.
-		home-manager = {
-			url = "github:nix-community/home-manager";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
-	};
+    # In order to use Home Manager.
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-	outputs = inputs:
-		# This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
-		# directly unless you explicitly need a feature of `lib`.
-		let
-			lib = inputs.snowfall-lib.mkLib {
-				# You must pass in both your flake's inputs and the root directory of
-				# your flake.
-				inherit inputs;
-				src = ./.;
-			};
-		in
-			# No additional configuration is required to use this feature, you only
-			# have to add home-manager to your flake inputs.
-			lib.mkFlake { };
+  outputs = inputs:
+    # This is an example and in your actual flake you can use `snowfall-lib.mkFlake`
+    # directly unless you explicitly need a feature of `lib`.
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        # You must pass in both your flake's inputs and the root directory of
+        # your flake.
+        inherit inputs;
+        src = ./.;
+      };
+    in
+      # No additional configuration is required to use this feature, you only
+      # have to add home-manager to your flake inputs.
+      lib.mkFlake { };
 }
 ```
 
@@ -2453,14 +2453,14 @@ Usage:
 
 ```nix
 merge-shallow-packages [
-	{
-		inherit (pkgs) vim;
-		namespace.first = 1;
-	}
-	{
-		inherit (unstable) vim;
-		namespace.second = 2;
-	}
+  {
+    inherit (pkgs) vim;
+    namespace.first = 1;
+  }
+  {
+    inherit (unstable) vim;
+    namespace.second = 2;
+  }
 ]
 ```
 
@@ -2468,11 +2468,11 @@ Result:
 
 ```nix
 {
-	vim = {/* the vim package from the last entry */};
-	namespace = {
-		first = 1;
-		second = 2;
-	};
+  vim = {/* the vim package from the last entry */};
+  namespace = {
+    first = 1;
+    second = 2;
+  };
 }
 ```
 
@@ -2844,12 +2844,12 @@ Usage:
 
 ```nix
 create-overlays {
-	src = ./my-overlays;
-	packages-src = ./my-packages;
-	namespace = "my-namespace";
-	extra-overlays = {
-		my-example = final: prev: {};
-	};
+  src = ./my-overlays;
+  packages-src = ./my-packages;
+  namespace = "my-namespace";
+  extra-overlays = {
+    my-example = final: prev: {};
+  };
 }
 ```
 
@@ -2857,9 +2857,9 @@ Result:
 
 ```nix
 {
-	default = final: prev: {};
-	my-example = final: prev: {};
-	some-overlay = final: prev: {};
+  default = final: prev: {};
+  my-example = final: prev: {};
+  some-overlay = final: prev: {};
 }
 ```
 

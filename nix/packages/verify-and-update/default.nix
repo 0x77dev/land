@@ -33,7 +33,8 @@ writeShellApplication {
       Environment:
       - FLAKE_URL (required)
       - ALLOWED_WORKFLOW_REPOSITORY (recommended for gitsign)
-      - ALLOWED_GPG_KEY (required for GPG)
+      - ALLOWED_GPG_KEYS (required for GPG, comma-separated fingerprints)
+      - VERIFIED_AUTO_UPDATE_GNUPGHOME (optional, path to isolated GPG keyring)
       - DRY_RUN (optional)
     '';
     maintainers = with lib.${namespace}.maintainers; [ mykhailo ];

@@ -59,6 +59,46 @@ in
 rec {
   inherit hosts;
 
+  # Build an isolated GPG keyring package with trust levels
+  # Similar to home-manager's programs.gpg.publicKeys
+  # Usage: lib.land.builders.mkGpgKeyring pkgs {
+  #   name = "...";
+  #   publicKeys = [
+  #     { source = ./key.asc; trust = 5; }  # 5 = ultimate trust
+  #   ];
+  # }
+  mkGpgKeyring =
+    pkgs:
+    {
+      name ? "gpg-keyring",
+      publicKeys,
+    }:
+    let
+      importKey = key: ''
+        gpg --batch --import ${key.source}
+        ${lib.optionalString (key.trust or null != null) ''
+          # Set trust level (1=unknown, 2=never, 3=marginal, 4=full, 5=ultimate)
+          fingerprint=$(gpg --batch --with-colons --import-options show-only --import ${key.source} 2>/dev/null | awk -F: '$1 == "fpr" {print $10; exit}')
+          if [ -n "$fingerprint" ]; then
+            echo "$fingerprint:${toString key.trust}:" | gpg --batch --import-ownertrust
+          fi
+        ''}
+      '';
+    in
+    pkgs.runCommand name { nativeBuildInputs = [ pkgs.gnupg ]; } ''
+      export GNUPGHOME=$out
+      mkdir -p $out
+      chmod 700 $out
+
+      ${lib.concatMapStrings importKey publicKeys}
+
+      # Remove socket files (not reproducible)
+      rm -f $out/S.* $out/*/S.*
+
+      # Make keyring read-only for security
+      chmod -R a-w $out
+    '';
+
   mkDefaultBuildMachines =
     {
       hostName,

@@ -1,7 +1,7 @@
 keys:
   # Admin GPG key
   - &admin_mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
-  
+
   # System SSH host keys (get via: ssh-to-age)
   # Commands to get your system keys:
   #   Local:  nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'

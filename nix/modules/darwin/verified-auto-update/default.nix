@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   namespace,
   ...
 }:
@@ -9,6 +10,21 @@
 let
   cfg = config.services.verified-auto-update;
   defaults = lib.${namespace}.shared.verified-auto-update;
+
+  # Resolve GPG key source paths from flake root
+  resolvedPublicKeys = map (key: {
+    source = inputs.self + key.source;
+    trust = key.trust or null;
+  }) cfg.publicKeys;
+
+  # Build GPG keyring package using shared builder
+  gpgKeyring = lib.${namespace}.builders.mkGpgKeyring pkgs {
+    name = "verified-auto-update-gpg-keyring";
+    publicKeys = resolvedPublicKeys;
+  };
+
+  # Reference verify-and-update package from nix store
+  verifyAndUpdate = pkgs.${namespace}.verify-and-update;
 in
 {
   options.services.verified-auto-update = {
@@ -28,11 +44,36 @@ in
       description = "Flake URL to update from";
     };
 
-    allowedGpgKey = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = defaults.allowedGpgKey;
-      example = "C33BFD3230B660CF147762D2BF5C81B531164955";
-      description = "GPG key fingerprint (required for GPG signatures)";
+    allowedGpgKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = defaults.allowedGpgKeys;
+      example = [ "C33BFD3230B660CF147762D2BF5C81B531164955" ];
+      description = "GPG key fingerprints allowed for signature verification";
+    };
+
+    publicKeys = lib.mkOption {
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            source = lib.mkOption {
+              type = lib.types.str;
+              description = "Path to GPG public key file relative to flake root";
+            };
+            trust = lib.mkOption {
+              type = lib.types.nullOr (lib.types.ints.between 1 5);
+              default = null;
+              description = "Trust level: 1=unknown, 2=never, 3=marginal, 4=full, 5=ultimate";
+            };
+          };
+        }
+      );
+      default = defaults.publicKeys;
+      example = lib.literalExpression ''
+        [
+          { source = "/gpg/keys/signing.asc"; trust = 5; }
+        ]
+      '';
+      description = "GPG public keys to import with trust levels";
     };
 
     allowedWorkflowRepository = lib.mkOption {
@@ -93,20 +134,36 @@ in
         assertion = cfg.flakeUrl != "";
         message = "services.verified-auto-update.flakeUrl must be set";
       }
+      {
+        assertion = (cfg.allowedGpgKeys != [ ]) || (cfg.publicKeys != [ ]);
+        message = "services.verified-auto-update requires either allowedGpgKeys or publicKeys to be set for GPG verification";
+      }
     ];
 
-    environment.systemPackages = [ pkgs.${namespace}.verify-and-update ];
+    environment.systemPackages = [ verifyAndUpdate ];
+
+    # Symlink GPG keyring from Nix store to /etc
+    environment.etc."verified-auto-update/gpg-keyring" = lib.mkIf (cfg.publicKeys != [ ]) {
+      source = gpgKeyring;
+    };
 
     launchd.daemons.verified-auto-update = {
       serviceConfig = {
-        ProgramArguments = [ "${pkgs.${namespace}.verify-and-update}/bin/verify-and-update" ];
+        # Reference packages directly from Nix store
+        ProgramArguments = [ "${verifyAndUpdate}/bin/verify-and-update" ];
         StartCalendarInterval = cfg.schedule;
         StandardErrorPath = cfg.logPath;
         StandardOutPath = cfg.logPath;
         EnvironmentVariables = {
           FLAKE_URL = cfg.flakeUrl;
+          ALLOWED_GPG_KEYS = lib.concatStringsSep "," cfg.allowedGpgKeys;
+          # Add /run/current-system/sw/bin for darwin-rebuild
+          PATH = "/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin";
         }
-        // lib.optionalAttrs (cfg.allowedGpgKey != null) { ALLOWED_GPG_KEY = cfg.allowedGpgKey; }
+        // lib.optionalAttrs (cfg.publicKeys != [ ]) {
+          # Reference keyring directly from Nix store
+          VERIFIED_AUTO_UPDATE_GNUPGHOME = "${gpgKeyring}";
+        }
         // lib.optionalAttrs (cfg.allowedWorkflowRepository != null) {
           ALLOWED_WORKFLOW_REPOSITORY = cfg.allowedWorkflowRepository;
         };

@@ -88,31 +88,49 @@ and will be available under the `land` namespace as `lib.land.<function-name>`.
 
 ## Verified Auto-Updates
 
-Verifies commit signatures before updating system. Stages updates for next boot.
+Verifies commit signatures (GPG/gitsign) before updating. Uses isolated
+immutable GPG keyring built from `gpg/keys/`.
+
+### Architecture
+
+- **Keys**: `gpg/keys/` - Single source of truth for GPG public keys
+- **Builder**: `nix/lib/builders/` - `mkGpgKeyring` creates immutable keyring packages
+- **Defaults**: `nix/lib/shared/verified-auto-update/` - Shared configuration
+- **Modules**: Platform-specific implementations (Darwin/NixOS)
+
+The keyring and verify-and-update script are referenced directly from Nix
+store (not via current-system profile).
 
 ### Configuration
 
 ```nix
-# Minimal configuration (uses defaults from lib.land.shared.verified-auto-update)
+# Minimal (uses defaults)
 services.verified-auto-update.enable = true;
 
-# Custom configuration (override defaults if needed)
+# Custom
 services.verified-auto-update = {
   enable = true;
-  flakeUrl = "github:your-org/your-repo";  # Optional: override default
-  allowedGpgKey = "YOUR_GPG_KEY";  # Optional: override default
-  allowedWorkflowRepository = "your-org/your-repo";  # Optional: override default
+  flakeUrl = "github:your-org/your-repo";
+  allowedGpgKeys = [ "PRIMARY_KEY_FINGERPRINT" ];  # Primary keys only (subkeys auto-verified)
 
-  # Darwin: override schedule (default: 3 AM, 9 AM, 3 PM, 9 PM)
+  # GPG keys with trust levels (like home-manager)
+  publicKeys = [
+    {
+      source = "/gpg/keys/your-key.asc";  # Full key export with all subkeys
+      trust = 5;  # 1=unknown, 2=never, 3=marginal, 4=full, 5=ultimate
+    }
+  ];
+
+  allowedWorkflowRepository = "your-org/your-repo";  # For gitsign
+
+  # Darwin: schedule (default: 3 AM, 9 AM, 3 PM, 9 PM)
   schedule = [{ Hour = 3; Minute = 0; }];
 
-  # NixOS: override schedule (default: "*-*-* 03,09,15,21:00:00")
+  # NixOS: schedule (default: "*-*-* 03,09,15,21:00:00")
   schedule = "03:00";
   randomizedDelaySec = "1h";
 };
 ```
-
-Defaults are configured in `nix/lib/shared/verified-auto-update/default.nix`.
 
 ### Testing
 
@@ -149,45 +167,45 @@ nix-shell -p ssh-to-age --run 'ssh-keyscan muscle.local | ssh-to-age'
 # Or if using IP address
 nix-shell -p ssh-to-age --run 'ssh-keyscan 192.168.1.100 | ssh-to-age'
 
-   # Or via SSH
-   nix-shell -p ssh-to-age --run \
-     "ssh muscle 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age"
+# Or via SSH
+nix-shell -p ssh-to-age --run \
+  "ssh muscle 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age"
 ```
 
 1. **Update `.sops.yaml`** with the age public keys from step 1:
 
-   ```yaml
-   keys:
-     # Admin GPG key
-     - &admin_mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
+```yaml
+keys:
+  # Admin GPG key
+  - &admin_mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
 
-     # System SSH host keys converted to age
-     - &potato age1xxx...  # Replace with actual key from step 1
-     - &muscle age1yyy...  # Replace with actual key from step 1
+  # System SSH host keys converted to age
+  - &potato age1xxx...  # Replace with actual key from step 1
+  - &muscle age1yyy...  # Replace with actual key from step 1
 
-   creation_rules:
-     - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
-       key_groups:
-       - pgp:
-         - *admin_mykhailo
-         age:
-         - *potato
-         - *muscle
-   ```
+creation_rules:
+  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - pgp:
+      - *admin_mykhailo
+      age:
+      - *potato
+      - *muscle
+```
 
-   **Note:** Don't include a `-` before `age` under `key_groups`,
-   otherwise sops will require multiple keys (Shamir secret sharing) to
-   decrypt.
+**Note:** Don't include a `-` before `age` under `key_groups`,
+otherwise sops will require multiple keys (Shamir secret sharing) to
+decrypt.
 
 1. **Create and edit secrets**:
 
-   ```bash
-   # Create a new secret file
-   nix-shell -p sops --run "sops secrets/example.yaml"
+```bash
+# Create a new secret file
+nix-shell -p sops --run "sops secrets/example.yaml"
 
-   # Update keys when adding new hosts
-   nix-shell -p sops --run "sops updatekeys secrets/example.yaml"
-   ```
+# Update keys when adding new hosts
+nix-shell -p sops --run "sops updatekeys secrets/example.yaml"
+```
 
 1. **Use secrets in configuration**:
 

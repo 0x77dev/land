@@ -73,6 +73,7 @@ in
     curl
     bun
     nodejs_24
+    fastfetch
   ];
 
   programs = {

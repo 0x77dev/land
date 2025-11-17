@@ -4,15 +4,21 @@
 
 set -euxo pipefail
 
-# Configuration
-readonly FLAKE_URL="${FLAKE_URL:?FLAKE_URL must be set}"
-readonly ALLOWED_GPG_KEY="${ALLOWED_GPG_KEY:-}"
-readonly ALLOWED_WORKFLOW_REPOSITORY="${ALLOWED_WORKFLOW_REPOSITORY:-}"
-readonly DRY_RUN="${DRY_RUN:-false}"
-
 log() {
   printf '[%s] %s\n' "$(date +'%Y-%m-%d %H:%M:%S')" "$*" >&2
 }
+
+# Configuration
+readonly FLAKE_URL="${FLAKE_URL:?FLAKE_URL must be set}"
+readonly ALLOWED_GPG_KEYS="${ALLOWED_GPG_KEYS:-}"
+readonly ALLOWED_WORKFLOW_REPOSITORY="${ALLOWED_WORKFLOW_REPOSITORY:-}"
+readonly DRY_RUN="${DRY_RUN:-false}"
+
+# Use isolated GPG keyring if provided, otherwise use default
+if [[ -n "${VERIFIED_AUTO_UPDATE_GNUPGHOME:-}" ]]; then
+  export GNUPGHOME="$VERIFIED_AUTO_UPDATE_GNUPGHOME"
+  log "Using isolated GPG keyring: $GNUPGHOME"
+fi
 
 verify_gitsign() {
   local -r commit="$1"
@@ -56,27 +62,42 @@ verify_gpg() {
 
   log "Verifying commit $commit with GPG"
 
-  # SECURITY: Require ALLOWED_GPG_KEY to prevent keyserver poisoning attacks
-  if [[ -z "$ALLOWED_GPG_KEY" ]]; then
-    log "✗ ALLOWED_GPG_KEY required for GPG verification (keyserver attacks exist)"
-    log "  Set ALLOWED_GPG_KEY to a trusted key fingerprint"
+  # SECURITY: Require ALLOWED_GPG_KEYS to prevent keyserver poisoning attacks
+  if [[ -z "$ALLOWED_GPG_KEYS" ]]; then
+    log "✗ ALLOWED_GPG_KEYS required for GPG verification (keyserver attacks exist)"
+    log "  Set ALLOWED_GPG_KEYS to a comma-separated list of trusted key fingerprints"
     return 1
   fi
 
-  # GPG will auto-retrieve keys from keyserver if configured
+  # GPG will use the isolated keyring or auto-retrieve keys from keyserver if configured
   if ! output=$(git verify-commit "$commit" 2>&1); then
     log "✗ GPG verification failed: $output"
     return 1
   fi
 
-  # Verify it matches the allowed key (use primary key fingerprint)
+  # Verify it matches one of the allowed keys
   signing_key=$(git log --format="%GP" -n1 "$commit")
-  if [[ "$signing_key" != "$ALLOWED_GPG_KEY" ]]; then
-    log "✗ Signed by unauthorized key: $signing_key (expected: $ALLOWED_GPG_KEY)"
+
+  # Convert comma-separated list to array
+  IFS=',' read -ra allowed_keys <<< "$ALLOWED_GPG_KEYS"
+
+  local key_allowed=false
+  for allowed_key in "${allowed_keys[@]}"; do
+    # Trim whitespace
+    allowed_key=$(echo "$allowed_key" | tr -d '[:space:]')
+    if [[ "$signing_key" == "$allowed_key" ]]; then
+      key_allowed=true
+      break
+    fi
+  done
+
+  if [[ "$key_allowed" != "true" ]]; then
+    log "✗ Signed by unauthorized key: $signing_key"
+    log "  Allowed keys: ${ALLOWED_GPG_KEYS}"
     return 1
   fi
 
-  log "✓ GPG signature valid (primary key: $signing_key)"
+  log "✓ GPG signature valid (signing key: $signing_key)"
   return 0
 }
 

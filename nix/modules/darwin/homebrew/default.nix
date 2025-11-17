@@ -27,9 +27,9 @@ in
     enable = lib.mkDefault true;
     taps = lib.mkDefault (builtins.attrNames config.nix-homebrew.taps);
 
-    global.autoUpdate = lib.mkDefault true;
-    onActivation.autoUpdate = lib.mkDefault true;
-    onActivation.upgrade = lib.mkDefault true;
+    global.autoUpdate = lib.mkDefault false;
+    onActivation.autoUpdate = lib.mkDefault false;
+    onActivation.upgrade = lib.mkDefault false;
 
     casks = lib.mkDefault [
       "arc"

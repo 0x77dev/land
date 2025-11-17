@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   ...
 }:
 let
@@ -11,7 +12,7 @@ in
     enable = true;
     publicKeys = [
       {
-        source = ./keys/0x77dev.asc;
+        source = inputs.self + "/gpg/keys/0x77dev.asc";
         trust = 5;
       }
     ];

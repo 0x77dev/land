@@ -90,16 +90,20 @@ automatic discovery and loading.
 
 ## Systems
 
-| Hostname | Platform | Description |
-|----------|----------|-------------|
-| `potato` | `aarch64-darwin` | Primary macOS workstation |
-| `muscle` | `x86_64-linux` | NixOS server |
+| Host | Platform | Role | Specs |
+|------|----------|------|-------|
+| `potato` | `aarch64-darwin` | Workstation | M4 Max, 48GB |
+| `tomato` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
+| `pickle` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
+| `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
+| `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, 2x RTX6000 Ada, 250GB |
+| `shadow` | `x86_64-linux` | Fun | T480, 16GB |
 
 ## Technology Stack
 
 ### Core Infrastructure
 
-- [Nix][nix] (Lix 2.91) - Package manager and build system
+- [Nix][nix] ([Lix][lix]) - Package manager and build system
 - [NixOS 25.05][nixos] - Linux distribution
 - [nix-darwin 25.05][nix-darwin] - macOS system configuration
 - [Home Manager][home-manager] (25.05) - User environment
@@ -180,6 +184,7 @@ This work is licensed under the [WTFPL][wtfpl]
 
 <!-- Technology Links -->
 [nix]: https://nixos.org/manual/nix/stable/
+[lix]: https://lix.systems
 [nix-flakes]: https://nixos.wiki/wiki/Flakes
 [nixos]: https://nixos.org
 [nix-darwin]: https://github.com/nix-darwin/nix-darwin

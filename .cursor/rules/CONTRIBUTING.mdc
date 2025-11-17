@@ -107,45 +107,45 @@ nix-shell -p ssh-to-age --run 'ssh-keyscan muscle.local | ssh-to-age'
 # Or if using IP address
 nix-shell -p ssh-to-age --run 'ssh-keyscan 192.168.1.100 | ssh-to-age'
 
-   # Or via SSH
-   nix-shell -p ssh-to-age --run \
-     "ssh muscle 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age"
+# Or via SSH
+nix-shell -p ssh-to-age --run \
+  "ssh muscle 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age"
 ```
 
 1. **Update `.sops.yaml`** with the age public keys from step 1:
 
-   ```yaml
-   keys:
-     # Admin GPG key
-     - &admin_mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
+```yaml
+keys:
+  # Admin GPG key
+  - &admin_mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
 
-     # System SSH host keys converted to age
-     - &potato age1xxx...  # Replace with actual key from step 1
-     - &muscle age1yyy...  # Replace with actual key from step 1
+  # System SSH host keys converted to age
+  - &potato age1xxx...  # Replace with actual key from step 1
+  - &muscle age1yyy...  # Replace with actual key from step 1
 
-   creation_rules:
-     - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
-       key_groups:
-       - pgp:
-         - *admin_mykhailo
-         age:
-         - *potato
-         - *muscle
-   ```
+creation_rules:
+  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - pgp:
+      - *admin_mykhailo
+      age:
+      - *potato
+      - *muscle
+```
 
-   **Note:** Don't include a `-` before `age` under `key_groups`,
-   otherwise sops will require multiple keys (Shamir secret sharing) to
-   decrypt.
+**Note:** Don't include a `-` before `age` under `key_groups`,
+otherwise sops will require multiple keys (Shamir secret sharing) to
+decrypt.
 
 1. **Create and edit secrets**:
 
-   ```bash
-   # Create a new secret file
-   nix-shell -p sops --run "sops secrets/example.yaml"
+```bash
+# Create a new secret file
+nix-shell -p sops --run "sops secrets/example.yaml"
 
-   # Update keys when adding new hosts
-   nix-shell -p sops --run "sops updatekeys secrets/example.yaml"
-   ```
+# Update keys when adding new hosts
+nix-shell -p sops --run "sops updatekeys secrets/example.yaml"
+```
 
 1. **Use secrets in configuration**:
 

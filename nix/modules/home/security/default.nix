@@ -12,11 +12,4 @@
     age
     ssh-to-age
   ];
-
-  # Configure sops-nix for home-manager
-  # Uses SSH host keys automatically - no manual key generation needed!
-  sops = {
-    defaultSopsFile = ../../../secrets.yaml;
-    defaultSopsFormat = "yaml";
-  };
 }

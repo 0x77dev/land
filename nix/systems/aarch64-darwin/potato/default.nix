@@ -44,4 +44,6 @@ in
 
   # Verified auto-updates (defaults from lib.land.shared.verified-auto-update)
   services.verified-auto-update.enable = true;
+
+  services.openssh.enable = true;
 }

@@ -31,6 +31,7 @@
     "elif",
     "esac",
     "euxo",
+    "fastfetch",
     "fetchurl",
     "ffmpeg",
     "fifc",
@@ -41,6 +42,7 @@
     "ghostty",
     "gitsign",
     "gitui",
+    "GNUPGHOME",
     "gpgconf",
     "gpgsig",
     "gpgsign",
@@ -48,10 +50,12 @@
     "hkps",
     "home-manager",
     "homebrew",
+    "Homelab",
     "homerow",
     "httpie",
     "hwatch",
     "hyperv",
+    "ints",
     "iperf",
     "irssi",
     "journalctl",
@@ -69,6 +73,7 @@
     "Marynenko",
     "masApps",
     "mdsh",
+    "Minisforum",
     "mktemp",
     "mosquitto",
     "muscle",
@@ -97,6 +102,7 @@
     "optimise",
     "orbstack",
     "osxkeychain",
+    "ownertrust",
     "passthru",
     "patchelf",
     "pigz",
@@ -132,9 +138,11 @@
     "stateVersion",
     "statix",
     "stdenv",
+    "subkeys",
     "substituters",
     "symkey",
     "tailscale",
+    "Threadripper",
     "TOCTOU",
     "toplevel",
     "touchIdAuth",
@@ -159,7 +167,8 @@
     "zhaofengli"
   ],
   "ignorePaths": [
-    ".cursor/rules"
+    ".cursor/rules",
+    "secrets.{yaml,yml}"
   ],
   "ignoreRegExpList": [
     "[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"
