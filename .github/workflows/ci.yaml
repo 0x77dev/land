@@ -1,4 +1,9 @@
 name: CI
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -12,10 +17,6 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
-
 jobs:
   flake:
     permissions:
@@ -28,12 +29,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: chainguard-dev/actions/setup-gitsign@5c235a8fc95ad826debc6363bf5d1c69be78facb  # main
+      - uses: chainguard-dev/actions/setup-gitsign@v1.5.9  # c39c021f8e4b23cf1f626e7d4ed7d966da30649a
 
       - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b  # v31
 
       - uses: nix-community/cache-nix-action@1b68d8b44dab0f6262c5f56f0949d03f6324e796  # v6
-
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
 
