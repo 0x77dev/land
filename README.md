@@ -5,7 +5,6 @@
 [![Home Manager][home-manager-badge]][home-manager]
 [![Snowfall Lib][snowfall-badge]][snowfall-lib]
 [![Chores][chores-badge]][chores]
-[![CI][ci-badge]][ci]
 [![License: WTFPL][license-badge]][wtfpl]
 [![Maintained][maintained-badge]][commits]
 
@@ -172,14 +171,12 @@ This work is licensed under the [WTFPL][wtfpl]
 [license-badge]: https://img.shields.io/badge/License-WTFPL-blue.svg?style=flat
 [maintained-badge]: https://img.shields.io/badge/maintained-yes-success.svg?style=flat
 [chores-badge]: https://github.com/0x77dev/land/actions/workflows/chores.yaml/badge.svg
-[ci-badge]: https://github.com/0x77dev/land/actions/workflows/ci.yaml/badge.svg
 
 <!-- Project Links -->
 [commits]: https://github.com/0x77dev/land/graphs/commit-activity
 [contributing]: /CONTRIBUTING.md
 [wtfpl]: /LICENSE
 [chores]: https://github.com/0x77dev/land/actions/workflows/chores.yaml
-[ci]: https://github.com/0x77dev/land/actions/workflows/ci.yaml
 
 <!-- Technology Links -->
 [nix]: https://nixos.org/manual/nix/stable/
