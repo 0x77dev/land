@@ -11,6 +11,7 @@ let
     markdownlint.enable = true;
     mdsh.enable = true;
     shellcheck.enable = true;
+    actionlint.enable = true;
   };
 
   mkRun =
