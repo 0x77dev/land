@@ -127,7 +127,6 @@ automatic discovery and loading.
 - **Automatic Builds** -
   Cross-compilation via remote builders and Linux builder VM
 - **Security Hardening** - Touch ID sudo, login window restrictions, SSH key management
-- **Secret Scanning** - Trufflehog pre-commit hook prevents credential leaks
 
 ## Development
 
