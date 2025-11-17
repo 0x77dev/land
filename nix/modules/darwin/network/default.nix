@@ -4,5 +4,5 @@
   ...
 }:
 {
-  networking = lib.${namespace}.shared.network-config { inherit lib; };
+  networking = lib.mkDefault (lib.${namespace}.shared.network-config { inherit lib; });
 }

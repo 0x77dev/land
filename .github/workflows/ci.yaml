@@ -1,0 +1,26 @@
+name: CI
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [ready_for_review]
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'nix/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'nix/**'
+
+jobs:
+  flake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v31
+      - run: nix flake check --all-systems -L
