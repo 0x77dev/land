@@ -12,24 +12,28 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 jobs:
   flake:
     permissions:
       contents: write
       id-token: write
-      issues: write
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 0
 
-      - uses: chainguard-dev/actions/setup-gitsign@main
+      - uses: chainguard-dev/actions/setup-gitsign@5c235a8fc95ad826debc6363bf5d1c69be78facb
 
-      - uses: cachix/install-nix-action@v31
+      - uses: cachix/install-nix-action@08dcb3a5e62fa31e2eb pike@v31
 
-      - uses: nix-community/cache-nix-action@v6
+      - uses: nix-community/cache-nix-action@1b68d8b44dab0f6262c5f56f0949d03f6324e796  # v6
+
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
 
@@ -61,7 +65,7 @@ jobs:
 
       - name: Create PR if check failed
         if: steps.should-update.outputs.auto_update == 'true' && steps.flake-check.outcome == 'failure'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f  # v7.0.5
         with:
           title: "chore(deps): flake.lock file maintenance"
           body: |
