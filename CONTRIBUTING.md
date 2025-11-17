@@ -86,6 +86,45 @@ and will be available under the `land` namespace as `lib.land.<function-name>`.
 2. For packages from unstable, add them to the unstable overlay
 3. Packages are automatically exported and available in all configurations
 
+## Verified Auto-Updates
+
+Verifies commit signatures before updating system. Stages updates for next boot.
+
+### Configuration
+
+```nix
+# Darwin
+services.verified-auto-update = {
+  enable = true;
+  flakeUrl = "github:0x77dev/land";
+  allowedWorkflowRepository = "0x77dev/land";  # Recommended
+  schedule = [{ Hour = 3; Minute = 0; }];
+};
+
+# NixOS
+services.verified-auto-update = {
+  enable = true;
+  flakeUrl = "github:0x77dev/land";
+  allowedWorkflowRepository = "0x77dev/land";  # Recommended
+  schedule = "03:00";
+  randomizedDelaySec = "1h";
+};
+```
+
+### Testing
+
+```bash
+FLAKE_URL="github:0x77dev/land" \
+ALLOWED_WORKFLOW_REPOSITORY="0x77dev/land" \
+DRY_RUN="true" \
+nix run .#verify-and-update
+```
+
+### Monitoring
+
+- **Darwin:** `tail -f /var/log/verified-auto-update.log`
+- **NixOS:** `journalctl -u verified-auto-update -f`
+
 ## Secrets Management
 
 This repository uses [sops-nix](https://github.com/Mic92/sops-nix)

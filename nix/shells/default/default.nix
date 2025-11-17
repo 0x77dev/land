@@ -23,6 +23,7 @@ mkShell {
       sops
       age
       ssh-to-age
+      gitsign
     ]
     ++ preCommit.enabledPackages;
 }

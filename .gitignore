@@ -14,3 +14,4 @@ secrets/**/*
 *.unencrypted.*
 *_unencrypted
 !.sops.yaml.example
+.claude/
