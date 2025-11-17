@@ -18,12 +18,17 @@ jobs:
           fetch-depth: 0
       - uses: chainguard-dev/actions/setup-gitsign@main
       - uses: cachix/install-nix-action@v31
-      - id: update
-        uses: DeterminateSystems/update-flake-lock@v27
+      - name: Update flake.lock
+        run: |
+          nix flake update --commit-lock-file --option commit-lockfile-summary "chore(deps): flake.lock file maintenance"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
         with:
-          pr-title: "chore(deps): lock file maintenance"
-          pr-labels: |
+          title: "chore(deps): flake.lock file maintenance"
+          labels: |
             dependencies
             automated
             chore
-          pr-reviewers: "0x77dev"
+          reviewers: "0x77dev"
+          signoff: true
