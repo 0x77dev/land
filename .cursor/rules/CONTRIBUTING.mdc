@@ -86,7 +86,107 @@ and will be available under the `land` namespace as `lib.land.<function-name>`.
 2. For packages from unstable, add them to the unstable overlay
 3. Packages are automatically exported and available in all configurations
 
-## Best Practices
+## Secrets Management
+
+This repository uses [sops-nix](https://github.com/Mic92/sops-nix)
+for declarative secret management.
+
+### Quick Start
+
+1. **Generate your age key** (if you don't have one):
+
+```bash
+mkdir -p ~/.config/sops/age
+age-keygen -o ~/.config/sops/age/keys.txt
+
+# Or convert your SSH Ed25519 key:
+nix-shell -p ssh-to-age --run "ssh-to-age -private-key -i ~/.ssh/id_ed25519 > ~/.config/sops/age/keys.txt"
+
+# Get your public key:
+age-keygen -y ~/.config/sops/age/keys.txt
+```
+
+1. **Create `.sops.yaml`** in the repository root:
+
+   You can copy the example file and customize it:
+
+   ```bash
+   cp .sops.yaml.example .sops.yaml
+   # Edit .sops.yaml to add your age public keys
+   ```
+
+   Or create it manually:
+
+   ```yaml
+   keys:
+     - &admin_mykhailo age1your_public_key_here
+     - &potato age1server_public_key_here
+     - &muscle age1server_public_key_here
+
+   creation_rules:
+     - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+       key_groups:
+       - age:
+         - *admin_mykhailo
+         - *potato
+         - *muscle
+   ```
+
+1. **Create and edit secrets**:
+
+   ```bash
+   # Create a new secret file
+   nix-shell -p sops --run "sops secrets/example.yaml"
+
+   # Update keys when adding new hosts
+   nix-shell -p sops --run "sops updatekeys secrets/example.yaml"
+   ```
+
+1. **Use secrets in configuration**:
+
+```nix
+{
+  # System-level secrets
+  sops.defaultSopsFile = ./secrets.yaml;
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+  sops.secrets.example-key = {
+    owner = "myuser";
+    mode = "0400";
+  };
+
+  # Use in services
+  systemd.services.myservice.serviceConfig.EnvironmentFile = config.sops.secrets.example-key.path;
+}
+```
+
+### Home Manager Secrets
+
+Secrets can also be managed per-user via home-manager:
+
+```nix
+{
+  sops.age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
+  sops.defaultSopsFile = ./secrets.yaml;
+
+  sops.secrets.personal-token = {
+    path = "%r/personal-token"; # %r = runtime directory
+  };
+}
+```
+
+### Best Practices
+
+- Store secrets in `secrets/` directory at repository root
+- Use age keys (more modern and simpler than GPG)
+- Rotate secrets regularly
+- Use different secret files for different environments/hosts
+- Keep `.sops.yaml` in version control (use `.sops.yaml.example` as template)
+- Never commit unencrypted secrets
+- Use templates for config files that need embedded secrets
+- A git hook (`pre-commit-ensure-sops`) ensures all files in `secrets/` are encrypted
+
+## Nix Best Practices
 
 ### Nix Language
 

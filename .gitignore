@@ -4,3 +4,13 @@ result-*
 .DS_Store
 .env
 .pre-commit-config.yaml
+secrets/**/*
+!secrets/**/*.enc.*
+!secrets/**/*.yaml
+!secrets/**/*.json
+!secrets/**/*.env
+!secrets/**/*.ini
+!secrets/.gitkeep
+*.unencrypted.*
+*_unencrypted
+!.sops.yaml.example

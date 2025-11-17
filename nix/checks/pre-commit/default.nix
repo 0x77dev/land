@@ -3,9 +3,10 @@
   inputs,
   system,
   namespace,
+  pkgs,
   ...
 }:
 lib.${namespace}.git-hooks.mkRun {
-  inherit system;
+  inherit system pkgs;
   src = inputs.self;
 }

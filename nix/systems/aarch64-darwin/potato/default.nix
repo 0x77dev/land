@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  namespace,
   ...
 }:
 let
@@ -8,8 +9,13 @@ let
 in
 {
   system.stateVersion = 6;
+  system.primaryUser = userName;
 
   networking.hostName = lib.mkDefault "potato";
+
+  environment.systemPackages = with pkgs.${namespace}; [
+    ua-connect
+  ];
 
   snowfallorg.users.${userName} = {
     create = true;

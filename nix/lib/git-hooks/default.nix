@@ -17,9 +17,11 @@ let
     {
       system,
       src,
+      pkgs,
     }:
     inputs.git-hooks.lib.${system}.run {
       inherit hooks src;
+      package = pkgs.prek;
     };
 in
 {

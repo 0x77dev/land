@@ -42,7 +42,7 @@ in
     enable = true;
     enableSshSupport = true;
     enableExtraSocket = true;
-    inherit pinentryPackage;
+    pinentry.package = pinentryPackage;
     defaultCacheTtl = 3600;
     defaultCacheTtlSsh = 3600;
     maxCacheTtl = 7200;

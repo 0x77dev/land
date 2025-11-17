@@ -9,7 +9,7 @@
 }:
 let
   preCommit = lib.${namespace}.git-hooks.mkRun {
-    inherit system;
+    inherit system pkgs;
     src = inputs.self;
   };
 in
@@ -20,6 +20,9 @@ mkShell {
     with pkgs;
     [
       git
+      sops
+      age
+      ssh-to-age
     ]
     ++ preCommit.enabledPackages;
 }

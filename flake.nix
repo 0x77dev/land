@@ -15,6 +15,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -23,6 +35,11 @@
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "unstable";
+    };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     snowfall-lib = {
@@ -48,5 +65,18 @@
       };
 
       channels-config.allowUnfree = true;
+
+      systems.modules.darwin = with inputs; [
+        nix-homebrew.darwinModules.nix-homebrew
+        sops-nix.darwinModules.sops
+      ];
+
+      systems.modules.nixos = with inputs; [
+        sops-nix.nixosModules.sops
+      ];
+
+      homes.modules = with inputs; [
+        sops-nix.homeManagerModules.sops
+      ];
     };
 }

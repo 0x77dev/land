@@ -2,9 +2,13 @@
   pkgs,
   ...
 }:
+let
+  inherit (pkgs.stdenv.hostPlatform) isDarwin;
+  ghosttyPackage = if isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
+in
 {
   programs.ghostty = {
-    package = pkgs.ghostty;
+    package = ghosttyPackage;
     settings = {
       font-family = "TX-02-Variable";
       font-variation = "wght=600";
@@ -42,8 +46,5 @@
     };
   };
 
-  home.packages = with pkgs; [
-    ghostty
-    tx-02-variable
-  ];
+  home.packages = [ ghosttyPackage ];
 }

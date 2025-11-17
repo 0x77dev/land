@@ -56,19 +56,26 @@ in
   home.packages = with pkgs; [
     aichat
     bat
-    bun
+    btop
     cachix
+    coreutils
     devenv
     direnv
     fd
     figlet
     fzf
     glow
+    hwatch
     nix-output-monitor
     starship
+    watchexec
     yazi
     zoxide
-    btop
+    httpie
+    oha
+    curl
+    bun
+    nodejs_24
   ];
 
   programs = {
@@ -84,7 +91,7 @@ in
     zsh = {
       enable = true;
       shellAliases = commonAliases // commonAbbreviations;
-      initExtra = ''
+      initContent = ''
         export PATH="${exportedPath}:$PATH"
         eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
       '';
@@ -98,9 +105,6 @@ in
         set fish_greeting
         ${concatMapStringsSep "\n" (p: "fish_add_path -m ${p}") commonPaths}
         ${pkgs.zoxide}/bin/zoxide init fish | source
-        if command -v conda >/dev/null 2>&1
-          eval "$(conda \"shell.fish\" hook)"
-        end
       '';
       plugins = [
         {
