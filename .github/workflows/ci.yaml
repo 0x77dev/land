@@ -8,9 +8,12 @@ on:
       - 'flake.lock'
       - 'nix/**'
       - '.github/workflows/ci.yaml'
+    branches:
+      - chore/deps/flake-lock
   push:
     branches:
       - main
+      - chore/deps/flake-lock
     paths:
       - 'flake.nix'
       - 'flake.lock'
