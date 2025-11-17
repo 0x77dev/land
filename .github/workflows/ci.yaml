@@ -28,9 +28,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: chainguard-dev/actions/setup-gitsign@5c235a8fc95ad826debc6363bf5d1c69be78facb
+      - uses: chainguard-dev/actions/setup-gitsign@5c235a8fc95ad826debc6363bf5d1c69be78facb  # main
 
-      - uses: cachix/install-nix-action@08dcb3a5e62fa31e2eb pike@v31
+      - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b  # v31
 
       - uses: nix-community/cache-nix-action@1b68d8b44dab0f6262c5f56f0949d03f6324e796  # v6
 
