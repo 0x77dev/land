@@ -9,6 +9,12 @@ in
 {
   programs.gpg = {
     enable = true;
+    publicKeys = [
+      {
+        source = ./keys/0x77dev.asc;
+        trust = 5;
+      }
+    ];
     settings = {
       default-key = "C33BFD3230B660CF147762D2BF5C81B531164955";
       personal-cipher-preferences = "AES256 AES192 AES";

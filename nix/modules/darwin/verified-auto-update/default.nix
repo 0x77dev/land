@@ -97,8 +97,8 @@ in
     };
 
     system.activationScripts.postActivation.text = lib.mkAfter ''
-      mkdir -p $(dirname ${cfg.logPath})
-      chmod 755 $(dirname ${cfg.logPath})
+      mkdir -p "$(dirname ${cfg.logPath})"
+      chmod 755 "$(dirname ${cfg.logPath})"
     '';
   };
 }
