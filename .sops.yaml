@@ -1,10 +1,13 @@
 keys:
-  # Admin key - Mykhailo's GPG key
+  # Admin GPG key
   - &admin_mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
-
-  # System keys (add via: ssh-keyscan hostname | ssh-to-age)
-  # - &potato age1...
-  # - &muscle age1...
+  
+  # System SSH host keys (get via: ssh-to-age)
+  # Commands to get your system keys:
+  #   Local:  nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'
+  #   Remote: nix-shell -p ssh-to-age --run 'ssh-keyscan muscle.local | ssh-to-age'
+  # - &potato age1xxx...
+  # - &muscle age1yyy...
 
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$

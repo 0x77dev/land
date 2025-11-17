@@ -93,44 +93,49 @@ for declarative secret management.
 
 ### Quick Start
 
-1. **Generate your age key** (if you don't have one):
+sops-nix automatically uses SSH host keys - no manual key generation needed!
+
+1. **Get your system's SSH host keys** (as age format):
 
 ```bash
-mkdir -p ~/.config/sops/age
-age-keygen -o ~/.config/sops/age/keys.txt
+# For potato (Darwin - local)
+nix-shell -p ssh-to-age --run 'cat /etc/ssh/ssh_host_ed25519_key.pub | ssh-to-age'
 
-# Or convert your SSH Ed25519 key:
-nix-shell -p ssh-to-age --run "ssh-to-age -private-key -i ~/.ssh/id_ed25519 > ~/.config/sops/age/keys.txt"
+# For muscle (NixOS - remote)
+nix-shell -p ssh-to-age --run 'ssh-keyscan muscle.local | ssh-to-age'
 
-# Get your public key:
-age-keygen -y ~/.config/sops/age/keys.txt
+# Or if using IP address
+nix-shell -p ssh-to-age --run 'ssh-keyscan 192.168.1.100 | ssh-to-age'
+
+   # Or via SSH
+   nix-shell -p ssh-to-age --run \
+     "ssh muscle 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age"
 ```
 
-1. **Create `.sops.yaml`** in the repository root:
-
-   You can copy the example file and customize it:
-
-   ```bash
-   cp .sops.yaml.example .sops.yaml
-   # Edit .sops.yaml to add your age public keys
-   ```
-
-   Or create it manually:
+1. **Update `.sops.yaml`** with the age public keys from step 1:
 
    ```yaml
    keys:
-     - &admin_mykhailo age1your_public_key_here
-     - &potato age1server_public_key_here
-     - &muscle age1server_public_key_here
+     # Admin GPG key
+     - &admin_mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
+
+     # System SSH host keys converted to age
+     - &potato age1xxx...  # Replace with actual key from step 1
+     - &muscle age1yyy...  # Replace with actual key from step 1
 
    creation_rules:
      - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
        key_groups:
-       - age:
+       - pgp:
          - *admin_mykhailo
+         age:
          - *potato
          - *muscle
    ```
+
+   **Note:** Don't include a `-` before `age` under `key_groups`,
+   otherwise sops will require multiple keys (Shamir secret sharing) to
+   decrypt.
 
 1. **Create and edit secrets**:
 
@@ -146,9 +151,8 @@ age-keygen -y ~/.config/sops/age/keys.txt
 
 ```nix
 {
-  # System-level secrets
+  # System-level secrets (SSH host keys used automatically)
   sops.defaultSopsFile = ./secrets.yaml;
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
   sops.secrets.example-key = {
     owner = "myuser";
@@ -162,11 +166,10 @@ age-keygen -y ~/.config/sops/age/keys.txt
 
 ### Home Manager Secrets
 
-Secrets can also be managed per-user via home-manager:
+Secrets can also be managed per-user via home-manager (uses system SSH keys automatically):
 
 ```nix
 {
-  sops.age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
   sops.defaultSopsFile = ./secrets.yaml;
 
   sops.secrets.personal-token = {
@@ -178,553 +181,76 @@ Secrets can also be managed per-user via home-manager:
 ### Best Practices
 
 - Store secrets in `secrets/` directory at repository root
-- Use age keys (more modern and simpler than GPG)
+- Use SSH host keys (automatic, no manual setup required!)
+- Use GPG for admin/personal keys
 - Rotate secrets regularly
 - Use different secret files for different environments/hosts
-- Keep `.sops.yaml` in version control (use `.sops.yaml.example` as template)
+- Keep `.sops.yaml` in version control
 - Never commit unencrypted secrets
 - Use templates for config files that need embedded secrets
-- A git hook (`pre-commit-ensure-sops`) ensures all files in `secrets/` are encrypted
-
-## Nix Best Practices
+- A git hook (`trufflehog`) scans for accidentally committed secrets
 
-### Nix Language
+## Documentation Standards
 
-#### Avoid `rec`
+### Single Source of Truth
 
-Never use recursive attribute sets. They cause hard-to-debug infinite recursion errors.
+**Never duplicate information.** Each piece of information must exist in
+exactly one canonical location:
 
-```nix
-# Bad
-rec {
-  a = 1;
-  b = a + 2;
-}
+- **README.md** - Project overview, quick start, philosophy
+- **CONTRIBUTING.md** - Development workflow, structure, contribution guidelines
+- **Code comments** - Implementation details, "why" not "how"
+- **Module files** - Self-documenting through clear names and structure
 
-# Good
-let
-  a = 1;
-in {
-  inherit a;
-  b = a + 2;
-}
-```
+### Documentation Update Requirements
 
-For self-reference, explicitly name the attribute set:
+**All changes that affect user-facing behavior MUST update documentation before merge:**
 
-```nix
-let
-  argset = {
-    a = 1;
-    b = argset.a + 2;
-  };
-in
-  argset
-```
-
-#### Minimize `with` Scope
+1. **Code changes** - Update affected documentation in the same commit
+2. **New features** - Add to README.md features list if user-visible
+3. **Structure changes** - Update CONTRIBUTING.md structure section
+4. **New dependencies** - Document in README.md Technology Stack
+5. **Breaking changes** - Update Quick Start section with migration notes
 
-Avoid `with` at top-level or with large scopes. It hinders static analysis
-and makes code harder to understand.
-
-```nix
-# Bad - brings everything into scope
-with pkgs;
-stdenv.mkDerivation {
-  buildInputs = [ openssl libX11 ];
-}
-
-# Good - explicit
-stdenv.mkDerivation {
-  buildInputs = [ pkgs.openssl pkgs.xorg.libX11 ];
-}
-
-# Acceptable - limited scope
-stdenv.mkDerivation {
-  buildInputs = [ pkgs.openssl ]
-    ++ (with pkgs.xorg; [ libX11 libXrandr xinput ]);
-}
-```
-
-#### Always Quote URLs
-
-Bare URLs are deprecated and will be removed.
-
-```nix
-# Bad
-src = https://example.com/file.tar.gz;
-
-# Good
-src = "https://example.com/file.tar.gz";
-```
-
-#### Use `inherit` for Clarity
-
-Use `inherit` to reduce duplication and improve readability.
-
-```nix
-# Bad
-{
-  foo = pkgs.foo;
-  bar = pkgs.bar;
-  baz = pkgs.baz;
-}
-
-# Good
-{
-  inherit (pkgs) foo bar baz;
-}
-```
-
-### Performance & Lazy Evaluation
-
-#### Leverage Laziness
-
-Nix evaluates expressions lazily. Structure code to delay expensive computations.
-
-```nix
-# Good - only evaluated if condition is true
-result = if condition then expensiveComputation else default;
-```
-
-#### Avoid Unnecessary Strictness
-
-Don't force evaluation of unused values with `builtins.seq` or `builtins.deepSeq`
-unless necessary for performance profiling.
-
-#### Minimize Thunk Chains
-
-Deeply nested thunks can cause stack overflows. Break complex expressions
-into intermediate bindings.
-
-```nix
-# Better
-let
-  step1 = computeFirst args;
-  step2 = processData step1;
-  step3 = finalTransform step2;
-in
-  step3
-```
-
-### Module System
-
-#### Use mkIf for Conditional Configuration
-
-```nix
-{
-  config = lib.mkIf cfg.enable {
-    services.myservice = {
-      # configuration
-    };
-  };
-}
-```
-
-#### Use mkDefault for Overridable Defaults
-
-```nix
-{
-  config.services.myservice.port = lib.mkDefault 8080;
-}
-```
-
-#### Properly Type Options
-
-```nix
-options.myservice = {
-  enable = lib.mkEnableOption "myservice";
-
-  port = lib.mkOption {
-    type = lib.types.port;
-    default = 8080;
-    description = "Port for the service";
-  };
-
-  extraConfig = lib.mkOption {
-    type = lib.types.attrs;
-    default = {};
-    description = "Additional configuration";
-  };
-};
-```
-
-#### Use assertions for Invariants
-
-```nix
-{
-  config = {
-    assertions = [
-      {
-        assertion = cfg.enable -> cfg.dataDir != null;
-        message = "dataDir must be set when service is enabled";
-      }
-    ];
-  };
-}
-```
-
-### Package & Derivation Practices
-
-#### Use `pname` and `version`
-
-Separate `pname` and `version` instead of combined `name`.
-
-```nix
-# Good
-stdenv.mkDerivation {
-  pname = "package";
-  version = "1.2.3";
-  src = fetchurl {
-    url = "https://example.com/package-${version}.tar.gz";
-    hash = "sha256-...";
-  };
-}
-```
-
-#### Proper Meta Attributes
-
-```nix
-meta = with lib; {
-  description = "A concise description without package name";
-  longDescription = ''
-    Detailed multi-line description in CommonMark.
-  '';
-  homepage = "https://example.com";
-  license = licenses.mit;
-  maintainers = with maintainers; [ username ];
-  platforms = platforms.unix;
-};
-```
-
-#### Use `passthru` for Related Information
-
-```nix
-passthru = {
-  tests = {
-    simple = callPackage ./test.nix {};
-  };
-  updateScript = ./update.sh;
-};
-```
-
-### Composition & Overrides
-
-#### Prefer `override` for Function Arguments
-
-```nix
-# Override function arguments
-myPackage.override {
-  enableFeature = true;
-  customDep = alternativeDep;
-}
-```
-
-#### Use `overrideAttrs` for Derivation Attributes
-
-```nix
-# Modify derivation attributes
-myPackage.overrideAttrs (finalAttrs: previousAttrs: {
-  buildInputs = previousAttrs.buildInputs ++ [ extraDep ];
-})
-```
-
-#### Use finalAttrs Pattern for Self-Reference
-
-```nix
-stdenv.mkDerivation (finalAttrs: {
-  pname = "mypackage";
-  version = "1.0";
-
-  src = fetchurl {
-    url = "https://example.com/${finalAttrs.pname}-${finalAttrs.version}.tar.gz";
-    hash = "sha256-...";
-  };
-})
-```
-
-### Code Organization
-
-#### One Concern Per Module
-
-Keep modules focused on a single concern. Split large modules into smaller,
-composable units.
-
-#### Use Let-Bindings for Complex Expressions
-
-```nix
-let
-  cfg = config.services.myservice;
-  dataDir = "/var/lib/myservice";
-  configFile = pkgs.writeText "config.yml" (generators.toYAML {} cfg.config);
-in
-{
-  # Use the bindings
-}
-```
-
-#### Group Related Options
-
-```nix
-options.services.myservice = {
-  enable = lib.mkEnableOption "myservice";
-
-  network = {
-    port = lib.mkOption { /* ... */ };
-    host = lib.mkOption { /* ... */ };
-  };
-
-  storage = {
-    dataDir = lib.mkOption { /* ... */ };
-    maxSize = lib.mkOption { /* ... */ };
-  };
-};
-```
-
-### Error Handling
-
-#### Use Assertions with Clear Messages
-
-```nix
-assert lib.assertMsg (cfg.mode == "standalone" || cfg.peers != [])
-  "Peers must be specified in distributed mode";
-```
-
-#### Validate Early
-
-```nix
-config = lib.mkIf cfg.enable (
-  lib.mkMerge [
-    {
-      assertions = [
-        {
-          assertion = cfg.database.host != "";
-          message = "database.host cannot be empty";
-        }
-      ];
-    }
-    {
-      # actual configuration
-    }
-  ]
-);
-```
+**Violation of this requirement will result in PR rejection.**
 
-### Reproducibility
+### Minimalism Principle
 
-#### Pin All Dependencies
+Documentation should be:
 
-Use flake.lock to pin dependencies. Never use `<nixpkgs>` in flakes.
+- **Essential only** - If users can figure it out from code/types,
+  don't document it
+- **Actionable** - Every sentence must serve a purpose
+- **Tested** - All commands and examples must be verified before commit
+- **Current** - Delete outdated docs immediately, don't mark as deprecated
 
-#### Specify Hashes Correctly
+### When to Document
 
-Always use SRI hashes (sha256-...) for new code.
+Document when:
 
-```nix
-src = fetchurl {
-  url = "https://example.com/file.tar.gz";
-  hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-};
-```
+- Behavior is non-obvious from code
+- Design decisions need rationale
+- External integrations require setup
+- Security implications exist
 
-#### Invalidate Hashes When Updating
+Don't document:
 
-Set hash to empty string to get the new hash when updating versions.
-
-### Documentation
-
-#### Write Clear Option Descriptions
-
-Use imperative voice. Be concise. Don't repeat the option name.
-
-```nix
-# Bad
-description = "This option enables the debug mode for myservice";
-
-# Good
-description = "Enable debug mode";
-```
-
-#### Document Complex Logic
-
-```nix
-# Calculate optimal worker count based on available cores
-# Reserve 2 cores for system tasks
-workerCount = lib.max 1 (config.nix.settings.cores - 2);
-```
-
-### Security
-
-#### Use Sandboxed Builds
-
-Enable sandbox in nix.conf (default in NixOS).
-
-#### Minimize Build Dependencies
-
-Only include necessary buildInputs and nativeBuildInputs.
-
-#### Validate Untrusted Input
-
-```nix
-let
-  sanitizedPath = lib.strings.escapeShellArg userProvidedPath;
-in
-  "echo ${sanitizedPath}"
-```
-
-### Testing & Validation
-
-#### Verify Changes
-
-```bash
-# Quick check
-nix flake check
-
-# Comprehensive validation
-nix flake check --all-systems
-
-# Build specific outputs
-nix build .#packages.aarch64-darwin.mypackage
-```
-
-#### Test in REPL
-
-```bash
-nix repl
-:lf .
-:p darwinConfigurations.potato.config.nix.package
-```
-
-#### Write Integration Tests
-
-Use NixOS test framework for testing services and interactions.
-
-### Common Pitfalls
-
-#### Infinite Recursion
-
-Usually caused by `rec`, improper overlay composition, or circular module dependencies.
-Use `--show-trace` to debug.
-
-#### Hash Mismatch
-
-When updating package versions, always invalidate the hash first.
-
-#### Type Errors
-
-Use proper types in module options. `lib.types.str` for strings,
-`lib.types.int` for integers, etc.
-
-#### Over-using `with`
-
-Limit `with` to small, well-defined scopes. Never use at module top-level.
-
-#### Forgotten `inherit`
-
-Use `inherit` to avoid duplication and reduce noise.
+- Self-evident code (well-named functions don't need comments)
+- Temporary workarounds (fix the code instead)
+- Implementation details that change frequently
+- Information derivable from types or signatures
 
 ## Code Style
 
-### Formatting
+See [nixpkgs formatting guidelines][nixpkgs-style] for comprehensive
+style rules.
 
-- Use 2-space indentation (never tabs)
-- Follow RFC 166 formatting standard (nixfmt-rfc-style)
-- Keep line length reasonable (no hard limit, but aim for < 100)
-- Place opening braces on same line
-- Use trailing semicolons consistently
+Project-specific requirements:
 
-### Naming Conventions
-
-- **Functions**: Use verb-first naming (e.g., `mkPackage`, `buildConfig`)
-- **Options**: Use descriptive nouns (e.g., `dataDir`, `enableFeature`)
-- **Variables**: Use camelCase for locals, kebab-case for attributes
-- **Builders**: Prefix with `mk` (e.g., `mkDerivation`, `mkOption`)
-- **Recursive functions**: Name as `go` to signal recursion
-
-### Indentation Rules
-
-- Increase indentation by one level maximum per construct
-- Align function arguments vertically when split across lines
-- Keep attribute sets aligned
-
-```nix
-# Good
-stdenv.mkDerivation {
-  pname = "example";
-  version = "1.0";
-
-  buildInputs = [
-    pkg1
-    pkg2
-  ];
-}
-```
-
-### Function Signatures
-
-```nix
-# Good - clear, typed arguments
-{
-  lib,
-  stdenv,
-  fetchFromGitHub,
-  enableFeature ? false,
-}:
-
-# Avoid - implicit dependencies
-args: with args; <...>
-```
-
-### Attribute Set Manipulation
-
-Use lib functions for transformations:
-
-- `lib.mapAttrs` - Transform attribute values
-- `lib.filterAttrs` - Filter attributes by predicate
-- `lib.optionalAttrs` - Conditionally include attributes
-- `lib.recursiveUpdate` - Deep merge attribute sets
-
-### String Handling
-
-- Use `${}` for interpolation
-- Escape `${` as `\${` in regular strings or `''${` in indented strings
-- Use indented strings for multi-line content
-- Avoid string concatenation with `+`, prefer interpolation
-
-### List Operations
-
-- `map` for transformations
-- `filter` for filtering
-- `lib.foldl'` for reduction (strict, more efficient)
-- `lib.concatMap` for flattening mapped results
-- `lib.optional` for conditional single elements
-- `lib.optionals` for conditional lists
-
-## Design Principles
-
-### Purity
-
-Functions must be pure - same inputs always produce same outputs.
-No side effects, no implicit dependencies.
-
-### Composability
-
-Design functions and modules to compose cleanly. Avoid tight coupling.
-Use dependency injection via function arguments.
-
-### Explicitness
-
-Make dependencies and behavior explicit. Avoid magic or implicit behavior.
-Code should be self-documenting.
-
-### Minimalism
-
-Include only what's necessary. Avoid premature abstraction.
-Prefer simple, direct solutions.
-
-### Locality of Behavior
-
-Keep related code together. Put configuration near where it's used.
-Minimize indirection.
+- 2-space indentation (enforced by `nixfmt-rfc-style`)
+- Verb-first function naming: `mkPackage`, `buildConfig`
+- Use `lib.land` namespace for custom functions
+- Modules named by concern, not implementation
 
 [Snowfall Lib]: /.cursor/rules/snowfall.mdc
+[nixpkgs-style]: https://github.com/NixOS/nixpkgs/blob/master/CONTRIBUTING.md

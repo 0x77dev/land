@@ -1,6 +1,5 @@
 {
   pkgs,
-  config,
   ...
 }:
 {
@@ -15,11 +14,8 @@
   ];
 
   # Configure sops-nix for home-manager
+  # Uses SSH host keys automatically - no manual key generation needed!
   sops = {
-    # Use age with GPG key
-    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-
-    # Default sops file (can be overridden per-secret)
     defaultSopsFile = ../../../secrets.yaml;
     defaultSopsFormat = "yaml";
   };

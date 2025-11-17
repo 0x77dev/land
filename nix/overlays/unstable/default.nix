@@ -12,5 +12,6 @@ _final: _prev: {
     nodejs_24
     oha
     prek
+    ssh-to-age
     ;
 }
