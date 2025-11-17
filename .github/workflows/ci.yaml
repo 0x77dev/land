@@ -1,14 +1,19 @@
-name: Chores
+name: CI
 on:
   workflow_dispatch:
+    inputs:
+      auto_update:
+        description: 'Automatically update and push flake.lock'
+        type: boolean
+        default: true
   push:
     paths:
-      - '.github/workflows/chores.yaml'
+      - '.github/workflows/ci.yaml'
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
-  flake-lock:
+  flake:
     permissions:
       contents: write
       id-token: write
@@ -28,7 +33,19 @@ jobs:
         with:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
 
+      - name: Determine if auto-update should run
+        id: should-update
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "auto_update=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "auto_update=${{ inputs.auto_update }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "auto_update=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Update flake.lock
+        if: steps.should-update.outputs.auto_update == 'true'
         run: |
           nix flake update --commit-lock-file --option commit-lockfile-summary "chore(deps): flake.lock file maintenance"
 
@@ -38,12 +55,12 @@ jobs:
         run: nix flake check --all-systems -L
 
       - name: Push to main if check passed
-        if: steps.flake-check.outcome == 'success'
+        if: steps.should-update.outputs.auto_update == 'true' && steps.flake-check.outcome == 'success'
         run: |
           git push origin HEAD:main
 
       - name: Create PR if check failed
-        if: steps.flake-check.outcome == 'failure'
+        if: steps.should-update.outputs.auto_update == 'true' && steps.flake-check.outcome == 'failure'
         uses: peter-evans/create-pull-request@v7
         with:
           title: "chore(deps): flake.lock file maintenance"
@@ -60,3 +77,12 @@ jobs:
           signoff: true
           sign-commits: true
           branch: chore/deps/flake-lock
+
+      - name: Report check results (push trigger)
+        if: steps.should-update.outputs.auto_update == 'false'
+        run: |
+          if [[ "${{ steps.flake-check.outcome }}" == "success" ]]; then
+            echo "Flake check passed"
+          else
+            exit 1
+          fi

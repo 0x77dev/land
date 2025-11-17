@@ -28,6 +28,7 @@
     "DisableConsoleAccess",
     "dontUnpack",
     "dotenv",
+    "elif",
     "fetchurl",
     "ffmpeg",
     "fifc",
