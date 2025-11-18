@@ -117,17 +117,17 @@ sudo ./result/bin/nixos-wsl-tarball-builder
 
 ```powershell
 # Import the tarball into WSL
-wsl --import muscle-wsl $env:USERPROFILE\muscle-wsl nixos-wsl.tar.gz --version 2
+wsl --import land $env:USERPROFILE\land nixos-wsl.tar.gz --version 2
 
 # Start the distribution
-wsl -d muscle-wsl
+wsl -d land
 
 # Update channels and rebuild
 sudo nix-channel --update
 sudo nixos-rebuild switch
 
 # Optional: Set as default distribution
-wsl -s muscle-wsl
+wsl -s land
 ```
 
 **Verify NVIDIA GPU access:**
