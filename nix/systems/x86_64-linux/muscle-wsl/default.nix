@@ -14,6 +14,7 @@ in
   wsl = {
     enable = true;
     defaultUser = userName;
+    interop.register = true;
 
     wslConf = {
       automount.root = "/mnt";
