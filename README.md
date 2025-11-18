@@ -8,138 +8,88 @@
 [![License: WTFPL][license-badge]][wtfpl]
 [![Maintained][maintained-badge]][commits]
 
-Declarative system configurations using [Nix flakes][nix-flakes],
-managed with [Snowfall Lib][snowfall-lib].
+Declarative infrastructure using [Nix flakes][nix-flakes] and
+[Snowfall Lib][snowfall-lib].
 
-## Philosophy
+## Architecture
 
-This repository embodies three core principles:
+**Reproducibility** - Declarative configuration with pinned dependencies.
+Identical builds across machines and environments.
 
-**Reproducibility** - Every system component is declaratively defined in
-version control. The same configuration produces identical results across
-rebuilds and machines. Flake lock files ensure dependency versions are
-pinned, eliminating "works on my machine" issues.
+**Convention over Configuration** - [Snowfall Lib][snowfall-lib] infers
+outputs from directory structure. Minimal boilerplate.
 
-**Automatic Inference** - [Snowfall Lib][snowfall-lib] automatically discovers
-and wires flake outputs from the directory structure. Modules, packages, and
-overlays are loaded based on convention, reducing boilerplate and manual
-configuration.
-
-**Distributed Builds** - Build machines are automatically configured for
-cross-platform compilation. Darwin systems can build Linux packages via the
-Linux builder, and x86_64 systems can build aarch64 packages through remote
-builders.
+**Distributed Builds** - Cross-platform compilation configured automatically.
+Darwin builds Linux, x86_64 builds aarch64.
 
 ## Scope
 
-This configuration manages:
-
-- **Darwin (macOS)** - System configuration via [nix-darwin][nix-darwin]
-- **NixOS (Linux)** - Server configurations
+- **Darwin** - System configuration via [nix-darwin][nix-darwin]
+- **NixOS** - Server and workstation configurations
+- **WSL 2** - NixOS on Windows with GPU passthrough
 - **Home Manager** - User environments and dotfiles
-- **Secrets** - Encrypted with [sops-nix][sops-nix] using SSH host keys
-- **Packages** - Custom derivations and unstable channel overlays
+- **Secrets** - [sops-nix][sops-nix] with SSH host keys
+- **Packages** - Custom derivations and unstable overlays
 
-## Quick Start
+## Deployment
 
-### Prerequisites
+### Darwin
 
-- [Nix](https://nixos.org/download.html) with flakes enabled
-- Git for cloning the repository
-- Basic familiarity with Nix and the command line
-
-### Darwin (macOS)
-
-**Initial installation:**
+Initial bootstrap requires sandbox disabled on macOS:
 
 ```bash
-# Clone repository
 git clone https://github.com/0x77dev/land.git
 cd land
-
-# First-time build requires sandbox disabled due to macOS limitations
 sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
   switch --flake .#potato --option sandbox false
 ```
 
-**Note:** The sandbox must be disabled for the initial build on macOS due to
-a 64KB parameter limit. Subsequent rebuilds work normally.
-
-**Subsequent updates:**
+Subsequent updates:
 
 ```bash
-cd /path/to/land
-git pull
 darwin-rebuild switch --flake .#potato
 ```
 
 ### NixOS
 
 ```bash
-# Clone repository
 git clone https://github.com/0x77dev/land.git
 cd land
-
-# Apply configuration
 sudo nixos-rebuild switch --flake .#muscle
 ```
 
-### NixOS on WSL 2
+### WSL 2
 
-**Prerequisites:**
+Requirements: Windows 11, WSL 2.4.4+, NVIDIA driver for GPU support.
 
-- Windows 11 or Windows 10 with WSL 2
-- NVIDIA GPU driver installed on Windows (for GPU support)
-- WSL 2.4.4 or later
-
-**Install WSL and update to latest version:**
+Setup WSL:
 
 ```powershell
 wsl --install --no-distribution
 wsl --update
 ```
 
-**Build and install from this repository:**
+Build tarball:
 
 ```bash
-# Build the WSL tarball directly from GitHub
 nix build github:0x77dev/land#nixosConfigurations.muscle-wsl.config.system.build.tarballBuilder
 sudo ./result/bin/nixos-wsl-tarball-builder
-
-# Copy nixos-wsl.tar.gz to Windows
 ```
 
-**Install on Windows:**
+Import to Windows:
 
 ```powershell
-# Import the tarball into WSL
 wsl --import muscle-wsl $env:USERPROFILE\muscle-wsl nixos-wsl.tar.gz --version 2
-
-# Start the distribution
 wsl -d muscle-wsl
-
-# Update channels and rebuild
-sudo nix-channel --update
-sudo nixos-rebuild switch
-
-# Optional: Set as default distribution
-wsl -s muscle-wsl
 ```
 
-**Verify NVIDIA GPU access:**
+Verify GPU:
 
 ```bash
-# Check NVIDIA driver
 nvidia-smi
-
-# Test GPU in Docker container
 docker run --rm --device=nvidia.com/gpu=all \
   nvcr.io/nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
 ```
-
-The repository follows [Snowfall Lib's directory structure][snowfall-structure],
-which organizes Nix files by purpose (modules, packages, systems, etc.) for
-automatic discovery and loading.
 
 ## Systems
 
@@ -153,74 +103,33 @@ automatic discovery and loading.
 | `muscle-wsl` | `x86_64-linux` | AI/Compute (WSL) | TR 7985WX, RTX6000, 250GB |
 | `shadow` | `x86_64-linux` | Fun | T480, 16GB |
 
-## Technology Stack
+## Stack
 
-### Core Infrastructure
+- [Nix][nix] ([Lix][lix]) / [NixOS 25.05][nixos] / [nix-darwin 25.05][nix-darwin]
+- [Home Manager][home-manager] 25.05
+- [Snowfall Lib][snowfall-lib]
+- [sops-nix][sops-nix]
+- [NixOS-WSL][nixos-wsl]
+- [git-hooks.nix][git-hooks] / [prek][prek]
 
-- [Nix][nix] ([Lix][lix]) - Package manager and build system
-- [NixOS 25.05][nixos] - Linux distribution
-- [nix-darwin 25.05][nix-darwin] - macOS system configuration
-- [Home Manager][home-manager] (25.05) - User environment
-- [Snowfall Lib][snowfall-lib] - Flake organization framework
-
-### Tooling & Integration
-
-- [sops-nix][sops-nix] - Secrets management with age encryption
-- [nix-homebrew][nix-homebrew] - Declarative Homebrew management
-- [NixOS-WSL][nixos-wsl] - NixOS on Windows Subsystem for Linux
-- [prek][prek] - Fast pre-commit hook runner (Rust-based)
-- [git-hooks.nix][git-hooks] - Pre-commit hooks
-
-### Package Sources
-
-- nixpkgs (stable: 25.05, unstable: rolling)
-- Custom packages: TX-02 Variable font, UA Connect
-
-## Features
-
-- **Modular Organization** - Separate concerns (shell, security, IDE, media,
-  etc.)
-- **DRY Configuration** -
-  Shared settings via `lib.land.shared.*` functions
-- **Platform-Aware Packages** -
-  Automatic selection (ghostty-bin on macOS, code-cursor-fhs on Linux)
-- **Automatic Builds** -
-  Cross-compilation via remote builders and Linux builder VM
-- **Security Hardening** - Touch ID sudo, login window restrictions, SSH key management
+Channels: nixpkgs 25.05 (stable), nixpkgs-unstable (rolling)
 
 ## Development
 
 ```bash
-# Enter development shell (includes pre-commit hooks)
 nix develop
-
-# Run hooks manually
 nix flake check
-
-# Update flake inputs
 nix flake update
 ```
 
-Development shell provides:
+Shell includes: nixfmt, deadnix, statix, shellcheck, markdownlint, cspell,
+trufflehog, sops, age.
 
-- Quality tools: nixfmt-rfc-style, deadnix, statix, shellcheck
-- Documentation linters: markdownlint, mdsh, cspell
-- Security scanners: trufflehog
-- Secrets tools: sops, age, ssh-to-age
-
-## Contributing
-
-See [CONTRIBUTING.md][contributing] for detailed guidelines on:
-
-- Repository structure and Snowfall Lib conventions
-- Nix language best practices
-- Secrets management workflow
-- Code style and formatting standards
+See [CONTRIBUTING.md][contributing] for structure conventions and style.
 
 ## License
 
-This work is licensed under the [WTFPL][wtfpl]
-(Do What The Fuck You Want To Public License).
+[WTFPL][wtfpl]
 
 <!-- Badge References -->
 [nixos-badge]: https://img.shields.io/badge/NixOS-25.05-blue.svg?style=flat&logo=nixos&logoColor=white
@@ -246,8 +155,6 @@ This work is licensed under the [WTFPL][wtfpl]
 [home-manager]: https://github.com/nix-community/home-manager
 [snowfall-lib]: https://snowfall.org
 [sops-nix]: https://github.com/Mic92/sops-nix
-[nix-homebrew]: https://github.com/zhaofengli/nix-homebrew
 [prek]: https://prek.j178.dev
 [git-hooks]: https://github.com/cachix/git-hooks.nix
 [nixos-wsl]: https://github.com/nix-community/NixOS-WSL
-[snowfall-structure]: https://snowfall.org/reference/lib/#flake-structure
