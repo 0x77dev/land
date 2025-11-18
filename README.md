@@ -1,7 +1,7 @@
 # land
 
-[![NixOS 25.05][nixos-badge]][nixos]
-[![nix-darwin 25.05][nix-darwin-badge]][nix-darwin]
+[![NixOS][nixos-badge]][nixos]
+[![nix-darwin][nix-darwin-badge]][nix-darwin]
 [![Home Manager][home-manager-badge]][home-manager]
 [![Snowfall Lib][snowfall-badge]][snowfall-lib]
 [![ci][ci-badge]][ci]
@@ -105,14 +105,9 @@ docker run --rm --device=nvidia.com/gpu=all \
 
 ## Stack
 
-- [Nix][nix] ([Lix][lix]) / [NixOS 25.05][nixos] / [nix-darwin 25.05][nix-darwin]
-- [Home Manager][home-manager] 25.05
-- [Snowfall Lib][snowfall-lib]
-- [sops-nix][sops-nix]
-- [NixOS-WSL][nixos-wsl]
-- [git-hooks.nix][git-hooks] / [prek][prek]
-
-Channels: nixpkgs 25.05 (stable), nixpkgs-unstable (rolling)
+[Nix][nix] ([Lix][lix]), [NixOS][nixos], [nix-darwin][nix-darwin],
+[Home Manager][home-manager], [Snowfall Lib][snowfall-lib],
+[sops-nix][sops-nix], [NixOS-WSL][nixos-wsl]
 
 ## Development
 
@@ -122,19 +117,16 @@ nix flake check
 nix flake update
 ```
 
-Shell includes: nixfmt, deadnix, statix, shellcheck, markdownlint, cspell,
-trufflehog, sops, age.
-
-See [CONTRIBUTING.md][contributing] for structure conventions and style.
+See [CONTRIBUTING.md][contributing] for conventions.
 
 ## License
 
 [WTFPL][wtfpl]
 
 <!-- Badge References -->
-[nixos-badge]: https://img.shields.io/badge/NixOS-25.05-blue.svg?style=flat&logo=nixos&logoColor=white
-[nix-darwin-badge]: https://img.shields.io/badge/nix--darwin-25.05-blue.svg?style=flat&logo=apple&logoColor=white
-[home-manager-badge]: https://img.shields.io/badge/home--manager-25.05-blue.svg?style=flat&logo=nixos&logoColor=white
+[nixos-badge]: https://img.shields.io/badge/NixOS-blue.svg?style=flat&logo=nixos&logoColor=white
+[nix-darwin-badge]: https://img.shields.io/badge/nix--darwin-blue.svg?style=flat&logo=apple&logoColor=white
+[home-manager-badge]: https://img.shields.io/badge/home--manager-blue.svg?style=flat&logo=nixos&logoColor=white
 [snowfall-badge]: https://img.shields.io/badge/built%20with-snowfall-blue?style=flat
 [license-badge]: https://img.shields.io/badge/License-WTFPL-blue.svg?style=flat
 [maintained-badge]: https://img.shields.io/badge/maintained-yes-success.svg?style=flat
@@ -155,6 +147,4 @@ See [CONTRIBUTING.md][contributing] for structure conventions and style.
 [home-manager]: https://github.com/nix-community/home-manager
 [snowfall-lib]: https://snowfall.org
 [sops-nix]: https://github.com/Mic92/sops-nix
-[prek]: https://prek.j178.dev
-[git-hooks]: https://github.com/cachix/git-hooks.nix
 [nixos-wsl]: https://github.com/nix-community/NixOS-WSL
