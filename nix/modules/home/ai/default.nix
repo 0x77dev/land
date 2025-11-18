@@ -35,6 +35,10 @@
             id = "anthropic/claude-opus-4-1";
             name = "Claude Opus 4.1";
           };
+          "fireworks_ai/kimi-k2-thinking" = {
+            id = "fireworks_ai/kimi-k2-thinking";
+            name = "Kimi K2 Thinking";
+          };
         };
         options = {
           apiKey = "{env:OSV_API_KEY}";

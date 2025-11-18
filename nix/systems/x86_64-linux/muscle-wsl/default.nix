@@ -103,7 +103,6 @@ in
     wget
     curl
     htop
-    btop
     ncdu
     nettools
     bind
@@ -111,7 +110,11 @@ in
 
   services = {
     xserver.videoDrivers = [ "nvidia" ];
-    openssh.enable = true;
+    openssh = {
+      enable = true;
+      settings.StreamLocalBindUnlink = "yes";
+    };
+    pcscd.enable = true;
     verified-auto-update.enable = true;
   };
 

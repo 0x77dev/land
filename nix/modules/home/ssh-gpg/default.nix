@@ -58,6 +58,18 @@ in
     extraConfig = ''
       enable-ssh-support
       no-allow-external-cache
+      allow-loopback-pinentry
+    '';
+  };
+
+  programs.ssh = {
+    enable = true;
+    extraConfig = ''
+      Host *
+        RemoteForward /run/user/1000/gnupg/S.gpg-agent ${
+          if isDarwin then "%d/.gnupg/S.gpg-agent.extra" else "$(gpgconf --list-dirs agent-extra-socket)"
+        }
+        StreamLocalBindUnlink yes
     '';
   };
 
