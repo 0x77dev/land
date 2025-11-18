@@ -47,6 +47,7 @@ in
       "gpg-suite"
       "discord"
       "orbstack"
+      "google-chrome"
       "slack"
       "linear-linear"
       "zoom"

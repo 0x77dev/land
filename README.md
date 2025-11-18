@@ -84,6 +84,63 @@ cd land
 sudo nixos-rebuild switch --flake .#muscle
 ```
 
+### NixOS on WSL 2
+
+**Prerequisites:**
+
+- Windows 11 or Windows 10 with WSL 2
+- NVIDIA GPU driver installed on Windows (for GPU support)
+- WSL 2.4.4 or later
+
+**Install WSL and update to latest version:**
+
+```powershell
+wsl --install --no-distribution
+wsl --update
+```
+
+**Build and install from this repository:**
+
+```bash
+# Clone repository on a system with Nix installed
+git clone https://github.com/0x77dev/land.git
+cd land
+
+# Build the WSL tarball
+nix build .#nixosConfigurations.muscle-wsl.config.system.build.tarballBuilder
+sudo ./result/bin/nixos-wsl-tarball-builder
+
+# Copy nixos-wsl.tar.gz to Windows
+```
+
+**Install on Windows:**
+
+```powershell
+# Import the tarball into WSL
+wsl --import muscle-wsl $env:USERPROFILE\muscle-wsl nixos-wsl.tar.gz --version 2
+
+# Start the distribution
+wsl -d muscle-wsl
+
+# Update channels and rebuild
+sudo nix-channel --update
+sudo nixos-rebuild switch
+
+# Optional: Set as default distribution
+wsl -s muscle-wsl
+```
+
+**Verify NVIDIA GPU access:**
+
+```bash
+# Check NVIDIA driver
+nvidia-smi
+
+# Test GPU in Docker container
+docker run --rm --device=nvidia.com/gpu=all \
+  nvcr.io/nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
+```
+
 The repository follows [Snowfall Lib's directory structure][snowfall-structure],
 which organizes Nix files by purpose (modules, packages, systems, etc.) for
 automatic discovery and loading.
@@ -96,7 +153,8 @@ automatic discovery and loading.
 | `tomato` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
 | `pickle` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
-| `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, 2x RTX6000 Ada, 250GB |
+| `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
+| `muscle-wsl` | `x86_64-linux` | AI/Compute (WSL) | TR 7985WX, RTX6000, 250GB |
 | `shadow` | `x86_64-linux` | Fun | T480, 16GB |
 
 ## Technology Stack
@@ -113,6 +171,7 @@ automatic discovery and loading.
 
 - [sops-nix][sops-nix] - Secrets management with age encryption
 - [nix-homebrew][nix-homebrew] - Declarative Homebrew management
+- [NixOS-WSL][nixos-wsl] - NixOS on Windows Subsystem for Linux
 - [prek][prek] - Fast pre-commit hook runner (Rust-based)
 - [git-hooks.nix][git-hooks] - Pre-commit hooks
 
@@ -194,4 +253,5 @@ This work is licensed under the [WTFPL][wtfpl]
 [nix-homebrew]: https://github.com/zhaofengli/nix-homebrew
 [prek]: https://prek.j178.dev
 [git-hooks]: https://github.com/cachix/git-hooks.nix
+[nixos-wsl]: https://github.com/nix-community/NixOS-WSL
 [snowfall-structure]: https://snowfall.org/reference/lib/#flake-structure

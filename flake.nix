@@ -46,6 +46,11 @@
       url = "github:snowfallorg/lib";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -73,6 +78,7 @@
 
       systems.modules.nixos = with inputs; [
         sops-nix.nixosModules.sops
+        nixos-wsl.nixosModules.default
       ];
 
       homes.modules = with inputs; [
