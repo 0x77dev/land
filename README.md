@@ -102,12 +102,8 @@ wsl --update
 **Build and install from this repository:**
 
 ```bash
-# Clone repository on a system with Nix installed
-git clone https://github.com/0x77dev/land.git
-cd land
-
-# Build the WSL tarball
-nix build .#nixosConfigurations.muscle-wsl.config.system.build.tarballBuilder
+# Build the WSL tarball directly from GitHub
+nix build github:0x77dev/land#nixosConfigurations.muscle-wsl.config.system.build.tarballBuilder
 sudo ./result/bin/nixos-wsl-tarball-builder
 
 # Copy nixos-wsl.tar.gz to Windows
@@ -117,17 +113,17 @@ sudo ./result/bin/nixos-wsl-tarball-builder
 
 ```powershell
 # Import the tarball into WSL
-wsl --import land $env:USERPROFILE\land nixos-wsl.tar.gz --version 2
+wsl --import muscle-wsl $env:USERPROFILE\muscle-wsl nixos-wsl.tar.gz --version 2
 
 # Start the distribution
-wsl -d land
+wsl -d muscle-wsl
 
 # Update channels and rebuild
 sudo nix-channel --update
 sudo nixos-rebuild switch
 
 # Optional: Set as default distribution
-wsl -s land
+wsl -s muscle-wsl
 ```
 
 **Verify NVIDIA GPU access:**
