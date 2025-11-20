@@ -59,6 +59,7 @@ in
         "opencode"
         "github-theme"
         "cspell"
+        "git-firefly"
       ];
 
       userSettings = {
