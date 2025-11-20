@@ -26,7 +26,11 @@
     "coreutils",
     "cuda",
     "CUDA",
+    "chflags",
+    "awscli",
+    "nouchg",
     "cudatoolkit",
+    "xattr",
     "dcfldd",
     "deadnix",
     "devenv",
@@ -68,6 +72,7 @@
     "kexec",
     "keyid",
     "keyids",
+    "Keymaps",
     "keyscan",
     "keyserver",
     "keyservers",
@@ -96,6 +101,7 @@
     "nettools",
     "networkmanager",
     "nistp",
+    "nixd",
     "nixfmt",
     "nixos",
     "nixpkgs",
@@ -185,11 +191,6 @@
     "zenmap",
     "zhaofengli"
   ],
-  "ignorePaths": [
-    ".cursor/rules",
-    "secrets.{yaml,yml}"
-  ],
-  "ignoreRegExpList": [
-    "[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"
-  ]
+  "ignorePaths": [".cursor/rules", "secrets.{yaml,yml}"],
+  "ignoreRegExpList": ["[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"]
 }

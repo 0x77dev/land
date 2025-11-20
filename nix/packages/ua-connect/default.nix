@@ -29,6 +29,13 @@ stdenvNoCC.mkDerivation rec {
     runHook preInstall
     mkdir -p $out/Applications
     cp -r *.app $out/Applications
+
+    # Remove quarantine attributes and immutable flags
+    /usr/bin/xattr -rc $out/Applications || true
+    /bin/chmod -R u+w $out/Applications
+    /bin/chmod -R -N $out/Applications || true
+    /usr/bin/chflags -R nouchg $out/Applications || true
+
     runHook postInstall
   '';
 

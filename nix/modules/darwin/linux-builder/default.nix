@@ -25,7 +25,7 @@ let
 in
 {
   nix.linux-builder = {
-    enable = mkDefault true;
+    # enable = mkDefault true;
     systems = mkDefault linuxSystems;
     supportedFeatures = mkDefault [
       "kvm"

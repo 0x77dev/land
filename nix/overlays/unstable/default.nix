@@ -14,7 +14,8 @@ _final: _prev: {
     prek
     ssh-to-age
     aichat
-    ollama
     opencode
+    zed-editor
+    nixd
     ;
 }

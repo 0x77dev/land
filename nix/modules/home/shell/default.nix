@@ -4,7 +4,10 @@
   pkgs,
   ...
 }:
+with lib;
 let
+  cfg = config.modules.home.shell;
+
   inherit (lib)
     concatMapStringsSep
     concatStringsSep
@@ -50,100 +53,106 @@ let
   };
 in
 {
-  home.sessionVariables.KEYID =
-    config.programs.gpg.settings.default-key or "C33BFD3230B660CF147762D2BF5C81B531164955";
+  options.modules.home.shell = {
+    enable = mkEnableOption "shell";
+  };
 
-  home.packages = with pkgs; [
-    bat
-    coreutils
-    devenv
-    direnv
-    fd
-    figlet
-    fzf
-    glow
-    hwatch
-    starship
-    watchexec
-    yazi
-    zoxide
-    httpie
-    oha
-    curl
-    bun
-    nodejs_24
-    fastfetch
-  ];
+  config = mkIf cfg.enable {
+    home.sessionVariables.KEYID =
+      config.programs.gpg.settings.default-key or "C33BFD3230B660CF147762D2BF5C81B531164955";
 
-  programs = {
-    bash = {
-      enable = true;
-      shellAliases = commonAliases // commonAbbreviations;
-      initExtra = ''
-        export PATH="${exportedPath}:$PATH"
-        eval "$(${pkgs.zoxide}/bin/zoxide init bash)"
-      '';
-    };
+    home.packages = with pkgs; [
+      bat
+      coreutils
+      devenv
+      direnv
+      fd
+      figlet
+      fzf
+      glow
+      hwatch
+      starship
+      watchexec
+      yazi
+      zoxide
+      httpie
+      oha
+      curl
+      bun
+      nodejs_24
+      fastfetch
+    ];
 
-    zsh = {
-      enable = true;
-      shellAliases = commonAliases // commonAbbreviations;
-      initContent = ''
-        export PATH="${exportedPath}:$PATH"
-        eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
-      '';
-    };
+    programs = {
+      bash = {
+        enable = true;
+        shellAliases = commonAliases // commonAbbreviations;
+        initExtra = ''
+          export PATH="${exportedPath}:$PATH"
+          eval "$(${pkgs.zoxide}/bin/zoxide init bash)"
+        '';
+      };
 
-    fish = {
-      enable = true;
-      shellAliases = commonAliases;
-      shellAbbrs = commonAbbreviations;
-      interactiveShellInit = ''
-        set fish_greeting
-        ${concatMapStringsSep "\n" (p: "fish_add_path -m ${p}") commonPaths}
-        ${pkgs.zoxide}/bin/zoxide init fish | source
-      '';
-      plugins = [
-        {
-          inherit (pkgs.fishPlugins.git-abbr) src;
-          name = "git-abbr";
-        }
-        {
-          inherit (pkgs.fishPlugins.autopair) src;
-          name = "autopair";
-        }
-        {
-          inherit (pkgs.fishPlugins.fifc) src;
-          name = "fifc";
-        }
-        {
-          inherit (pkgs.fishPlugins.bass) src;
-          name = "bass";
-        }
-        {
-          inherit (pkgs.fishPlugins.z) src;
-          name = "z";
-        }
-      ];
-    };
+      zsh = {
+        enable = true;
+        shellAliases = commonAliases // commonAbbreviations;
+        initContent = ''
+          export PATH="${exportedPath}:$PATH"
+          eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
+        '';
+      };
 
-    direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
+      fish = {
+        enable = true;
+        shellAliases = commonAliases;
+        shellAbbrs = commonAbbreviations;
+        interactiveShellInit = ''
+          set fish_greeting
+          ${concatMapStringsSep "\n" (p: "fish_add_path -m ${p}") commonPaths}
+          ${pkgs.zoxide}/bin/zoxide init fish | source
+        '';
+        plugins = [
+          {
+            inherit (pkgs.fishPlugins.git-abbr) src;
+            name = "git-abbr";
+          }
+          {
+            inherit (pkgs.fishPlugins.autopair) src;
+            name = "autopair";
+          }
+          {
+            inherit (pkgs.fishPlugins.fifc) src;
+            name = "fifc";
+          }
+          {
+            inherit (pkgs.fishPlugins.bass) src;
+            name = "bass";
+          }
+          {
+            inherit (pkgs.fishPlugins.z) src;
+            name = "z";
+          }
+        ];
+      };
 
-    zoxide = {
-      enable = true;
-      enableBashIntegration = false;
-      enableFishIntegration = false;
-      enableZshIntegration = false;
-    };
+      direnv = {
+        enable = true;
+        nix-direnv.enable = true;
+      };
 
-    starship = {
-      enable = true;
-      enableBashIntegration = true;
-      enableFishIntegration = true;
-      enableZshIntegration = true;
+      zoxide = {
+        enable = true;
+        enableBashIntegration = false;
+        enableFishIntegration = false;
+        enableZshIntegration = false;
+      };
+
+      starship = {
+        enable = true;
+        enableBashIntegration = true;
+        enableFishIntegration = true;
+        enableZshIntegration = true;
+      };
     };
   };
 }

@@ -1,13 +1,25 @@
 {
   pkgs,
   namespace,
+  config,
+  lib,
   ...
 }:
+with lib;
+let
+  cfg = config.modules.home.fonts;
+in
 {
-  home.packages = with pkgs.${namespace}; [
-    tx-02-variable
-  ];
+  options.modules.home.fonts = {
+    enable = mkEnableOption "fonts";
+  };
 
-  # Required to autoload fonts from packages
-  fonts.fontconfig.enable = true;
+  config = mkIf cfg.enable {
+    home.packages = with pkgs.${namespace}; [
+      tx-02-variable
+    ];
+
+    # Required to autoload fonts from packages
+    fonts.fontconfig.enable = true;
+  };
 }

@@ -24,6 +24,7 @@ mkShell {
       age
       ssh-to-age
       gitsign
+      nixos-rebuild
     ]
     ++ preCommit.enabledPackages;
 }

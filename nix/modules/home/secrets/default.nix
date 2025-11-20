@@ -4,7 +4,10 @@
   lib,
   ...
 }:
+with lib;
 let
+  cfg = config.modules.home.secrets;
+
   # Generate export commands for all secrets dynamically
   exportAllSecrets =
     shellType:
@@ -29,36 +32,44 @@ let
 
 in
 {
-  sops = {
-    defaultSopsFile = ./secrets.yaml;
+  options.modules.home.secrets = {
+    enable = mkEnableOption "secrets";
+  };
 
-    gnupg.home = "${config.home.homeDirectory}/.gnupg";
+  config = mkIf cfg.enable {
+    sops = {
+      defaultSopsFile = ./secrets.yaml;
 
-    secrets = {
-      OSV_API_KEY = { };
-      OSV_INFERENCE_ENDPOINT = { };
+      gnupg.home = "${config.home.homeDirectory}/.gnupg";
+
+      secrets = {
+        OSV_API_KEY = { };
+        OSV_INFERENCE_ENDPOINT = { };
+        OC_GOOGLE_CLOUD_PROJECT = { };
+        OC_VERTEX_LOCATION = { };
+      };
     };
+
+    programs = {
+      bash.initExtra = lib.mkAfter ''
+        # Load sops-nix secrets
+        ${exportAllSecrets "bash"}
+      '';
+
+      zsh.initContent = lib.mkAfter ''
+        # Load sops-nix secrets
+        ${exportAllSecrets "zsh"}
+      '';
+
+      fish.interactiveShellInit = lib.mkAfter ''
+        # Load sops-nix secrets
+        ${exportAllSecrets "fish"}
+      '';
+    };
+
+    home.packages = with pkgs; [
+      sops
+      gnupg
+    ];
   };
-
-  programs = {
-    bash.initExtra = lib.mkAfter ''
-      # Load sops-nix secrets
-      ${exportAllSecrets "bash"}
-    '';
-
-    zsh.initContent = lib.mkAfter ''
-      # Load sops-nix secrets
-      ${exportAllSecrets "zsh"}
-    '';
-
-    fish.interactiveShellInit = lib.mkAfter ''
-      # Load sops-nix secrets
-      ${exportAllSecrets "fish"}
-    '';
-  };
-
-  home.packages = with pkgs; [
-    sops
-    gnupg
-  ];
 }
