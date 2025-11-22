@@ -19,6 +19,13 @@
     hostId = "442cbd39";
   };
 
+  security.sudo.extraRules = [
+    {
+      users = [ "mykhailo" ];
+      options = [ "NOPASSWD" ];
+    }
+  ];
+
   # Users
   snowfallorg.users.mykhailo = {
     create = true;
@@ -31,7 +38,6 @@
 
   users.users.mykhailo = {
     isNormalUser = true;
-    initialPassword = "wakeupneo";
     description = "Mykhailo Marynenko";
     extraGroups = [
       "networkmanager"

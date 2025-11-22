@@ -29,9 +29,15 @@
     };
   };
 
+  security.sudo.extraRules = [
+    {
+      users = [ "mykhailo" ];
+      options = [ "NOPASSWD" ];
+    }
+  ];
+
   users.users.mykhailo = {
     isNormalUser = true;
-    initialPassword = "wakeupneo";
     description = "Mykhailo Marynenko";
     extraGroups = [
       "networkmanager"
