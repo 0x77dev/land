@@ -11,10 +11,6 @@
       enable = true;
       useLatestKernel = true;
     };
-    virtualisation.incus-cluster = {
-      enable = true;
-      usePreseed = true; # Use preseed for initial storage/network/profile setup
-    };
   };
 
   networking = {

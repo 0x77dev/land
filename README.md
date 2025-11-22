@@ -29,7 +29,6 @@ Darwin builds Linux, x86_64 builds aarch64.
 - **Home Manager** - User environments and dotfiles
 - **Secrets** - [sops-nix][sops-nix] with SSH host keys
 - **Packages** - Custom derivations and unstable overlays
-- **Incus** - Clustered containers/VMs on `tomato` and `pickle`
 
 ## Deployment
 
@@ -93,7 +92,7 @@ After initial setup, use `deploy .#potato` for updates.
 [Nix][nix] ([Lix][lix]), [NixOS][nixos], [nix-darwin][nix-darwin],
 [Home Manager][home-manager], [Snowfall Lib][snowfall-lib],
 [sops-nix][sops-nix], [deploy-rs][deploy-rs],
-[nixos-anywhere][nixos-anywhere], [Incus][incus]
+[nixos-anywhere][nixos-anywhere]
 
 ## Development
 
@@ -135,4 +134,3 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [sops-nix]: https://github.com/Mic92/sops-nix
 [deploy-rs]: https://github.com/serokell/deploy-rs
 [nixos-anywhere]: https://github.com/nix-community/nixos-anywhere
-[incus]: https://linuxcontainers.org/incus

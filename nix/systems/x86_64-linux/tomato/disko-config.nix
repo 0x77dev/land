@@ -103,14 +103,6 @@
             mountpoint = "/data/documents";
             options."com.sun:auto-snapshot" = "true";
           };
-          incus = {
-            type = "zfs_fs";
-            options = {
-              mountpoint = "none";
-              canmount = "off";
-              "com.sun:auto-snapshot" = "false";
-            };
-          };
         };
       };
     };
