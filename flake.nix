@@ -52,11 +52,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL/main";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nixos-vscode-server = {
       url = "github:nix-community/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -102,7 +97,6 @@
 
         systems.modules.nixos = with inputs; [
           sops-nix.nixosModules.sops
-          nixos-wsl.nixosModules.default
           disko.nixosModules.disko
           nixos-vscode-server.nixosModules.default
         ];

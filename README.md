@@ -26,7 +26,6 @@ Darwin builds Linux, x86_64 builds aarch64.
 
 - **Darwin** - System configuration via [nix-darwin][nix-darwin]
 - **NixOS** - Server and workstation configurations
-- **WSL 2** - NixOS on Windows with GPU passthrough
 - **Home Manager** - User environments and dotfiles
 - **Secrets** - [sops-nix][sops-nix] with SSH host keys
 - **Packages** - Custom derivations and unstable overlays
@@ -78,39 +77,6 @@ sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
 
 After initial setup, use `deploy .#potato` for updates.
 
-### WSL 2
-
-Requirements: Windows 11, WSL 2.4.4+, NVIDIA driver for GPU support.
-
-Setup WSL:
-
-```powershell
-wsl --install --no-distribution
-wsl --update
-```
-
-Build tarball:
-
-```bash
-nix build github:0x77dev/land#nixosConfigurations.wsl.config.system.build.tarballBuilder
-sudo ./result/bin/nixos-wsl-tarball-builder
-```
-
-Import to Windows:
-
-```powershell
-wsl --import wsl $env:USERPROFILE\wsl <result> --version 2
-wsl -d wsl
-```
-
-Verify GPU:
-
-```bash
-nvidia-smi
-docker run --rm --device=nvidia.com/gpu=all \
-  nvcr.io/nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
-```
-
 ## Systems
 
 | Host | Platform | Role | Specs |
@@ -120,14 +86,13 @@ docker run --rm --device=nvidia.com/gpu=all \
 | `pickle` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
-| `wsl` | `x86_64-linux` | WSL | used in `muscle` from time to time |
 | `shadow` | `x86_64-linux` | Fun | T480, 16GB |
 
 ## Stack
 
 [Nix][nix] ([Lix][lix]), [NixOS][nixos], [nix-darwin][nix-darwin],
 [Home Manager][home-manager], [Snowfall Lib][snowfall-lib],
-[sops-nix][sops-nix], [NixOS-WSL][nixos-wsl], [deploy-rs][deploy-rs],
+[sops-nix][sops-nix], [deploy-rs][deploy-rs],
 [nixos-anywhere][nixos-anywhere], [Incus][incus]
 
 ## Development
@@ -168,7 +133,6 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [home-manager]: https://github.com/nix-community/home-manager
 [snowfall-lib]: https://snowfall.org
 [sops-nix]: https://github.com/Mic92/sops-nix
-[nixos-wsl]: https://github.com/nix-community/NixOS-WSL
 [deploy-rs]: https://github.com/serokell/deploy-rs
 [nixos-anywhere]: https://github.com/nix-community/nixos-anywhere
 [incus]: https://linuxcontainers.org/incus
