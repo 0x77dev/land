@@ -19,6 +19,15 @@ in
   options.modules.virtualisation.incus-cluster = {
     enable = lib.mkEnableOption "Incus cluster";
 
+    usePreseed = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Use preseed for initial configuration.
+        Set to false if cluster is already formed to avoid conflicts.
+      '';
+    };
+
     storage.zfsDataset = lib.mkOption {
       type = lib.types.str;
       default = "zroot/incus";
@@ -39,7 +48,7 @@ in
       package = pkgs.incus-lts;
       ui.enable = true;
 
-      preseed = {
+      preseed = lib.mkIf cfg.usePreseed {
         # Storage configuration
         storage_pools = [
           {
