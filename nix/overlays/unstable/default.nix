@@ -14,8 +14,14 @@ _final: _prev: {
     prek
     ssh-to-age
     aichat
-    opencode
     zed-editor
     nixd
     ;
+
+  # Override opencode to remove Darwin badPlatforms restriction
+  opencode = channels.unstable.opencode.overrideAttrs (old: {
+    meta = old.meta // {
+      badPlatforms = [ ];
+    };
+  });
 }
