@@ -108,7 +108,6 @@
             options = {
               mountpoint = "none";
               canmount = "off";
-              compression = "inherit";
               "com.sun:auto-snapshot" = "false";
             };
           };
