@@ -109,53 +109,6 @@ deploy .#pickle
 
 Repeat verification steps above.
 
-## Incus Cluster Reconfiguration
-
-After both systems are deployed with bonding, reconfigure the Incus cluster:
-
-### On Tomato (Bootstrap Node)
-
-```bash
-ssh tomato
-sudo incus cluster list
-# Should show only tomato initially
-```
-
-### On Pickle (Join Cluster)
-
-```bash
-ssh pickle
-
-# Generate join token on tomato first
-# On tomato:
-sudo incus cluster add pickle
-
-# On pickle, join the cluster:
-sudo incus admin init
-# Answer prompts:
-# - Would you like to use LXD clustering? yes
-# - What IP address or DNS name should be used to reach this server?
-#   <pickle's IP or hostname>
-# - Are you joining an existing cluster? yes
-# - Provide join token: <paste token from tomato>
-```
-
-### Verify Cluster
-
-```bash
-# On either tomato or pickle
-sudo incus cluster list
-
-# Expected output:
-# +--------+---------------------------+-----------+--------+-------------------+
-# | NAME   | URL                       | ROLES     | STATE  | MESSAGE           |
-# +--------+---------------------------+-----------+--------+-------------------+
-# | tomato | https://x.x.x.x:8443      | database  | ONLINE | Fully operational |
-# +--------+---------------------------+-----------+--------+-------------------+
-# | pickle | https://x.x.x.x:8443      | database  | ONLINE | Fully operational |
-# +--------+---------------------------+-----------+--------+-------------------+
-```
-
 ## Troubleshooting
 
 ### Bond Not Coming Up
@@ -300,9 +253,8 @@ nixos-rebuild switch --rollback
 
 ## Notes
 
-- **DHCP Reservations:** Consider creating DHCP reservations
+- **DHCP Reservations:** Consider creating DHCP reservations in UniFi for
+  consistent IPs
 - **DNS:** Update any hardcoded IP references to use hostnames
   (tomato.0x77.computer)
-- **Incus Cluster:** The cluster will need manual reconfiguration after
-  initial deployment
 - **Testing:** Always test on tomato first before deploying to pickle

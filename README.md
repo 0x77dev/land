@@ -111,37 +111,6 @@ docker run --rm --device=nvidia.com/gpu=all \
   nvcr.io/nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
 ```
 
-## Incus Cluster
-
-2-node [Incus][incus] cluster on `tomato` and `pickle` for containers/VMs.
-
-**Storage:** Local ZFS (`zroot/incus` per node)
-**Network:** P2P link (172.31.1.0/24) for cluster communication
-
-**Form cluster (one-time after deployment):**
-
-```bash
-# On tomato
-sudo incus cluster add pickle
-
-# On pickle
-sudo incus admin init
-# Clustering: yes | IP: 172.31.1.2 | Join: yes | Token: <from tomato>
-
-# Verify
-sudo incus cluster list
-```
-
-**Launch instances:**
-
-```bash
-incus launch images:nixos/24.05 mynixos
-incus launch images:ubuntu/24.04 web --target tomato
-incus list
-```
-
-Web UI: <https://tomato.0x77.computer:8443>
-
 ## Systems
 
 | Host | Platform | Role | Specs |
