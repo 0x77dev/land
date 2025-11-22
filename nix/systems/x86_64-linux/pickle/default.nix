@@ -4,10 +4,14 @@
     ./disko-config.nix
   ];
 
-  modules.hardware.ms-01.enable = true;
-  modules.filesystem.zfs = {
-    enable = true;
-    useLatestKernel = true;
+  modules = {
+    hardware.ms-01.enable = true;
+    network.bonding.enable = true;
+    filesystem.zfs = {
+      enable = true;
+      useLatestKernel = true;
+    };
+    virtualisation.incus-cluster.enable = true;
   };
 
   networking = {
@@ -35,6 +39,16 @@
       "docker"
     ];
     shell = pkgs.fish;
+  };
+
+  # OpenSSH
+  services.openssh = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+    };
   };
 
   system.stateVersion = "25.05";

@@ -4,19 +4,14 @@
   modulesPath,
   ...
 }:
-let
-  cfg = config.modules.hardware.ms-01;
-in
 {
   options.modules.hardware.ms-01 = {
     enable = lib.mkEnableOption "Minisforum MS-01 Hardware Support";
   };
 
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-  ];
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf config.modules.hardware.ms-01.enable {
     boot = {
       initrd = {
         availableKernelModules = [

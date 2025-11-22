@@ -30,6 +30,7 @@ Darwin builds Linux, x86_64 builds aarch64.
 - **Home Manager** - User environments and dotfiles
 - **Secrets** - [sops-nix][sops-nix] with SSH host keys
 - **Packages** - Custom derivations and unstable overlays
+- **Incus** - Clustered containers/VMs on `tomato` and `pickle`
 
 ## Deployment
 
@@ -110,13 +111,44 @@ docker run --rm --device=nvidia.com/gpu=all \
   nvcr.io/nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
 ```
 
+## Incus Cluster
+
+2-node [Incus][incus] cluster on `tomato` and `pickle` for containers/VMs.
+
+**Storage:** Local ZFS (`zroot/incus` per node)
+**Network:** P2P link (172.31.1.0/24) for cluster communication
+
+**Form cluster (one-time after deployment):**
+
+```bash
+# On tomato
+sudo incus cluster add pickle
+
+# On pickle
+sudo incus admin init
+# Clustering: yes | IP: 172.31.1.2 | Join: yes | Token: <from tomato>
+
+# Verify
+sudo incus cluster list
+```
+
+**Launch instances:**
+
+```bash
+incus launch images:nixos/24.05 mynixos
+incus launch images:ubuntu/24.04 web --target tomato
+incus list
+```
+
+Web UI: <https://tomato.0x77.computer:8443>
+
 ## Systems
 
 | Host | Platform | Role | Specs |
 | ------ | ---------- | ------ | ------- |
 | `potato` | `aarch64-darwin` | Workstation | M4 Max, 48GB |
-| `tomato` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
-| `pickle` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
+| `tomato` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
+| `pickle` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
 | `wsl` | `x86_64-linux` | WSL | used in `muscle` from time to time |
@@ -127,7 +159,7 @@ docker run --rm --device=nvidia.com/gpu=all \
 [Nix][nix] ([Lix][lix]), [NixOS][nixos], [nix-darwin][nix-darwin],
 [Home Manager][home-manager], [Snowfall Lib][snowfall-lib],
 [sops-nix][sops-nix], [NixOS-WSL][nixos-wsl], [deploy-rs][deploy-rs],
-[nixos-anywhere][nixos-anywhere]
+[nixos-anywhere][nixos-anywhere], [Incus][incus]
 
 ## Development
 
@@ -170,3 +202,4 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [nixos-wsl]: https://github.com/nix-community/NixOS-WSL
 [deploy-rs]: https://github.com/serokell/deploy-rs
 [nixos-anywhere]: https://github.com/nix-community/nixos-anywhere
+[incus]: https://linuxcontainers.org/incus

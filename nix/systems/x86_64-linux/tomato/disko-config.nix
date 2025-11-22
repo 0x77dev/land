@@ -3,7 +3,7 @@
     disk = {
       boot = {
         type = "disk";
-        device = "/dev/disk/by-id/nvme-KINGSTON_OM3PGP41024P-A0_50026B728363D7A2";
+        device = "/dev/disk/by-id/nvme-KINGSTON_OM3PGP41024P-A0_50026B72836AD3FC";
         content = {
           type = "gpt";
           partitions = {
@@ -29,7 +29,7 @@
       };
       data1 = {
         type = "disk";
-        device = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7KGNJ0X131640E";
+        device = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7KGNU0Y117852T";
         content = {
           type = "gpt";
           partitions = {
@@ -45,7 +45,7 @@
       };
       data2 = {
         type = "disk";
-        device = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7KGNU0X927007M";
+        device = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7KGNU0Y117856R";
         content = {
           type = "gpt";
           partitions = {
@@ -102,6 +102,15 @@
             type = "zfs_fs";
             mountpoint = "/data/documents";
             options."com.sun:auto-snapshot" = "true";
+          };
+          incus = {
+            type = "zfs_fs";
+            options = {
+              mountpoint = "none";
+              canmount = "off";
+              compression = "inherit";
+              "com.sun:auto-snapshot" = "false";
+            };
           };
         };
       };
