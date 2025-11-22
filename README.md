@@ -33,9 +33,40 @@ Darwin builds Linux, x86_64 builds aarch64.
 
 ## Deployment
 
-### Darwin
+Deployments use [deploy-rs][deploy-rs] with automatic configuration generation.
+All systems are deployed from a single flake with zero manual configuration.
 
-Initial bootstrap requires sandbox disabled on macOS:
+### Initial Provisioning
+
+Bootstrap new systems remotely with [nixos-anywhere][nixos-anywhere]:
+
+```bash
+# NixOS systems (handles disk partitioning and installation)
+nixos-anywhere --flake .#pickle nixos@<host>
+nixos-anywhere --flake .#tomato nixos@<host>
+
+# Darwin requires manual initial setup (see below)
+```
+
+### Ongoing Updates
+
+Deploy from development shell:
+
+```bash
+nix develop
+
+# Deploy to specific system
+deploy .#pickle
+deploy .#tomato
+deploy .#potato
+
+# Deploy to all systems
+deploy .
+```
+
+### Darwin Bootstrap
+
+Initial setup requires sandbox disabled on macOS:
 
 ```bash
 git clone https://github.com/0x77dev/land.git
@@ -44,19 +75,7 @@ sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
   switch --flake .#potato --option sandbox false
 ```
 
-Subsequent updates:
-
-```bash
-darwin-rebuild switch --flake .#potato
-```
-
-### NixOS
-
-```bash
-git clone https://github.com/0x77dev/land.git
-cd land
-sudo nixos-rebuild switch --flake .#muscle
-```
+After initial setup, use `deploy .#potato` for updates.
 
 ### WSL 2
 
@@ -72,15 +91,15 @@ wsl --update
 Build tarball:
 
 ```bash
-nix build github:0x77dev/land#nixosConfigurations.muscle-wsl.config.system.build.tarballBuilder
+nix build github:0x77dev/land#nixosConfigurations.wsl.config.system.build.tarballBuilder
 sudo ./result/bin/nixos-wsl-tarball-builder
 ```
 
 Import to Windows:
 
 ```powershell
-wsl --import muscle-wsl $env:USERPROFILE\muscle-wsl nixos-wsl.tar.gz --version 2
-wsl -d muscle-wsl
+wsl --import wsl $env:USERPROFILE\wsl <result> --version 2
+wsl -d wsl
 ```
 
 Verify GPU:
@@ -94,20 +113,21 @@ docker run --rm --device=nvidia.com/gpu=all \
 ## Systems
 
 | Host | Platform | Role | Specs |
-|------|----------|------|-------|
+| ------ | ---------- | ------ | ------- |
 | `potato` | `aarch64-darwin` | Workstation | M4 Max, 48GB |
 | `tomato` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
 | `pickle` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
-| `muscle-wsl` | `x86_64-linux` | AI/Compute (WSL) | TR 7985WX, RTX6000, 250GB |
+| `wsl` | `x86_64-linux` | AI/Compute (WSL) | TR 7985WX, RTX6000, 250GB |
 | `shadow` | `x86_64-linux` | Fun | T480, 16GB |
 
 ## Stack
 
 [Nix][nix] ([Lix][lix]), [NixOS][nixos], [nix-darwin][nix-darwin],
 [Home Manager][home-manager], [Snowfall Lib][snowfall-lib],
-[sops-nix][sops-nix], [NixOS-WSL][nixos-wsl]
+[sops-nix][sops-nix], [NixOS-WSL][nixos-wsl], [deploy-rs][deploy-rs],
+[nixos-anywhere][nixos-anywhere]
 
 ## Development
 
@@ -148,3 +168,5 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [snowfall-lib]: https://snowfall.org
 [sops-nix]: https://github.com/Mic92/sops-nix
 [nixos-wsl]: https://github.com/nix-community/NixOS-WSL
+[deploy-rs]: https://github.com/serokell/deploy-rs
+[nixos-anywhere]: https://github.com/nix-community/nixos-anywhere

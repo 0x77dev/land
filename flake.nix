@@ -47,42 +47,83 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-vscode-server = {
+      url = "github:nix-community/nixos-vscode-server";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-anywhere = {
+      url = "github:nix-community/nixos-anywhere";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs =
     inputs:
-    inputs.snowfall-lib.mkFlake {
-      inherit inputs;
-      src = ./.;
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        inherit inputs;
+        src = ./.;
 
-      snowfall = {
-        root = ./nix;
-        namespace = "land";
+        snowfall = {
+          root = ./nix;
+          namespace = "land";
 
-        meta = {
-          name = "land";
-          title = "0x77dev's land";
+          meta = {
+            name = "land";
+            title = "0x77dev's land";
+          };
         };
       };
 
-      channels-config.allowUnfree = true;
+      # Generate base outputs
+      outputs = lib.mkFlake {
+        channels-config.allowUnfree = true;
 
-      systems.modules.darwin = with inputs; [
-        nix-homebrew.darwinModules.nix-homebrew
-        sops-nix.darwinModules.sops
-      ];
+        systems.modules.darwin = with inputs; [
+          nix-homebrew.darwinModules.nix-homebrew
+          sops-nix.darwinModules.sops
+        ];
 
-      systems.modules.nixos = with inputs; [
-        sops-nix.nixosModules.sops
-        nixos-wsl.nixosModules.default
-      ];
+        systems.modules.nixos = with inputs; [
+          sops-nix.nixosModules.sops
+          nixos-wsl.nixosModules.default
+          disko.nixosModules.disko
+          nixos-vscode-server.nixosModules.default
+        ];
 
-      homes.modules = with inputs; [
-        sops-nix.homeManagerModules.sops
-      ];
+        homes.modules = with inputs; [
+          sops-nix.homeManagerModules.sops
+        ];
+      };
+
+      # Use the lib from outputs which includes our custom library functions
+      # Automatically generate deploy-rs nodes from all configurations
+      deployNodes = outputs.lib.deployment.mkDeployNodes {
+        inherit (outputs) darwinConfigurations nixosConfigurations;
+      };
+    in
+    outputs
+    // {
+      deploy.nodes = deployNodes;
+
+      checks = builtins.mapAttrs (
+        _system: deployLib: deployLib.deployChecks { nodes = deployNodes; }
+      ) inputs.deploy-rs.lib;
     };
 }

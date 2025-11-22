@@ -25,6 +25,8 @@ mkShell {
       ssh-to-age
       gitsign
       nixos-rebuild
+      inputs.deploy-rs.packages.${system}.deploy-rs
+      inputs.nixos-anywhere.packages.${system}.nixos-anywhere
     ]
     ++ preCommit.enabledPackages;
 }

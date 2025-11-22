@@ -5,11 +5,11 @@
   ...
 }:
 let
-  userName = "0x77";
+  userName = "mykhailo";
 in
 {
   system.stateVersion = "25.05";
-  networking.hostName = lib.mkDefault "muscle-wsl";
+  networking.hostName = lib.mkDefault "wsl";
 
   wsl = {
     enable = true;
@@ -18,7 +18,7 @@ in
 
     wslConf = {
       automount.root = "/mnt";
-      network.hostname = "muscle-wsl";
+      network.hostname = "wsl";
     };
   };
 
@@ -98,27 +98,13 @@ in
     nvidia-container-toolkit
     docker
     docker-compose
-    git
-    vim
-    wget
-    curl
-    htop
-    ncdu
-    nettools
-    bind
   ];
 
   services = {
     xserver.videoDrivers = [ "nvidia" ];
-    openssh = {
-      enable = true;
-      settings.StreamLocalBindUnlink = "yes";
-    };
     pcscd.enable = true;
     verified-auto-update.enable = true;
   };
-
-  programs.fish.enable = true;
 
   networking.firewall = {
     enable = true;
@@ -129,6 +115,4 @@ in
       8888
     ];
   };
-
-  nixpkgs.config.allowUnfree = true;
 }
