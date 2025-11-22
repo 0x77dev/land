@@ -126,19 +126,7 @@ Git hooks are managed via [prek](https://github.com/j178/prek), a Rust-based
 re-implementation of pre-commit that's faster and more reliable than the original
 Python implementation.
 
-**Configuration**: `nix/lib/git-hooks/default.nix`
-
-**Enabled hooks**:
-
-- `nixfmt-rfc-style` - Nix code formatting
-- `deadnix` - Dead Nix code detection
-- `statix` - Nix linting
-- `cspell` - Spell checking
-- `markdownlint` - Markdown linting
-- `mdsh` - Markdown shell script execution
-- `shellcheck` - Shell script linting
-- `actionlint` - GitHub Actions workflow linting
-- `editorconfig-checker` - EditorConfig compliance
+**Configuration**: `nix/lib/git-hooks/`
 
 **Running hooks manually**:
 
