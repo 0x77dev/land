@@ -220,6 +220,6 @@
     "zroot",
     "zstd"
   ],
-  "ignorePaths": [".cursor/rules", "secrets.{yaml,yml}"],
+  "ignorePaths": [".cursor/rules", "secrets.{yaml,yml}", ".sops.yaml"],
   "ignoreRegExpList": ["[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"]
 }
