@@ -41,13 +41,18 @@
     shell = pkgs.fish;
   };
 
-  # OpenSSH
-  services.openssh = {
-    enable = true;
-    openFirewall = true;
-    settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = false;
+  services = {
+    iperf3 = {
+      enable = true;
+      openFirewall = true;
+    };
+    openssh = {
+      enable = true;
+      openFirewall = true;
+      settings = {
+        PermitRootLogin = "no";
+        PasswordAuthentication = false;
+      };
     };
   };
 
