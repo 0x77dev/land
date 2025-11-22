@@ -2,77 +2,112 @@
 
 ## Overview
 
-This guide covers setting up an Incus cluster on tomato and pickle after the
-simplified preseed configuration (storage-only).
+Incus clustering configuration on tomato and pickle using declarative NixOS
+preseed for storage/network/profiles, with manual cluster formation.
 
-**Based on research:**
+**Key Documentation:**
 
-- [Rocky Hetherington's NixOS Incus guide](https://blog.hetherington.uk/2025/01/setting-up-incus-with-zfs-on-nixos/)
+- [Official Incus - How to Initialize](https://linuxcontainers.org/incus/docs/main/howto/initialize/)
+- [Official Incus - Form a Cluster](https://linuxcontainers.org/incus/docs/main/howto/cluster_form/)
 - [NixOS Wiki - Incus](https://wiki.nixos.org/wiki/Incus)
-- [Incus Official Docs - Clustering](https://linuxcontainers.org/incus/docs/main/howto/cluster_form/)
+- [Rocky's NixOS Incus Guide](https://blog.hetherington.uk/2025/01/setting-up-incus-with-zfs-on-nixos/)
 
-## Current NixOS Configuration
+## How Preseed Works on NixOS
 
-The NixOS module pre-configures:
+**The NixOS Incus module uses preseed to declaratively configure:**
 
-- ✅ ZFS storage pool (`zroot/incus`)
-- ✅ Incus daemon enabled
-- ✅ Web UI enabled
-- ✅ Firewall rules (port 8443, incusbr0 trusted)
-- ❌ Networks (created manually during init)
-- ❌ Clustering (configured manually during init)
+1. Storage pools
+2. Networks
+3. Profiles
 
-## Initial Setup on Tomato (Bootstrap)
+**The `incus-preseed.service` systemd service:**
+
+- Runs after `incus.service` starts
+- Applies the preseed configuration via `incus admin init --preseed`
+- Is idempotent (can run multiple times)
+- Creates missing entities, overwrites existing ones
+- **Does NOT remove entities**
+
+**What preseed CANNOT do:**
+
+- Configure clustering (must be done interactively)
+- This is a limitation of Incus preseed, not NixOS
+
+## Current Module Configuration
+
+After deploying the updated module, preseed automatically configures:
+
+- ✅ Storage pool: `default` (ZFS, using `zroot/incus`)
+- ✅ Network: `incusbr0` (bridge, 10.10.10.1/24, NAT enabled)
+- ✅ Profile: `default` (with root disk on `default` pool, eth0 on `incusbr0`)
+
+## Deployment Steps
+
+### Step 1: Deploy Updated Configuration
+
+```bash
+# Deploy to both systems
+deploy .#tomato
+deploy .#pickle
+```
+
+### Step 2: Verify Preseed Applied
+
+On each system, check that preseed service succeeded:
+
+```bash
+# Check preseed service status
+sudo systemctl status incus-preseed
+
+# View preseed logs
+journalctl -u incus-preseed -e
+
+# Verify storage, network, and profile were created
+incus storage list    # Should show "default" (ZFS)
+incus network list    # Should show "incusbr0" (managed bridge)
+incus profile show default  # Should have root disk and eth0
+```
+
+If preseed didn't run or failed, manually trigger it:
+
+```bash
+sudo systemctl restart incus-preseed
+```
+
+### Step 3: Enable Clustering on Tomato
+
+Convert the standalone Incus installation to a cluster:
 
 ```bash
 ssh tomato
-sudo incus admin init
-```
 
-**Answer the prompts:**
+# First, ensure core.https_address is set
+sudo incus config set core.https_address "192.168.0.66:8443"
 
-```text
-Would you like to use clustering? yes
-What IP address or DNS name should be used? 192.168.0.66  # tomato's IP
-Are you joining an existing cluster? no
-What member name should be used? tomato
-Do you want to configure a new local storage pool? no  # Already configured
-Do you want to configure a new remote storage pool? no
-Would you like to use an existing bridge or host interface? no
-Would you like to create a new Fan overlay network? no
-Would you like to create a new bridge? yes
-What should the new bridge be called? incusbr0
-What IPv4 address should be used? 10.10.10.1/24  # Or press Enter for default
-What IPv6 address should be used? none
-```
+# Enable clustering
+sudo incus cluster enable tomato
 
-**Verify:**
-
-```bash
+# Verify
 sudo incus cluster list
-# Should show only tomato
-
-sudo incus network list
-# Should show incusbr0
-
-sudo incus storage list
-# Should show default (ZFS)
+# Should show tomato as database-leader
 ```
 
-## Join Pickle to Cluster
+### Step 4: Join Pickle to Cluster
 
-### On Tomato - Generate Join Token
+Generate join token on tomato:
 
 ```bash
+ssh tomato
 sudo incus cluster add pickle
+# Copy the entire token output
 ```
 
-Copy the token that's printed.
-
-### On Pickle - Join Cluster
+On pickle, join the cluster:
 
 ```bash
 ssh pickle
+
+# Join using the token
 sudo incus admin init
 ```
 
@@ -80,106 +115,173 @@ sudo incus admin init
 
 ```text
 Would you like to use clustering? yes
-What IP address or DNS name should be used? 192.168.0.X  # pickle's IP
+What IP address or DNS name should be used? [press Enter for default]
 Are you joining an existing cluster? yes
-Join token: <paste token from tomato>
+Do you have a join token? yes
+Please provide join token: <paste token>
 All existing data is lost when joining a cluster, continue? yes
-Choose "zroot/incus" as source? yes
+Choose "source" property for storage pool "default": [press Enter]
+Choose "zfs.pool_name" property for storage pool "default": [press Enter]
 ```
 
 ## Verify Cluster
 
 ```bash
-# On either tomato or pickle
-sudo incus cluster list
+# On either system
+incus cluster list
 ```
 
-**Expected output:**
+Expected output:
 
 ```text
-+--------+-------------------------+-----------+--------+-------------------+
-| NAME   | URL                     | ROLES     | STATE  | MESSAGE           |
-+--------+-------------------------+-----------+--------+-------------------+
-| tomato | https://192.168.0.66:.. | database  | ONLINE | Fully operational |
-| pickle | https://192.168.0.X:... | database  | ONLINE | Fully operational |
-+--------+-------------------------+-----------+--------+-------------------+
++--------+-----------------------------+-----------------+---------+--------+
+| NAME   | URL                         | ROLES           | STATE   | MESSAGE|
++--------+-----------------------------+-----------------+---------+--------+
+| tomato | https://192.168.0.66:8443   | database-leader | ONLINE  | ...    |
+| pickle | https://192.168.0.X:8443    | database        | ONLINE  | ...    |
++--------+-----------------------------+-----------------+---------+--------+
 ```
 
 ## Test the Cluster
 
 ```bash
-# Launch a test container
+# Launch a container
 incus launch images:alpine/edge test1
 
-# Check it's running
+# Should work now with proper storage and network
 incus list
 
-# Launch on specific node
+# Launch on specific target
 incus launch images:nixos/24.05 nixos-test --target pickle
 
-# Verify both nodes have containers
-incus list
-
 # Access web UI
-# https://tomato.0x77.computer:8443 or https://<tomato-ip>:8443
+# https://tomato.0x77.computer:8443
 ```
 
-## Common Issues
+## Troubleshooting
 
-### "Network doesn't exist" during init
-
-This is expected - you're creating it during init. Answer "yes" to create a
-new bridge.
-
-### Cluster members can't communicate
-
-- Verify bond0 has IPs on both systems: `ip addr show bond0`
-- Check firewall allows 8443: `sudo ss -tlnp | grep 8443`
-- Verify nftables is enabled: `sudo nft list ruleset | grep incusbr0`
-
-### Storage pool not found during join
-
-The join process should detect the ZFS dataset automatically. If not, specify
-`zroot/incus` when prompted.
-
-## Advanced: Using Hostnames
-
-If you've configured DNS records or DHCP reservations:
+### Preseed Service Failed
 
 ```bash
-# During init, use hostname instead of IP
-What IP address or DNS name should be used? tomato.0x77.computer
+# Check service status
+sudo systemctl status incus-preseed
+
+# View detailed logs
+journalctl -u incus-preseed -e
+
+# Manually run preseed
+sudo systemctl restart incus-preseed
 ```
 
-This makes cluster more resilient to IP changes.
+### Storage Pool Not Created
+
+```bash
+# Check if ZFS dataset exists
+zfs list | grep incus
+
+# Manually create storage pool
+incus storage create default zfs source=zroot/incus
+```
+
+### Network Not Created
+
+```bash
+# Check if incusbr0 exists
+ip link show incusbr0
+
+# Manually create network
+incus network create incusbr0 \
+  ipv4.address=10.10.10.1/24 \
+  ipv4.nat=true \
+  ipv6.address=none
+```
+
+### Profile Missing Devices
+
+```bash
+# Check profile
+incus profile show default
+
+# Add missing root disk
+incus profile device add default root disk path=/ pool=default
+
+# Add missing network
+incus profile device add default eth0 nic network=incusbr0
+```
+
+### "Address Already in Use" During Cluster Enable
+
+```bash
+# Check current https_address setting
+incus config get core.https_address
+
+# If it's ":8443", set to specific IP first
+incus config set core.https_address "192.168.0.66:8443"
+
+# Then enable clustering
+incus cluster enable tomato
+```
+
+### Cluster Members Can't Communicate
+
+- Verify bond0 has IPs: `ip addr show bond0`
+- Check firewall allows 8443: `sudo ss -tlnp | grep 8443`
+- Test connectivity: `curl -k https://tomato.0x77.computer:8443`
+
+## Understanding the Flow
+
+**What happens on deployment:**
+
+1. NixOS builds the system with Incus module
+2. `incus.service` starts → `incusd` daemon runs
+3. `incus-preseed.service` starts → applies preseed YAML
+4. Preseed creates: storage pool, network, default profile
+5. Incus is now ready for use (standalone mode)
+
+**What you do manually (one-time):**
+
+1. On tomato: `incus cluster enable tomato` (converts to cluster)
+2. On tomato: `incus cluster add pickle` (generate token)
+3. On pickle: `incus admin init` (join with token)
+
+**Why manual clustering is required:**
+
+Per official Incus documentation, preseed cannot configure cluster formation.
+The NixOS preseed handles infrastructure setup, but cluster topology requires
+interactive configuration to ensure proper member initialization and token
+exchange.
 
 ## Useful Commands
 
 ```bash
-# View cluster status
-incus cluster list
+# Storage
+incus storage list
+incus storage show default
+incus storage info default
 
-# View cluster members details
+# Networks
+incus network list
+incus network show incusbr0
+incus network info incusbr0
+
+# Profiles
+incus profile list
+incus profile show default
+
+# Cluster
+incus cluster list
 incus cluster show tomato
 
-# List all storage pools
-incus storage list
-
-# List all networks
-incus network list
-
-# View network details
-incus network show incusbr0
-
-# List profiles
-incus profile list
-
-# Show default profile
-incus profile show default
+# System
+incus info
+incus info --resources
 ```
 
-## Resources
+## References
 
-- [Incus Official Docs](https://linuxcontainers.org/incus/docs/)
+- [Incus Official Documentation](https://linuxcontainers.org/incus/docs/)
+- [Incus Initialize (Preseed)](https://linuxcontainers.org/incus/docs/main/howto/initialize/)
+- [Incus Clustering](https://linuxcontainers.org/incus/docs/main/howto/cluster_form/)
 - [NixOS Wiki - Incus](https://wiki.nixos.org/wiki/Incus)
-- [Rocky's NixOS Incus Guide](https://blog.hetherington.uk/2025/01/setting-up-incus-with-zfs-on-nixos/)
+- [NixOS Incus Module Source](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/incus.nix)
+- [Rocky's Guide](https://blog.hetherington.uk/2025/01/setting-up-incus-with-zfs-on-nixos/)

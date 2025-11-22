@@ -40,12 +40,44 @@ in
       ui.enable = true;
 
       preseed = {
-        # Only preseed storage - let user configure networking and clustering manually
+        # Storage configuration
         storage_pools = [
           {
             name = "default";
             driver = "zfs";
             config.source = cfg.storage.zfsDataset;
+          }
+        ];
+
+        # Network configuration
+        networks = [
+          {
+            name = "incusbr0";
+            type = "bridge";
+            config = {
+              "ipv4.address" = "10.10.10.1/24";
+              "ipv4.nat" = "true";
+              "ipv6.address" = "none";
+            };
+          }
+        ];
+
+        # Default profile with root disk and network
+        profiles = [
+          {
+            name = "default";
+            devices = {
+              eth0 = {
+                name = "eth0";
+                network = "incusbr0";
+                type = "nic";
+              };
+              root = {
+                path = "/";
+                pool = "default";
+                type = "disk";
+              };
+            };
           }
         ];
       };
