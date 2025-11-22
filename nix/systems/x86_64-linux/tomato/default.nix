@@ -19,12 +19,7 @@
     hostId = "442cbd39";
   };
 
-  security.sudo.extraRules = [
-    {
-      users = [ "mykhailo" ];
-      options = [ "NOPASSWD" ];
-    }
-  ];
+  security.sudo.wheelNeedsPassword = false;
 
   # Users
   snowfallorg.users.mykhailo = {

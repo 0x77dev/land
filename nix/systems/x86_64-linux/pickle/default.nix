@@ -29,12 +29,7 @@
     };
   };
 
-  security.sudo.extraRules = [
-    {
-      users = [ "mykhailo" ];
-      options = [ "NOPASSWD" ];
-    }
-  ];
+  security.sudo.wheelNeedsPassword = false;
 
   users.users.mykhailo = {
     isNormalUser = true;
