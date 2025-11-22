@@ -33,43 +33,77 @@ let
 in
 {
   options.modules.home.secrets = {
-    enable = mkEnableOption "secrets";
+    backend = mkOption {
+      type = types.enum [
+        "disabled"
+        "age"
+        "gpg"
+      ];
+      default = "disabled";
+      description = ''
+        Secret management backend to use.
+        - "disabled": No secret management (default)
+        - "age": Use age encryption (generates key automatically)
+        - "gpg": Use GPG encryption (uses existing GPG keys)
+      '';
+    };
   };
 
-  config = mkIf cfg.enable {
-    sops = {
-      defaultSopsFile = ./secrets.yaml;
+  config = mkIf (cfg.backend != "disabled") (mkMerge [
+    # Common configuration for both backends
+    {
+      sops = {
+        defaultSopsFile = ./secrets.yaml;
 
-      gnupg.home = "${config.home.homeDirectory}/.gnupg";
-
-      secrets = {
-        OSV_API_KEY = { };
-        OSV_INFERENCE_ENDPOINT = { };
-        OC_GOOGLE_CLOUD_PROJECT = { };
-        OC_VERTEX_LOCATION = { };
+        secrets = {
+          OSV_API_KEY = { };
+          OSV_INFERENCE_ENDPOINT = { };
+          OC_GOOGLE_CLOUD_PROJECT = { };
+          OC_VERTEX_LOCATION = { };
+        };
       };
-    };
 
-    programs = {
-      bash.initExtra = lib.mkAfter ''
-        # Load sops-nix secrets
-        ${exportAllSecrets "bash"}
-      '';
+      programs = {
+        bash.initExtra = lib.mkAfter ''
+          # Load sops-nix secrets
+          ${exportAllSecrets "bash"}
+        '';
 
-      zsh.initContent = lib.mkAfter ''
-        # Load sops-nix secrets
-        ${exportAllSecrets "zsh"}
-      '';
+        zsh.initContent = lib.mkAfter ''
+          # Load sops-nix secrets
+          ${exportAllSecrets "zsh"}
+        '';
 
-      fish.interactiveShellInit = lib.mkAfter ''
-        # Load sops-nix secrets
-        ${exportAllSecrets "fish"}
-      '';
-    };
+        fish.interactiveShellInit = lib.mkAfter ''
+          # Load sops-nix secrets
+          ${exportAllSecrets "fish"}
+        '';
+      };
 
-    home.packages = with pkgs; [
-      sops
-      gnupg
-    ];
-  };
+      home.packages = with pkgs; [ sops ];
+    }
+
+    # Age-specific configuration
+    (mkIf (cfg.backend == "age") {
+      sops = {
+        # Use age key file for home-manager
+        # SSH host keys require root access which home-manager doesn't have
+        age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
+        # Automatically generate the age key if it doesn't exist
+        age.generateKey = true;
+      };
+
+      home.packages = with pkgs; [ age ];
+    })
+
+    # GPG-specific configuration
+    (mkIf (cfg.backend == "gpg") {
+      sops = {
+        gnupg.home = "${config.home.homeDirectory}/.gnupg";
+        gnupg.sshKeyPaths = [ ]; # Don't try to use SSH keys
+      };
+
+      home.packages = with pkgs; [ gnupg ];
+    })
+  ]);
 }

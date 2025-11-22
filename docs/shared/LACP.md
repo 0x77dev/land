@@ -61,7 +61,7 @@ on tomato and pickle with UniFi switches.
 ```bash
 # From your development machine
 nix develop
-deploy .#tomato
+deploy .#tomato -s --remote-build
 ```
 
 **Expected behavior:**
@@ -104,7 +104,7 @@ ip addr show bond0
 Once tomato is verified working:
 
 ```bash
-deploy .#pickle
+deploy .#pickle -s --remote-build
 ```
 
 Repeat verification steps above.
@@ -234,8 +234,8 @@ If issues occur:
 
 ```bash
 git revert HEAD
-deploy .#tomato
-deploy .#pickle
+deploy .#tomato -s --remote-build
+deploy .#pickle -s --remote-build
 ```
 
 **Switch will automatically fall back:**

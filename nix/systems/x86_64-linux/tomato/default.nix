@@ -11,6 +11,7 @@
       enable = true;
       useLatestKernel = true;
     };
+    cluster.incus.enable = true;
   };
 
   networking = {
@@ -37,6 +38,7 @@
     extraGroups = [
       "networkmanager"
       "docker"
+      "incus"
     ];
     shell = pkgs.fish;
   };

@@ -29,6 +29,7 @@ Darwin builds Linux, x86_64 builds aarch64.
 - **Home Manager** - User environments and dotfiles
 - **Secrets** - [sops-nix][sops-nix] with SSH host keys
 - **Packages** - Custom derivations and unstable overlays
+- **Incus** - Clustered containers/VMs on `tomato` and `pickle`
 
 ## Deployment
 
@@ -55,12 +56,12 @@ Deploy from development shell:
 nix develop
 
 # Deploy to specific system
-deploy .#pickle
-deploy .#tomato
-deploy .#potato
+deploy .#pickle -s --remote-build
+deploy .#tomato -s --remote-build
+deploy .#potato -s --remote-build
 
 # Deploy to all systems
-deploy .
+deploy . -s --remote-build
 ```
 
 ### Darwin Bootstrap
@@ -74,7 +75,7 @@ sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
   switch --flake .#potato --option sandbox false
 ```
 
-After initial setup, use `deploy .#potato` for updates.
+After initial setup, use `deploy .#potato -s --remote-build` for updates.
 
 ## Systems
 
@@ -92,7 +93,7 @@ After initial setup, use `deploy .#potato` for updates.
 [Nix][nix] ([Lix][lix]), [NixOS][nixos], [nix-darwin][nix-darwin],
 [Home Manager][home-manager], [Snowfall Lib][snowfall-lib],
 [sops-nix][sops-nix], [deploy-rs][deploy-rs],
-[nixos-anywhere][nixos-anywhere]
+[nixos-anywhere][nixos-anywhere], [Incus][incus]
 
 ## Development
 
@@ -134,3 +135,4 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [sops-nix]: https://github.com/Mic92/sops-nix
 [deploy-rs]: https://github.com/serokell/deploy-rs
 [nixos-anywhere]: https://github.com/nix-community/nixos-anywhere
+[incus]: https://linuxcontainers.org/incus

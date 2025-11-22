@@ -66,7 +66,7 @@ in
             UseDNS = true;
             UseRoutes = true;
           };
-          linkConfig.RequiredForOnline = "routable";
+          # TODO: TxQueueLength = 10000;
         };
       }
       // lib.listToAttrs (

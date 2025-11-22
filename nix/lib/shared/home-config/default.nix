@@ -18,7 +18,9 @@ _:
     network.enable = lib.mkDefault true;
     nix.enable = lib.mkDefault true;
     reverse-engineering.enable = lib.mkDefault true;
-    secrets.enable = lib.mkDefault true;
+    # Secrets disabled by default
+    # Can be overridden per-home: secrets.backend = "age" | "gpg" | "disabled"
+    secrets.backend = lib.mkDefault "disabled";
     security.enable = lib.mkDefault true;
     shell.enable = lib.mkDefault true;
     ssh.enable = lib.mkDefault true;

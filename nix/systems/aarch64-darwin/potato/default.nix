@@ -24,7 +24,9 @@ in
       enable = true;
       path = "/Users/${userName}";
 
-      config = { };
+      config = {
+        modules.home.secrets.backend = "gpg";
+      };
     };
   };
 
@@ -42,7 +44,6 @@ in
 
   programs.fish.enable = true;
 
-  # Verified auto-updates (defaults from lib.land.shared.verified-auto-update)
   services.verified-auto-update.enable = true;
 
   services.openssh.enable = true;
