@@ -14,7 +14,6 @@ let
   ];
 
   isValidMember = builtins.elem config.networking.hostName clusterMembers;
-  isBootstrap = config.networking.hostName == "tomato";
 in
 {
   options.modules.virtualisation.incus-cluster = {
@@ -41,52 +40,12 @@ in
       ui.enable = true;
 
       preseed = {
-        cluster = lib.mkIf isBootstrap {
-          server_name = config.networking.hostName;
-          enabled = true;
-        };
-
-        config = {
-          # Bind on all interfaces - DHCP will assign IP
-          "core.https_address" = ":8443";
-          "cluster.images_minimal_replica" = 2;
-        };
-
+        # Only preseed storage - let user configure networking and clustering manually
         storage_pools = [
           {
             name = "default";
             driver = "zfs";
             config.source = cfg.storage.zfsDataset;
-          }
-        ];
-
-        networks = [
-          {
-            name = "incusbr0";
-            type = "bridge";
-            config = {
-              "ipv4.address" = "10.10.10.1/24";
-              "ipv4.nat" = "true";
-              "ipv6.address" = "none";
-            };
-          }
-        ];
-
-        profiles = [
-          {
-            name = "default";
-            devices = {
-              eth0 = {
-                name = "eth0";
-                network = "incusbr0";
-                type = "nic";
-              };
-              root = {
-                path = "/";
-                pool = "default";
-                type = "disk";
-              };
-            };
           }
         ];
       };
