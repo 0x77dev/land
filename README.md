@@ -119,7 +119,7 @@ docker run --rm --device=nvidia.com/gpu=all \
 | `pickle` | `x86_64-linux` | Homelab | MS-01, i9-13900H, 96GB |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
-| `wsl` | `x86_64-linux` | AI/Compute (WSL) | TR 7985WX, RTX6000, 250GB |
+| `wsl` | `x86_64-linux` | WSL | used in `muscle` from time to time |
 | `shadow` | `x86_64-linux` | Fun | T480, 16GB |
 
 ## Stack
