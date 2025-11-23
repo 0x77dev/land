@@ -174,12 +174,15 @@
     };
   };
 
+  security.sudo.wheelNeedsPassword = false;
+
   users = {
     users = {
       mykhailo = {
         isNormalUser = true;
         description = "Mykhailo Marynenko";
         extraGroups = [
+          "wheel"
           "networkmanager"
           "docker"
           "incus"
