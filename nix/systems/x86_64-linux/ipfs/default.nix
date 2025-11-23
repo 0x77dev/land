@@ -77,7 +77,7 @@
     kubo = {
       enable = true;
       enableGC = true;
-      autoMount = true;
+      autoMount = false; # Disabled to avoid ExecStopPost conflict with VPN confinement
       # Allow access to API/Gateway from outside the container (via port forwarding)
       settings = {
         Addresses = {
