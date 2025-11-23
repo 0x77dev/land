@@ -39,7 +39,6 @@
 
         [Peer]
         PublicKey = ${config.sops.placeholder."wg/public_key"}
-        PresharedKey = ${config.sops.placeholder."wg/preshared_key"}
         Endpoint = ${config.sops.placeholder."wg/endpoint"}
         AllowedIPs = 0.0.0.0/0, ::/0
         PersistentKeepalive = 25
