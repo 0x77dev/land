@@ -26,6 +26,7 @@
       "wg/endpoint" = { };
       "wg/public_key" = { };
       "wg/dns" = { };
+      "aria2/rpc_token" = { };
     };
 
     # Generate WireGuard config from secrets template
@@ -83,6 +84,10 @@
         from = 8096;
         to = 8096;
       } # Jellyfin
+      {
+        from = 6800;
+        to = 6800;
+      } # Aria2 RPC
     ];
   };
 
@@ -91,6 +96,42 @@
     jellyfin = {
       enable = true;
       openFirewall = true;
+    };
+
+    # Aria2 downloader
+    aria2 = {
+      enable = true;
+      openPorts = true;
+      rpcSecretFile = config.sops.secrets."aria2/rpc_token".path;
+      settings = {
+        dir = "/var/lib/aria2/downloads";
+        rpc-listen-port = 6800;
+        rpc-allow-origin-all = true;
+        rpc-listen-all = true;
+
+        # Performance & Speed Optimization
+        max-connection-per-server = 16;
+        split = 32;
+        min-split-size = "1M";
+        max-concurrent-downloads = 16;
+        max-overall-download-limit = 0;
+        max-download-limit = 0;
+
+        # Disk I/O Optimization
+        file-allocation = "falloc";
+        disk-cache = "64M";
+
+        enable-http-pipelining = true;
+
+        # BitTorrent Optimization
+        bt-max-peers = 0; # Unlimited peers
+        enable-dht = true;
+        enable-peer-exchange = true;
+        bt-enable-lpd = true; # Local Peer Discovery
+        bt-seed-unverified = true;
+        seed-ratio = 2.0;
+        seed-time = 60;
+      };
     };
 
     # Servarr stack
@@ -172,6 +213,10 @@
       enable = true;
       vpnNamespace = "media";
     };
+    aria2.vpnConfinement = {
+      enable = true;
+      vpnNamespace = "media";
+    };
   };
 
   security.sudo.wheelNeedsPassword = false;
@@ -205,6 +250,7 @@
   environment.systemPackages = with pkgs; [
     ffmpeg
     aria2
+    wireguard-tools # For VPN diagnostics
   ];
 
   # Networking
