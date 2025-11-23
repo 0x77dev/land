@@ -47,7 +47,7 @@
   };
 
   # VPN network namespace configuration
-  vpnNamespaces.ipfs = {
+  vpnNamespaces.vpn = {
     enable = true;
     wireguardConfigFile = config.sops.templates."wg0.conf".path;
     accessibleFrom = [
@@ -102,7 +102,7 @@
   # The systemd service name for kubo is 'ipfs'
   systemd.services.ipfs.vpnConfinement = {
     enable = true;
-    vpnNamespace = "ipfs";
+    vpnNamespace = "vpn";
   };
 
   security.sudo.wheelNeedsPassword = false;
