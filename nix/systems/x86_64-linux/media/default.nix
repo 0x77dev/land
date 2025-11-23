@@ -81,10 +81,6 @@
         to = 6969;
       } # Whisparr
       {
-        from = 8096;
-        to = 8096;
-      } # Jellyfin
-      {
         from = 6800;
         to = 6800;
       } # Aria2 RPC
@@ -95,7 +91,6 @@
   services = {
     jellyfin = {
       enable = true;
-      openFirewall = true;
     };
 
     # Aria2 downloader
@@ -137,47 +132,38 @@
     # Servarr stack
     sonarr = {
       enable = true;
-      openFirewall = true;
       user = "media";
       group = "media";
     };
 
     radarr = {
       enable = true;
-      openFirewall = true;
       user = "media";
       group = "media";
     };
 
     lidarr = {
       enable = true;
-      openFirewall = true;
       user = "media";
       group = "media";
     };
 
-    prowlarr = {
-      enable = true;
-      openFirewall = true;
-    };
+    prowlarr.enable = true;
 
     readarr = {
       enable = true;
-      openFirewall = true;
       user = "media";
       group = "media";
     };
 
     whisparr = {
       enable = true;
-      openFirewall = true;
       user = "media";
       group = "media";
     };
 
     openssh = {
       enable = true;
-      openFirewall = true;
       settings = {
         PermitRootLogin = "no";
         PasswordAuthentication = false;
