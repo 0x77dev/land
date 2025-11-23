@@ -258,7 +258,7 @@
     hostName = "media";
     domain = "0x77.computer";
     useDHCP = true;
-    firewall.enable = true;
+    firewall.enable = false;
   };
 
   # User configuration
