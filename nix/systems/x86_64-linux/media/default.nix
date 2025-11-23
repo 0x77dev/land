@@ -25,7 +25,6 @@
       "wg/address" = { };
       "wg/endpoint" = { };
       "wg/public_key" = { };
-      "wg/preshared_key" = { };
       "wg/dns" = { };
     };
 
