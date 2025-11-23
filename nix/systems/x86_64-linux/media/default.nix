@@ -146,7 +146,7 @@
     };
   };
 
-  virtualisation.incus.agent.enable.enable = true;
+  virtualisation.incus.agent.enable = true;
 
   # VPN Confinement for Servarr services
   systemd.services = {
