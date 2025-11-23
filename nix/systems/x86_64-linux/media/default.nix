@@ -174,14 +174,28 @@
     };
   };
 
-  # Create media user and group for Servarr services
-  users.users.media = {
-    isSystemUser = true;
-    group = "media";
-    uid = 994;
-  };
-  users.groups.media = {
-    gid = 994;
+  users = {
+    users = {
+      mykhailo = {
+        isNormalUser = true;
+        description = "Mykhailo Marynenko";
+        extraGroups = [
+          "networkmanager"
+          "docker"
+          "incus"
+        ];
+        shell = pkgs.fish;
+      };
+      media = {
+        isSystemUser = true;
+        group = "media";
+        uid = 994;
+      };
+    };
+
+    groups.media = {
+      gid = 994;
+    };
   };
 
   # Additional media tools
