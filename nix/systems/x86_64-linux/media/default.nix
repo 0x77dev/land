@@ -136,8 +136,6 @@
       group = "media";
     };
 
-    virtualisation.incus.agent.enable.enable = true;
-
     openssh = {
       enable = true;
       openFirewall = true;
@@ -147,6 +145,8 @@
       };
     };
   };
+
+  virtualisation.incus.agent.enable.enable = true;
 
   # VPN Confinement for Servarr services
   systemd.services = {
