@@ -213,6 +213,7 @@
     "sops",
     "sopsFile",
     "sopsFormat",
+    "sourcehut",
     "spotdl",
     "srcs",
     "stateVersion",

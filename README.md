@@ -8,7 +8,6 @@
 [![sops-nix][sops-nix-badge]][sops-nix]
 [![deploy-rs][deploy-rs-badge]][deploy-rs]
 [![nixos-anywhere][nixos-anywhere-badge]][nixos-anywhere]
-[![ci][ci-badge]][ci]
 [![License: WTFPL][license-badge]][wtfpl]
 [![Maintained][maintained-badge]][commits]
 
@@ -59,15 +58,19 @@ deploy .#potato -s --remote-build
 deploy . -s --remote-build
 ```
 
+### NixOS Bootstrap
+
+```bash
+nixos-rebuild switch --flake sourcehut:~0x77dev/land --refresh
+```
+
 ### Darwin Bootstrap
 
 Initial setup requires sandbox disabled on macOS:
 
 ```bash
-git clone https://github.com/0x77dev/land.git
-cd land
 sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
-  switch --flake .#potato --option sandbox false
+  switch --flake sourcehut:~0x77dev/land --option sandbox false
 ```
 
 After initial setup, use `deploy .#potato -s --remote-build` for updates.
@@ -109,13 +112,11 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [nixos-anywhere-badge]: https://img.shields.io/badge/nixos--anywhere-blue.svg?style=flat
 [license-badge]: https://img.shields.io/badge/License-WTFPL-blue.svg?style=flat
 [maintained-badge]: https://img.shields.io/badge/maintained-yes-success.svg?style=flat
-[ci-badge]: https://github.com/0x77dev/land/actions/workflows/ci.yaml/badge.svg
 
 <!-- Project Links -->
 [commits]: https://github.com/0x77dev/land/graphs/commit-activity
 [contributing]: /CONTRIBUTING.md
 [wtfpl]: /LICENSE
-[ci]: https://github.com/0x77dev/land/actions/workflows/ci.yaml
 
 <!-- Technology Links -->
 [nix-flakes]: https://nixos.wiki/wiki/Flakes
