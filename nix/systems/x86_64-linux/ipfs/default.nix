@@ -5,6 +5,7 @@
   pkgs,
   inputs,
   config,
+  lib,
   ...
 }:
 {
@@ -84,7 +85,8 @@
           API = "/ip4/0.0.0.0/tcp/5001";
           Gateway = "/ip4/0.0.0.0/tcp/8080";
         };
-      };
+      }
+      // (lib.importJSON ./peering/cloudflare.json);
     };
 
     openssh = {

@@ -9,6 +9,7 @@ let
       ".*\\.lock$"
       "secrets.*\.(yaml|json|env|ini)$"
       ".sops.yaml$"
+      "peering/*.json$"
     ];
   };
 
