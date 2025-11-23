@@ -136,7 +136,7 @@
       group = "media";
     };
 
-    incus-agent.enable = true;
+    virtualisation.incus.agent.enable.enable = true;
 
     openssh = {
       enable = true;
