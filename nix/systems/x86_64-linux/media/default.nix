@@ -215,8 +215,6 @@
         extraGroups = [
           "wheel"
           "networkmanager"
-          "docker"
-          "incus"
         ];
         shell = pkgs.fish;
       };
