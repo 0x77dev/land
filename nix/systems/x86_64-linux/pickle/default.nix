@@ -59,6 +59,7 @@
       settings = {
         PermitRootLogin = "no";
         PasswordAuthentication = false;
+        AllowAgentForwarding = true;
       };
     };
   };
