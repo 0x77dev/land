@@ -115,6 +115,7 @@
         extraGroups = [
           "wheel"
           "networkmanager"
+          "ipfs"
         ];
         shell = pkgs.fish;
       };
