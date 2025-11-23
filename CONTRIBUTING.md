@@ -20,9 +20,14 @@ nix/
 ├── overlays/         # Package overlays
 ├── packages/         # Custom packages
 ├── shells/           # Development shells
-└── systems/          # System configurations
-    └── aarch64-darwin/
-    └── [arch]/
+├── systems/          # System configurations
+│   ├── aarch64-darwin/
+│   ├── aarch64-linux/  # Raspberry Pi, ARM SBCs
+│   └── x86_64-linux/
+└── homes/            # Home Manager configurations
+    ├── aarch64-darwin/
+    ├── aarch64-linux/
+    └── x86_64-linux/
 ```
 
 ## Channels

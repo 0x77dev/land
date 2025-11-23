@@ -6,7 +6,15 @@
 
   modules = {
     hardware.ms-01.enable = true;
-    network.bonding.enable = true;
+    network.bonding = {
+      enable = true;
+      vlans = [
+        {
+          id = 4;
+          name = "homelab";
+        }
+      ];
+    };
     filesystem.zfs = {
       enable = true;
       useLatestKernel = true;

@@ -23,7 +23,20 @@ let
 in
 {
   options.modules.filesystem.zfs = {
-    enable = lib.mkEnableOption "ZFS Filesystem Support";
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable ZFS filesystem support";
+    };
+
+    kernelSupport = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Use a ZFS-compatible kernel without enabling ZFS.
+        Useful for installers that need to support ZFS systems.
+      '';
+    };
 
     useLatestKernel = lib.mkOption {
       type = lib.types.bool;
@@ -142,51 +155,59 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    # Boot configuration
-    boot = {
-      # Select kernel version
-      kernelPackages = lib.mkIf cfg.useLatestKernel latestKernelPackage;
+  config = lib.mkMerge [
+    # Kernel support only (no ZFS enablement)
+    (lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel) {
+      boot.kernelPackages = lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel) latestKernelPackage;
+    })
 
-      # Core ZFS configuration
-      supportedFilesystems = [ "zfs" ];
+    # Full ZFS configuration
+    (lib.mkIf cfg.enable {
+      # Boot configuration
+      boot = {
+        # Select kernel version
+        kernelPackages = lib.mkIf cfg.useLatestKernel latestKernelPackage;
 
-      # ARC size tuning
-      kernelParams = lib.mkIf (cfg.arcMaxSizeGB != null) [
-        "zfs.zfs_arc_max=${toString (cfg.arcMaxSizeGB * 1024 * 1024 * 1024)}"
+        # Core ZFS configuration
+        supportedFilesystems = [ "zfs" ];
+
+        # ARC size tuning
+        kernelParams = lib.mkIf (cfg.arcMaxSizeGB != null) [
+          "zfs.zfs_arc_max=${toString (cfg.arcMaxSizeGB * 1024 * 1024 * 1024)}"
+        ];
+
+        # ZFS-specific configuration
+        zfs = {
+          # ZFS package selection
+          package = lib.mkIf cfg.useUnstable pkgs.zfs_unstable;
+          forceImportRoot = lib.mkDefault false;
+          inherit (cfg) extraPools;
+          devNodes = lib.mkIf (cfg.devNodes != null) cfg.devNodes;
+        };
+      };
+
+      # Enable ZFS services
+      services.zfs = {
+        autoScrub = {
+          inherit (cfg.autoScrub) enable interval pools;
+        };
+
+        trim = {
+          inherit (cfg.autoTrim) enable interval;
+        };
+
+        autoSnapshot = {
+          inherit (cfg.autoSnapshot) enable flags;
+        };
+      };
+
+      # Networking hostId is required for ZFS
+      assertions = [
+        {
+          assertion = config.networking.hostId != null && config.networking.hostId != "";
+          message = "ZFS requires networking.hostId to be set";
+        }
       ];
-
-      # ZFS-specific configuration
-      zfs = {
-        # ZFS package selection
-        package = lib.mkIf cfg.useUnstable pkgs.zfs_unstable;
-        forceImportRoot = lib.mkDefault false;
-        inherit (cfg) extraPools;
-        devNodes = lib.mkIf (cfg.devNodes != null) cfg.devNodes;
-      };
-    };
-
-    # Enable ZFS services
-    services.zfs = {
-      autoScrub = {
-        inherit (cfg.autoScrub) enable interval pools;
-      };
-
-      trim = {
-        inherit (cfg.autoTrim) enable interval;
-      };
-
-      autoSnapshot = {
-        inherit (cfg.autoSnapshot) enable flags;
-      };
-    };
-
-    # Networking hostId is required for ZFS
-    assertions = [
-      {
-        assertion = config.networking.hostId != null && config.networking.hostId != "";
-        message = "ZFS requires networking.hostId to be set";
-      }
-    ];
-  };
+    })
+  ];
 }

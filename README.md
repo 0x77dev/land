@@ -3,7 +3,11 @@
 [![NixOS][nixos-badge]][nixos]
 [![nix-darwin][nix-darwin-badge]][nix-darwin]
 [![Home Manager][home-manager-badge]][home-manager]
+[![Incus][incus-badge]][incus]
 [![Snowfall Lib][snowfall-badge]][snowfall-lib]
+[![sops-nix][sops-nix-badge]][sops-nix]
+[![deploy-rs][deploy-rs-badge]][deploy-rs]
+[![nixos-anywhere][nixos-anywhere-badge]][nixos-anywhere]
 [![ci][ci-badge]][ci]
 [![License: WTFPL][license-badge]][wtfpl]
 [![Maintained][maintained-badge]][commits]
@@ -11,32 +15,19 @@
 Declarative infrastructure using [Nix flakes][nix-flakes] and
 [Snowfall Lib][snowfall-lib].
 
-## Architecture
-
-**Reproducibility** - Declarative configuration with pinned dependencies.
-Identical builds across machines and environments.
-
-**Convention over Configuration** - [Snowfall Lib][snowfall-lib] infers
-outputs from directory structure. Minimal boilerplate.
-
-**Distributed Builds** - Cross-platform compilation configured automatically.
-Darwin builds Linux, x86_64 builds aarch64.
-
-## Scope
-
-- **Darwin** - System configuration via [nix-darwin][nix-darwin]
-- **NixOS** - Server and workstation configurations
-- **Home Manager** - User environments and dotfiles
-- **Secrets** - [sops-nix][sops-nix] with SSH host keys
-- **Packages** - Custom derivations and unstable overlays
-- **Incus** - Clustered containers/VMs on `tomato` and `pickle`
-
 ## Deployment
 
 Deployments use [deploy-rs][deploy-rs] with automatic configuration generation.
 All systems are deployed from a single flake with zero manual configuration.
 
 ### Initial Provisioning
+
+Build an ISO:
+
+```bash
+nom build .#isoConfigurations.installer -o result-installer
+ls ./result-installer
+```
 
 Bootstrap new systems remotely with [nixos-anywhere][nixos-anywhere]:
 
@@ -46,6 +37,10 @@ nixos-anywhere --flake .#pickle nixos@<host>
 nixos-anywhere --flake .#tomato nixos@<host>
 
 # Darwin requires manual initial setup (see below)
+
+# SBC/Raspberry Pi (build SD card image and flash)
+# See /docs/SBC-IMAGE-BUILD.md for detailed instructions
+nix build '.#nixosConfigurations.melon.config.system.build.sdImage'
 ```
 
 ### Ongoing Updates
@@ -84,16 +79,10 @@ After initial setup, use `deploy .#potato -s --remote-build` for updates.
 | `potato` | `aarch64-darwin` | Workstation | M4 Max, 48GB |
 | `tomato` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
 | `pickle` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
+| `melon` | `aarch64-linux` | IoT/Edge | RPi 4B, 4GB+, PoE |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
 | `shadow` | `x86_64-linux` | Fun | T480, 16GB |
-
-## Stack
-
-[Nix][nix] ([Lix][lix]), [NixOS][nixos], [nix-darwin][nix-darwin],
-[Home Manager][home-manager], [Snowfall Lib][snowfall-lib],
-[sops-nix][sops-nix], [deploy-rs][deploy-rs],
-[nixos-anywhere][nixos-anywhere], [Incus][incus]
 
 ## Development
 
@@ -113,7 +102,11 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [nixos-badge]: https://img.shields.io/badge/NixOS-blue.svg?style=flat&logo=nixos&logoColor=white
 [nix-darwin-badge]: https://img.shields.io/badge/nix--darwin-blue.svg?style=flat&logo=apple&logoColor=white
 [home-manager-badge]: https://img.shields.io/badge/home--manager-blue.svg?style=flat&logo=nixos&logoColor=white
-[snowfall-badge]: https://img.shields.io/badge/built%20with-snowfall-blue?style=flat
+[incus-badge]: https://img.shields.io/badge/Incus-333.svg?style=flat&logo=linuxcontainers&logoColor=DE4714
+[snowfall-badge]: https://img.shields.io/badge/built%20with-snowfall-blue?style=flat&logo=nix&logoColor=white
+[sops-nix-badge]: https://img.shields.io/badge/sops--nix-blue.svg?style=flat
+[deploy-rs-badge]: https://img.shields.io/badge/deploy--rs-blue.svg?style=flat
+[nixos-anywhere-badge]: https://img.shields.io/badge/nixos--anywhere-blue.svg?style=flat
 [license-badge]: https://img.shields.io/badge/License-WTFPL-blue.svg?style=flat
 [maintained-badge]: https://img.shields.io/badge/maintained-yes-success.svg?style=flat
 [ci-badge]: https://github.com/0x77dev/land/actions/workflows/ci.yaml/badge.svg
@@ -125,8 +118,6 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [ci]: https://github.com/0x77dev/land/actions/workflows/ci.yaml
 
 <!-- Technology Links -->
-[nix]: https://nixos.org/manual/nix/stable/
-[lix]: https://lix.systems
 [nix-flakes]: https://nixos.wiki/wiki/Flakes
 [nixos]: https://nixos.org
 [nix-darwin]: https://github.com/nix-darwin/nix-darwin

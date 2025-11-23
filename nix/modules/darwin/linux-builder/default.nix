@@ -25,7 +25,7 @@ let
 in
 {
   nix.linux-builder = {
-    # enable = mkDefault true;
+    enable = mkDefault true;
     systems = mkDefault linuxSystems;
     supportedFeatures = mkDefault [
       "kvm"
@@ -35,6 +35,7 @@ in
     maxJobs = mkDefault defaultCores;
 
     config = _: {
+      # NOTE: requires distributed build with aarch64-linux builders
       nix.settings = {
         auto-optimise-store = true;
         builders-use-substitutes = true;

@@ -19,7 +19,8 @@ mkShell {
   packages =
     with pkgs;
     [
-      git
+      gitAndTools.gitFull
+      git-crypt
       sops
       age
       ssh-to-age
@@ -27,6 +28,7 @@ mkShell {
       nixos-rebuild
       inputs.deploy-rs.packages.${system}.deploy-rs
       inputs.nixos-anywhere.packages.${system}.nixos-anywhere
+      just
     ]
     ++ preCommit.enabledPackages;
 }

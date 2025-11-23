@@ -11,7 +11,7 @@ in
   system.primaryUser = userName;
 
   networking = {
-    hostName = "potato";
+    hostName = "beefy";
     domain = "0x77.computer";
   };
 
@@ -26,9 +26,7 @@ in
       enable = true;
       path = "/Users/${userName}";
 
-      config = {
-        modules.home.secrets.backend = "gpg";
-      };
+      config = { };
     };
   };
 

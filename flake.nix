@@ -66,6 +66,15 @@
       url = "github:nix-community/nixos-anywhere";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware";
+    };
+
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -106,7 +115,6 @@
         ];
       };
 
-      # Use the lib from outputs which includes our custom library functions
       # Automatically generate deploy-rs nodes from all configurations
       deployNodes = outputs.lib.deployment.mkDeployNodes {
         inherit (outputs) darwinConfigurations nixosConfigurations;
@@ -115,12 +123,5 @@
     outputs
     // {
       deploy.nodes = deployNodes;
-
-      # Deploy-rs checks are disabled because they fail during flake check
-      # due to incomplete evaluation context. The actual deploy functionality
-      # works correctly. Use `deploy --dry-activate` to test deployments.
-      # checks = builtins.mapAttrs (
-      #   _system: deployLib: deployLib.deployChecks { nodes = deployNodes; }
-      # ) inputs.deploy-rs.lib;
     };
 }

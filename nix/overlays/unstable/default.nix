@@ -16,6 +16,8 @@ _final: _prev: {
     aichat
     zed-editor
     nixd
+    talosctl
+    nix-output-monitor
     ;
 
   # Override opencode to remove Darwin badPlatforms restriction

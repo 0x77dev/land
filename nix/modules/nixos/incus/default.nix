@@ -13,12 +13,9 @@
     virtualisation.incus = {
       enable = true;
       softDaemonRestart = true;
-      ui.enable = true;
-      preseed = {
-        config = {
-          "core.https_address" = ":8443";
-        };
-      };
+      # For clustering: preseed must be null to allow manual initialization
+      # Run: sudo incus admin init
+      preseed = null;
     };
 
     boot.kernelModules = [ "vhost_vsock" ];
