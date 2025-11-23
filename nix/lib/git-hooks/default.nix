@@ -8,6 +8,7 @@ let
       ".*\\.lock\\.nix$"
       ".*\\.lock$"
       "secrets.*\.(yaml|json|env|ini)$"
+      ".sops.yaml$"
     ];
   };
 
