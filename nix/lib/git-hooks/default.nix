@@ -3,7 +3,15 @@
   ...
 }:
 let
-  hooks = {
+  common = {
+    excludes = [
+      ".*\\.lock\\.nix$"
+      ".*\\.lock$"
+      "secrets.*\.(yaml|json|env|ini)$"
+    ];
+  };
+
+  config = {
     nixfmt-rfc-style.enable = true;
     deadnix.enable = true;
     statix.enable = true;
@@ -14,6 +22,14 @@ let
     actionlint.enable = true;
     editorconfig-checker.enable = true;
   };
+
+  hooks = builtins.mapAttrs (
+    _name: value:
+    if builtins.isAttrs value then
+      common // value // { excludes = (common.excludes or [ ]) ++ (value.excludes or [ ]); }
+    else
+      common // { enable = value; }
+  ) config;
 
   mkRun =
     {
