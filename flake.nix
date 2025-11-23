@@ -75,6 +75,8 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
   };
 
   outputs =
@@ -108,6 +110,7 @@
           sops-nix.nixosModules.sops
           disko.nixosModules.disko
           nixos-vscode-server.nixosModules.default
+          vpn-confinement.nixosModules.default
         ];
 
         homes.modules = with inputs; [

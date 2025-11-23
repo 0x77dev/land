@@ -156,8 +156,8 @@ in
   };
 
   config = lib.mkMerge [
-    # Kernel support only (no ZFS enablement)
-    (lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel) {
+    # Kernel selection (applies to both kernelSupport and enable)
+    (lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel || cfg.enable) {
       boot.kernelPackages = lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel) latestKernelPackage;
     })
 
@@ -165,8 +165,6 @@ in
     (lib.mkIf cfg.enable {
       # Boot configuration
       boot = {
-        # Select kernel version
-        kernelPackages = lib.mkIf cfg.useLatestKernel latestKernelPackage;
 
         # Core ZFS configuration
         supportedFilesystems = [ "zfs" ];

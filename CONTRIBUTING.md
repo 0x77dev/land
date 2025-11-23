@@ -117,6 +117,47 @@ nixos-anywhere --flake .#pickle root@target-ip
 
 Handles disk partitioning (via disko), installation, and initial configuration.
 
+### Incus VMs
+
+Virtual machines for Incus can be built as custom images following Snowfall Lib
+conventions. VM configurations are placed in `nix/systems/<architecture>-linux/<name>/`
+and include the `incus-virtual-machine.nix` module.
+
+**Building and deploying**:
+
+```bash
+# Build VM image and metadata
+just incus-vm-build media
+
+# Import into Incus
+just incus-vm-import media nixos/custom/media
+
+# Or do both in one command
+just incus-vm-deploy media nixos/custom/media
+
+# Launch an instance
+just incus-vm-launch nixos/custom/media media-01
+```
+
+**Manual workflow**:
+
+```bash
+# Build image and metadata separately
+nix build .#nixosConfigurations.media.config.system.build.qemuImage
+nix build .#nixosConfigurations.media.config.system.build.metadata
+
+# Import into Incus
+incus image import --alias nixos/custom/media \
+  result-metadata/tarball/nixos-system-x86_64-linux.tar.xz \
+  result-qemu/nixos.qcow2
+
+# Launch instance
+incus launch --vm nixos/custom/media media-01 -c security.secureboot=false
+```
+
+VM configurations automatically integrate with Snowfall Lib's home-manager
+configurations when users are defined via `snowfallorg.users.<name>`.
+
 [deploy-rs]: https://github.com/serokell/deploy-rs
 [nixos-anywhere]: https://github.com/nix-community/nixos-anywhere
 
@@ -205,66 +246,6 @@ nix flake check
 1. For custom packages, create a directory in `nix/packages/<name>/default.nix`
 2. For packages from unstable, add them to the unstable overlay
 3. Packages are automatically exported and available in all configurations
-
-## Verified Auto-Updates
-
-Verifies commit signatures (GPG/gitsign) before updating. Uses isolated
-immutable GPG keyring built from `gpg/keys/`.
-
-### Architecture
-
-- **Keys**: `gpg/keys/` - Single source of truth for GPG public keys
-- **Builder**: `nix/lib/builders/` - `mkGpgKeyring` creates immutable keyring packages
-- **Defaults**: `nix/lib/shared/verified-auto-update/` - Shared configuration
-- **Modules**: Platform-specific implementations (Darwin/NixOS)
-
-The keyring and verify-and-update script are referenced directly from Nix
-store (not via current-system profile).
-
-### Configuration
-
-```nix
-# Minimal (uses defaults)
-services.verified-auto-update.enable = true;
-
-# Custom
-services.verified-auto-update = {
-  enable = true;
-  flakeUrl = "github:your-org/your-repo";
-  allowedGpgKeys = [ "PRIMARY_KEY_FINGERPRINT" ];  # Primary keys only (subkeys auto-verified)
-
-  # GPG keys with trust levels (like home-manager)
-  publicKeys = [
-    {
-      source = "/gpg/keys/your-key.asc";  # Full key export with all subkeys
-      trust = 5;  # 1=unknown, 2=never, 3=marginal, 4=full, 5=ultimate
-    }
-  ];
-
-  allowedWorkflowRepository = "your-org/your-repo";  # For gitsign
-
-  # Darwin: schedule (default: 3 AM, 9 AM, 3 PM, 9 PM)
-  schedule = [{ Hour = 3; Minute = 0; }];
-
-  # NixOS: schedule (default: "*-*-* 03,09,15,21:00:00")
-  schedule = "03:00";
-  randomizedDelaySec = "1h";
-};
-```
-
-### Testing
-
-```bash
-FLAKE_URL="github:0x77dev/land" \
-ALLOWED_WORKFLOW_REPOSITORY="0x77dev/land" \
-DRY_RUN="true" \
-nix run .#verify-and-update
-```
-
-### Monitoring
-
-- **Darwin:** `tail -f /var/log/verified-auto-update.log`
-- **NixOS:** `journalctl -u verified-auto-update -f`
 
 ## Secrets Management
 

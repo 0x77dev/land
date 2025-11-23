@@ -141,5 +141,8 @@ in
 
     # Add ethtool for diagnostics
     environment.systemPackages = [ pkgs.ethtool ];
+
+    # Prevent boot hang if interfaces aren't fully ready
+    systemd.network.wait-online.anyInterface = true;
   };
 }

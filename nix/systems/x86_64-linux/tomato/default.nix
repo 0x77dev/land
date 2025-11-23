@@ -15,6 +15,11 @@
         }
       ];
     };
+    network.incus = {
+      enable = true;
+      sourceInterface = "bond0";
+      ovnPrivate.enable = true; # Enable cluster-wide OVN private network
+    };
     filesystem.zfs = {
       enable = true;
       useLatestKernel = true;

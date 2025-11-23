@@ -11,7 +11,7 @@ keys:
   - &potato age162xgj9syl0k3fhre4gjc2e4m0vatcz2dw3zw0l65rhqf9mdgvy0s0jaw8t
 
 creation_rules:
-  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+  - path_regex: secrets.*\.(yaml|json|env|ini)$
     key_groups:
     - pgp:
       - *mykhailo

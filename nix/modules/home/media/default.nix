@@ -15,6 +15,7 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
+      aria2
       ffmpeg
       spotdl
       yt-dlp

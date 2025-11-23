@@ -46,7 +46,5 @@ in
 
   programs.fish.enable = true;
 
-  services.verified-auto-update.enable = true;
-
   services.openssh.enable = true;
 }

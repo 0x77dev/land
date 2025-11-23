@@ -19,11 +19,4 @@ _final: _prev: {
     talosctl
     nix-output-monitor
     ;
-
-  # Override opencode to remove Darwin badPlatforms restriction
-  opencode = channels.unstable.opencode.overrideAttrs (old: {
-    meta = old.meta // {
-      badPlatforms = [ ];
-    };
-  });
 }
