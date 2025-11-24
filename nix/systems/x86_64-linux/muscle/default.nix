@@ -28,10 +28,6 @@
     extraModulePackages = with config.boot.kernelPackages; [
       pkgs.cudaPackages.nvidia_fs
     ];
-    # Bind GPU to VFIO at boot (for passthrough)
-    extraModprobeConfig = ''
-      options vfio-pci ids=10de:26b1,10de:22ba
-    '';
     kernelParams = [
       # AMD IOMMU for PCI passthrough
       "amd_iommu=on"
