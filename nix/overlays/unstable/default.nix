@@ -21,5 +21,7 @@ _final: _prev: {
     wlx-overlay-s
     alvr
     monado
+    cudatoolkit
+    cudaPackages
     ;
 }
