@@ -2,6 +2,7 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
@@ -18,6 +19,7 @@ in
   config = mkIf cfg.enable {
     programs.ghostty = {
       package = ghosttyPackage;
+      enable = true;
       settings = {
         font-family = "TX-02-Variable";
         font-variation = "wght=600";
@@ -55,6 +57,13 @@ in
       };
     };
 
-    home.packages = [ ghosttyPackage ];
+    # Ensure TX-02 font is available
+    home.packages = [
+      ghosttyPackage
+      pkgs.${namespace}.tx-02-variable
+    ];
+
+    # Enable fontconfig to register fonts
+    fonts.fontconfig.enable = true;
   };
 }
