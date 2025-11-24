@@ -280,11 +280,15 @@
     powertop.enable = false;
   };
 
-  # Distributed builds configuration
-  modules.builders = {
-    enable = true;
-    maxJobs = 64; # Half of 128 cores
-    speedFactor = 4; # Threadripper PRO is very fast
+  modules = {
+    vscode-server.enable = true;
+
+    # Distributed builds configuration
+    builders = {
+      enable = true;
+      maxJobs = 64; # Half of 128 cores
+      speedFactor = 4; # Threadripper PRO is very fast
+    };
   };
 
   # User configuration
