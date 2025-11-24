@@ -91,7 +91,13 @@
       storageDriver = "overlay2";
     };
 
-    # Libvirt for virt-manager and VFIO
+    # VirtualBox for easier VM management
+    virtualbox.host = {
+      enable = true;
+      enableExtensionPack = true;
+    };
+
+    # Keep libvirtd as backup option
     libvirtd = {
       enable = true;
       qemu = {
@@ -299,6 +305,7 @@
       "audio"
       "libvirtd"
       "kvm"
+      "vboxusers"
     ];
     shell = pkgs.fish;
   };
@@ -308,6 +315,9 @@
     # NVIDIA utilities
     nvtopPackages.full
     cudatoolkit
+    cudaPackages.libcufile
+    cudaPackages.gdrcopy
+    cudaPackages.nccl
 
     # System monitoring
     btop
