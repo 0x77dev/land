@@ -20,5 +20,6 @@ _final: _prev: {
     nix-output-monitor
     wlx-overlay-s
     alvr
+    monado
     ;
 }
