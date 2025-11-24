@@ -14,16 +14,6 @@ let
   # Helper to determine if a system is a builder
   isBuilder = config: config.config.modules.builders.enable or false;
 
-  # Helper to get the first admin user for SSH
-  getAdminUser =
-    config:
-    let
-      users = config.config.snowfallorg.users or { };
-      adminUsers = lib.filterAttrs (_name: user: user.admin or false) users;
-      adminNames = lib.attrNames adminUsers;
-    in
-    if adminNames != [ ] then lib.head adminNames else null;
-
   # Helper to determine max jobs
   getMaxJobs =
     config:
@@ -49,20 +39,22 @@ let
       ];
 
   # Create a build machine entry from a configuration
+  # MODIFIED: Now uses nixbuilder user and SSH key
   mkBuildMachine =
     _: config:
     let
       inherit (config.config.networking) fqdn;
-      sshUser = getAdminUser config;
       system = getSystem config;
       maxJobs = getMaxJobs config;
       speedFactor = config.config.modules.builders.speedFactor or 1;
       supportedFeatures = getSupportedFeatures config;
     in
-    lib.optionalAttrs (sshUser != null) {
+    {
       hostName = fqdn;
-      inherit sshUser maxJobs speedFactor;
-      protocol = "ssh-ng";
+      sshUser = "nixbuilder"; # Changed from getAdminUser
+      sshKey = "/run/secrets/builders/ssh_private_key"; # Added
+      protocol = "ssh-ng"; # Use modern protocol
+      inherit maxJobs speedFactor;
       systems = [ system ];
       inherit supportedFeatures;
     };
@@ -85,8 +77,8 @@ in
       # Generate build machine entries
       buildMachinesList = lib.mapAttrsToList mkBuildMachine builderConfigs;
 
-      # Filter out empty entries (where sshUser was null)
-      validBuildMachines = lib.filter (m: m != { }) buildMachinesList;
+      # All build machines are now valid (no null sshUser checks needed)
+      validBuildMachines = buildMachinesList;
     in
     # Return a module that can be applied to all systems
     {
@@ -103,13 +95,21 @@ in
       builderHosts = map (m: m.hostName) remoteBuildMachines;
     in
     {
+      # Enable distributed builds if there are remote builders
+      nix.distributedBuilds = lib.mkIf (remoteBuildMachines != [ ]) true;
+
+      # Configure build machines
       nix.buildMachines = remoteBuildMachines;
 
       # Configure SSH to accept new host keys for builders
-      programs.ssh.extraConfig = lib.mkAfter ''
-        Host ${lib.concatStringsSep " " builderHosts}
-          StrictHostKeyChecking accept-new
-      '';
+      programs.ssh.extraConfig = lib.mkIf (remoteBuildMachines != [ ]) (
+        lib.mkAfter ''
+          Host ${lib.concatStringsSep " " builderHosts}
+            StrictHostKeyChecking accept-new
+            User nixbuilder
+            IdentityFile /run/secrets/builders/ssh_private_key
+        ''
+      );
     };
 
   # Create a module that will be included in all systems

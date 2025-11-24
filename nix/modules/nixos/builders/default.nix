@@ -1,4 +1,9 @@
-{ lib, ... }:
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
 {
   options.modules.builders = {
     enable = lib.mkEnableOption "Make this system available as a remote builder";
@@ -13,6 +18,15 @@
       type = lib.types.int;
       default = 1;
       description = "Speed factor relative to other builders";
+    };
+  };
+
+  # Configure private key for systems that use remote builders
+  config = lib.mkIf (config.nix.buildMachines != [ ]) {
+    sops.secrets."builders/ssh_private_key" = {
+      mode = "0400";
+      owner = "root";
+      sopsFile = inputs.self + "/nix/lib/builders/secrets.yaml";
     };
   };
 }

@@ -12,8 +12,22 @@ keys:
 
   - &media age1qunw4q04cdg2lzaagkxjkr2gee8kyhxr9l6fsfd5wgm0d2w2tpcsqe8zuw
   - &ipfs age10k62z44u66nw4f3y9qjjf0k36rxv5fd23p0plsrmwem55frpaevsnuwc3p
+  - &muscle age1qeflxvwq07z0r70mgunmgxdkclkm324m9t8wjefqqrvwz4lpluhqwpjf05
+  - &beefy age1yfuufkuzey2fvda2slpz3wwyz7suf6f4chha9u7a4hs8gfynr5ds7npram
 
 creation_rules:
+  - path_regex: nix/lib/builders/secrets\.(yaml|json|env|ini)$
+    key_groups:
+    - pgp:
+      - *mykhailo
+      age:
+      - *tomato
+      - *pickle
+      - *potato
+      - *muscle
+      - *beefy
+      - *media
+      - *ipfs
   - path_regex: secrets.*\.(yaml|json|env|ini)$
     key_groups:
     - pgp:

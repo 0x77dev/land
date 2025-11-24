@@ -189,6 +189,7 @@
     "networkmanager",
     "nftables",
     "nistp",
+    "nixbuilder",
     "nixd",
     "nixfmt",
     "nixos",
