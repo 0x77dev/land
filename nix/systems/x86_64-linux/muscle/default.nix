@@ -20,12 +20,23 @@
     kernelModules = [
       "kvm-amd"
       "nvidia-fs" # GPUDirect Storage
+      # VFIO modules for PCI passthrough
+      "vfio"
+      "vfio_pci"
+      "vfio_iommu_type1"
     ];
     extraModulePackages = with config.boot.kernelPackages; [
       pkgs.cudaPackages.nvidia_fs
     ];
     kernelParams = [
-      "pcie_acs_override=downstream,multifunction" # Optimize PCIe for GDS
+      # AMD IOMMU for PCI passthrough
+      "amd_iommu=on"
+      "iommu=pt"
+      # PCIe ACS override for better IOMMU groups
+      "pcie_acs_override=downstream,multifunction"
+      # KVM optimizations
+      "kvm.ignore_msrs=1"
+      "kvm.report_ignored_msrs=0"
     ];
     loader = {
       systemd-boot.enable = true;
@@ -48,7 +59,8 @@
       package = config.boot.kernelPackages.nvidiaPackages.stable;
       nvidiaSettings = true;
       modesetting.enable = true;
-      powerManagement.enable = false; # Disable power management for workstation
+      powerManagement.enable = true; # Enable for better VFIO support
+      powerManagement.finegrained = false; # Disable for workstation GPUs
     };
     # Enable NVIDIA Container Toolkit for Docker/Podman
     nvidia-container-toolkit.enable = true;
@@ -73,9 +85,29 @@
   };
 
   # Virtualisation
-  virtualisation.docker = {
-    enable = true;
-    storageDriver = "overlay2";
+  virtualisation = {
+    docker = {
+      enable = true;
+      storageDriver = "overlay2";
+    };
+
+    # Libvirt for virt-manager and VFIO
+    libvirtd = {
+      enable = true;
+      qemu = {
+        package = pkgs.qemu_kvm;
+        runAsRoot = false;
+        swtpm.enable = true;
+        ovmf = {
+          enable = true;
+          packages = [ pkgs.OVMFFull.fd ];
+        };
+      };
+      onBoot = "ignore";
+      onShutdown = "shutdown";
+    };
+
+    spiceUSBRedirection.enable = true;
   };
 
   # Allow unfree packages (needed for NVIDIA drivers)
@@ -126,6 +158,11 @@
     chromium = {
       enable = true;
       enablePlasmaBrowserIntegration = true;
+      # Extensions for 1Password integration
+      extensions = [
+        "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
+        "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
+      ];
     };
     # Fish shell
     fish.enable = true;
@@ -135,49 +172,13 @@
       enable = true;
       polkitPolicyOwners = [ "mykhailo" ];
     };
-  };
 
-  # VR Environment Variables
-  systemd.user.services.monado.environment = {
-    STEAMVR_LH_ENABLE = "1";
-    XRT_COMPOSITOR_COMPUTE = "1";
-    WMR_HANDTRACKING = "0";
-    # Enable debugging if needed
-    XRT_DEBUG_GUI = "0";
-
-    # Force X11 instead of Wayland for NVIDIA compatibility
-    XRT_COMPOSITOR_FORCE_NVIDIA = "1";
-    SDL_VIDEODRIVER = "x11";
-    # Ensure we don't see Wayland
-    WAYLAND_DISPLAY = "";
-    # Force Vulkan to use NVIDIA
-    VK_DRIVER_FILES = "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json";
-    # NVIDIA Vulkan hints
-    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
-    __VK_LAYER_NV_optimus = "NVIDIA_only";
+    # Virt-manager for VM management
+    virt-manager.enable = true;
   };
 
   # Services configuration
   services = {
-    # VR Configuration - Monado OpenXR runtime
-    monado = {
-      enable = true;
-      defaultRuntime = true; # Register as default OpenXR runtime
-      package =
-        with pkgs;
-        monado.overrideAttrs (
-          _finalAttrs: _previousAttrs: {
-            src = fetchFromGitLab {
-              domain = "gitlab.freedesktop.org";
-              owner = "thaytan";
-              repo = "monado";
-              rev = "dev-constellation-controller-tracking";
-              hash = "sha256-KB+LNwmnlXQAS1vRUy9eLn/ECkPNePUmoFW0O2obYno=";
-            };
-            patches = [ ];
-          }
-        );
-    };
     # KDE Plasma 6 Desktop Environment with full ecosystem (2025 best practices)
     desktopManager.plasma6 = {
       enable = true;
@@ -296,6 +297,8 @@
       "networkmanager"
       "video"
       "audio"
+      "libvirtd"
+      "kvm"
     ];
     shell = pkgs.fish;
   };
@@ -305,9 +308,6 @@
     # NVIDIA utilities
     nvtopPackages.full
     cudatoolkit
-
-    # VR tools
-    wlx-overlay-s
 
     # System monitoring
     btop
@@ -320,13 +320,7 @@
     # Network tools
     iperf3
 
-    # Web browsers
-    chromium
-
-    # Gaming utilities
-    mangohud # Overlay for monitoring FPS, temps, etc in games
-    gamemode # Optimizations for gaming
-    gamescope # Micro-compositor for better gaming on Wayland
+    # Gaming utilities (additional to programs.*)
     steamtinkerlaunch # Advanced Steam launcher with many tweaks
     protontricks # Tool to run Winetricks commands for Proton games
 
@@ -335,6 +329,9 @@
     yubikey-manager # YubiKey Manager CLI and GUI
     libfido2 # Support for FIDO2/WebAuthn
     opensc # Smart card library and applications
+
+    # Virtualization tools (additional to programs.virt-manager)
+    looking-glass-client
 
     # KDE utilities (additional, beyond defaults)
     kdePackages.kcalc
