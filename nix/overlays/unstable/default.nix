@@ -23,5 +23,6 @@ _final: _prev: {
     monado
     cudatoolkit
     cudaPackages
+    opencode
     ;
 }
