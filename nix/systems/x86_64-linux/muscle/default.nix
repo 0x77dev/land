@@ -134,10 +134,13 @@
   # VR Environment Variables
   systemd.user.services.monado.environment = {
     STEAMVR_LH_ENABLE = "1";
-    XRT_COMPOSITOR_COMPUTE = "1";
+    # Try disabling compute compositor as it can be unstable on some drivers
+    XRT_COMPOSITOR_COMPUTE = "0";
     # Force X11 instead of Wayland for NVIDIA compatibility
     XRT_COMPOSITOR_FORCE_NVIDIA = "1";
     SDL_VIDEODRIVER = "x11";
+    # Ensure we don't see Wayland
+    WAYLAND_DISPLAY = "";
     # Force Vulkan to use NVIDIA
     VK_DRIVER_FILES = "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json";
     # NVIDIA Vulkan hints
