@@ -126,7 +126,6 @@
     chromium = {
       enable = true;
       enablePlasmaBrowserIntegration = true;
-      plasmaBrowserIntegrationPackage = pkgs.kdePackages.plasma-browser-integration;
     };
     # Fish shell
     fish.enable = true;
