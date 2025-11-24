@@ -153,7 +153,6 @@
     displayManager.sddm = {
       enable = true;
       wayland.enable = true; # Wayland is default and recommended for Plasma 6
-      package = pkgs.kdePackages.sddm; # Use Qt6 version of SDDM
     };
     # X11 and input
     xserver = {
