@@ -42,6 +42,12 @@ in
     # Darwin-specific: Manually configure authorized_keys
     # (openssh.authorizedKeys doesn't work the same way on Darwin)
     system.activationScripts.postActivation.text = lib.mkAfter ''
+      # Wait for user creation (users are created in the 'users' activation script)
+      if ! id -u nixbuilder >/dev/null 2>&1; then
+        echo "Warning: nixbuilder user not yet created, skipping SSH setup"
+        exit 0
+      fi
+
       # Create home and .ssh directory
       mkdir -p /var/lib/nixbuilder/.ssh
       chmod 700 /var/lib/nixbuilder/.ssh
