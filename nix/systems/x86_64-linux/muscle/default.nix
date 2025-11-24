@@ -207,14 +207,8 @@
   security = {
     # KWallet PAM integration for automatic unlocking
     pam.services = {
-      sddm.kwallet = {
-        enable = true;
-        package = pkgs.kdePackages.kwallet-pam;
-      };
-      login.kwallet = {
-        enable = true;
-        package = pkgs.kdePackages.kwallet-pam;
-      };
+      sddm.kwallet.enable = true;
+      login.kwallet.enable = true;
     };
     # Real-time audio
     rtkit.enable = true;
