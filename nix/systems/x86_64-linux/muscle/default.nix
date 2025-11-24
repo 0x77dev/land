@@ -330,7 +330,6 @@
     kdePackages.krfb # Remote desktop server
     kdePackages.kwalletmanager # KWallet management tool
     kdePackages.filelight # Disk usage visualization
-    kdePackages.partition-manager # Disk partition manager
   ];
 
   # Yubikey udev rules for proper device access
