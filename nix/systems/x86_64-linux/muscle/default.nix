@@ -135,10 +135,11 @@
   systemd.user.services.monado.environment = {
     STEAMVR_LH_ENABLE = "1";
     XRT_COMPOSITOR_COMPUTE = "1";
+    # Force X11 instead of Wayland for NVIDIA compatibility
+    XRT_COMPOSITOR_FORCE_NVIDIA = "1";
+    SDL_VIDEODRIVER = "x11";
     # Force Vulkan to use NVIDIA
     VK_DRIVER_FILES = "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json";
-    # Wayland backend hints
-    XRT_COMPOSITOR_FORCE_WAYLAND = "1";
     # NVIDIA Vulkan hints
     __GLX_VENDOR_LIBRARY_NAME = "nvidia";
     __VK_LAYER_NV_optimus = "NVIDIA_only";
