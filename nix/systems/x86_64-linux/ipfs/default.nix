@@ -78,8 +78,8 @@
     kubo = {
       enable = true;
       enableGC = true;
-      autoMount = false; # Disabled to avoid ExecStopPost conflict with VPN confinement
-      # Allow access to API/Gateway from outside the container (via port forwarding)
+      autoMount = true;
+      localDiscovery = false;
       settings = {
         Addresses = {
           API = "/ip4/0.0.0.0/tcp/5001";
@@ -143,7 +143,15 @@
     admin = true;
     home = {
       enable = true;
-      config = { };
+      config = {
+        modules.home = {
+          git.enable = true;
+          p2p.enable = true;
+          shell.enable = true;
+          ssh.enable = true;
+          gpg.enable = true;
+        };
+      };
     };
   };
 }

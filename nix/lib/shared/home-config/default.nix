@@ -7,19 +7,19 @@ _:
   };
 
   modules.home = {
-    ai.enable = lib.mkDefault true;
-    cloud.enable = lib.mkDefault true;
-    fonts.enable = lib.mkDefault true;
-    ghostty.enable = lib.mkDefault true;
+    ai.enable = lib.mkDefault false;
+    cloud.enable = lib.mkDefault false;
+    fonts.enable = lib.mkDefault false;
+    ghostty.enable = lib.mkDefault false;
     git.enable = lib.mkDefault true;
-    ide.enable = lib.mkDefault true;
-    media.enable = lib.mkDefault true;
-    mobile.enable = lib.mkDefault true;
-    network.enable = lib.mkDefault true;
-    nix.enable = lib.mkDefault true;
-    reverse-engineering.enable = lib.mkDefault true;
-    # Secrets disabled by default
-    # Can be overridden per-home: secrets.backend = "age" | "gpg" | "disabled"
+    ide.enable = lib.mkDefault false;
+    media.enable = lib.mkDefault false;
+    mobile.enable = lib.mkDefault false;
+    network.enable = lib.mkDefault false;
+    nix.enable = lib.mkDefault false;
+    p2p.enable = lib.mkDefault false;
+    reverse-engineering.enable = lib.mkDefault false;
+    comms.enable = lib.mkDefault false;
     secrets.backend = lib.mkDefault "disabled";
     security.enable = lib.mkDefault true;
     shell.enable = lib.mkDefault true;

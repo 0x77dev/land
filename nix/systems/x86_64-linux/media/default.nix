@@ -251,7 +251,16 @@
     admin = true;
     home = {
       enable = true;
-      config = { };
+      config = {
+        modules.home = {
+          git.enable = true;
+          p2p.enable = true;
+          media.enable = true;
+          shell.enable = true;
+          ssh.enable = true;
+          gpg.enable = true;
+        };
+      };
     };
   };
 

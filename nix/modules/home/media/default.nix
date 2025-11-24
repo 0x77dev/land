@@ -19,7 +19,6 @@ in
       ffmpeg
       spotdl
       yt-dlp
-      m8c
     ];
   };
 }
