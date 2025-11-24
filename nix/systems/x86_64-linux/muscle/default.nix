@@ -317,7 +317,6 @@
     # Yubikey utilities
     yubikey-personalization # CLI tools for configuring YubiKey
     yubikey-manager # YubiKey Manager CLI and GUI
-    yubikey-manager-qt # GUI for managing YubiKey
     libfido2 # Support for FIDO2/WebAuthn
     opensc # Smart card library and applications
 
