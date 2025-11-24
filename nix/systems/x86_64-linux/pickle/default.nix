@@ -12,6 +12,10 @@
       useLatestKernel = true;
     };
     cluster.incus.enable = true;
+    builders = {
+      enable = true;
+      speedFactor = 2;
+    };
   };
 
   networking = {

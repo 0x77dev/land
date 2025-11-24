@@ -10,6 +10,8 @@ in
   system.stateVersion = 6;
   system.primaryUser = userName;
 
+  modules.builders.enable = true;
+
   networking = {
     hostName = "potato";
     domain = "0x77.computer";

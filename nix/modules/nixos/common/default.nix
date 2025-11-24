@@ -1,4 +1,9 @@
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  system,
+  ...
+}:
 {
   # Common System Configuration
   time.timeZone = lib.mkDefault "America/Los_Angeles";
@@ -8,6 +13,7 @@
   programs.fish.enable = true;
 
   # Nixpkgs
+  nixpkgs.hostPlatform = lib.mkDefault system;
   nixpkgs.config.allowUnfree = true;
 
   # Common Packages

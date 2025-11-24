@@ -1,5 +1,5 @@
 _:
-{ pkgs }:
+{ lib, pkgs }:
 {
   package = pkgs.lixPackageSets.stable.lix;
 
@@ -47,5 +47,5 @@ _:
 
   optimise.automatic = true;
 
-  distributedBuilds = true;
+  distributedBuilds = lib.mkDefault true;
 }

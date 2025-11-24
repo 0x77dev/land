@@ -5,5 +5,5 @@
   ...
 }:
 {
-  nix = lib.${namespace}.shared.nix-config { inherit pkgs; };
+  nix = lib.${namespace}.shared.nix-config { inherit lib pkgs; };
 }
