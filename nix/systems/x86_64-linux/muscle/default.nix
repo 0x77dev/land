@@ -333,7 +333,6 @@
     kdePackages.kwalletmanager # KWallet management tool
     kdePackages.filelight # Disk usage visualization
     kdePackages.partition-manager # Disk partition manager
-    kdePackages.plasma-browser-integration # Browser integration for media controls, notifications
   ];
 
   # Yubikey udev rules for proper device access
