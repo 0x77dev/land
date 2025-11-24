@@ -129,13 +129,22 @@
     };
     # Fish shell
     fish.enable = true;
+
+    # 1Password GUI with system integration
+    _1password-gui = {
+      enable = true;
+      polkitPolicyOwners = [ "mykhailo" ];
+    };
   };
 
   # VR Environment Variables
   systemd.user.services.monado.environment = {
     STEAMVR_LH_ENABLE = "1";
-    # Try disabling compute compositor as it can be unstable on some drivers
-    XRT_COMPOSITOR_COMPUTE = "0";
+    XRT_COMPOSITOR_COMPUTE = "1";
+    WMR_HANDTRACKING = "0";
+    # Enable debugging if needed
+    XRT_DEBUG_GUI = "0";
+
     # Force X11 instead of Wayland for NVIDIA compatibility
     XRT_COMPOSITOR_FORCE_NVIDIA = "1";
     SDL_VIDEODRIVER = "x11";
@@ -154,6 +163,20 @@
     monado = {
       enable = true;
       defaultRuntime = true; # Register as default OpenXR runtime
+      package =
+        with pkgs;
+        monado.overrideAttrs (
+          _finalAttrs: _previousAttrs: {
+            src = fetchFromGitLab {
+              domain = "gitlab.freedesktop.org";
+              owner = "thaytan";
+              repo = "monado";
+              rev = "dev-constellation-controller-tracking";
+              hash = "sha256-o9JI2vCuDHEI6MNIWjbw7HGUBsnRQo58AUtDw1XUgw8=";
+            };
+            patches = [ ];
+          }
+        );
     };
     # KDE Plasma 6 Desktop Environment with full ecosystem (2025 best practices)
     desktopManager.plasma6 = {
