@@ -250,29 +250,7 @@
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
-    home = {
-      enable = true;
-      config = {
-        modules.home = {
-          secrets.backend = "disabled";
-          ai.enable = true;
-          cloud.enable = true;
-          fonts.enable = true;
-          git.enable = true;
-          ide.enable = true;
-          media.enable = true;
-          network.enable = true;
-          nix.enable = true;
-          p2p.enable = true;
-          reverse-engineering.enable = true;
-          comms.enable = true;
-          security.enable = true;
-          shell.enable = true;
-          ssh.enable = true;
-          gpg.enable = true;
-        };
-      };
-    };
+    home.enable = true;
   };
 
   users.users.mykhailo = {

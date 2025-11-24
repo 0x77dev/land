@@ -141,17 +141,6 @@
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
-    home = {
-      enable = true;
-      config = {
-        modules.home = {
-          git.enable = true;
-          p2p.enable = true;
-          shell.enable = true;
-          ssh.enable = true;
-          gpg.enable = true;
-        };
-      };
-    };
+    home.enable = true;
   };
 }
