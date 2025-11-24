@@ -53,7 +53,6 @@ let
     _: config:
     let
       inherit (config.config.networking) fqdn;
-      inherit (config.config.modules.builders) speedFactor;
       sshUser = getAdminUser config;
       system = getSystem config;
       maxJobs = getMaxJobs config;

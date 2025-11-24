@@ -18,5 +18,7 @@ _final: _prev: {
     nixd
     talosctl
     nix-output-monitor
+    wlx-overlay-s
+    alvr
     ;
 }

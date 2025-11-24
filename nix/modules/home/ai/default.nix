@@ -212,12 +212,6 @@ let
           baseURL = "https://developer.osv.engineering/inference/v1";
         };
       };
-      ollama = {
-        name = "Ollama";
-        models = {
-          "gpt-oss:20b" = { };
-        };
-      };
     }
     // lib.optionalAttrs config.modules.home.cloud.enable {
       vertex_ai = {
@@ -316,12 +310,9 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       aichat
-      ollama
       opencode
       mcp-nixos
     ];
-
-    services.ollama.enable = true;
 
     # TODO: Migrate to `programs.opencode` on next home-manager release
     home.file."${config.xdg.configHome}/opencode/config.json".text = builtins.toJSON opencodeConfig;
