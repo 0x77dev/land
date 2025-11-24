@@ -26,6 +26,7 @@
     sops.secrets."builders/ssh_private_key" = {
       mode = "0400";
       owner = "root";
+      key = "ssh/private_key";
       sopsFile = inputs.self + "/nix/lib/builders/secrets.yaml";
     };
   };

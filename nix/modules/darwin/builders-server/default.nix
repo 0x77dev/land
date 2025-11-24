@@ -29,11 +29,13 @@ in
     # Configure sops secrets for both public and private keys
     sops.secrets."builders/ssh_public_key" = {
       mode = "0444";
+      key = "ssh/public_key";
       sopsFile = inputs.self + "/nix/lib/builders/secrets.yaml";
     };
 
     sops.secrets."builders/ssh_private_key" = {
       mode = "0400";
+      key = "ssh/private_key";
       sopsFile = inputs.self + "/nix/lib/builders/secrets.yaml";
     };
 
