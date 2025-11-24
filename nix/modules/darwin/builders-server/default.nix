@@ -14,7 +14,7 @@ in
     users.users.nixbuilder = {
       uid = 350; # High UID to avoid conflicts
       gid = 350;
-      home = "/var/empty";
+      home = "/var/lib/nixbuilder";
       shell = pkgs.bash;
       description = "Nix remote build user";
     };
@@ -42,14 +42,15 @@ in
     # Darwin-specific: Manually configure authorized_keys
     # (openssh.authorizedKeys doesn't work the same way on Darwin)
     system.activationScripts.postActivation.text = lib.mkAfter ''
-      # Create .ssh directory
-      mkdir -p /var/empty/.ssh
-      chmod 700 /var/empty/.ssh
+      # Create home and .ssh directory
+      mkdir -p /var/lib/nixbuilder/.ssh
+      chmod 700 /var/lib/nixbuilder/.ssh
+      chown nixbuilder:nixbuilder /var/lib/nixbuilder
 
       # Copy public key to authorized_keys
-      cat ${config.sops.secrets."builders/ssh_public_key".path} > /var/empty/.ssh/authorized_keys
-      chmod 600 /var/empty/.ssh/authorized_keys
-      chown nixbuilder:nixbuilder /var/empty/.ssh /var/empty/.ssh/authorized_keys
+      cat ${config.sops.secrets."builders/ssh_public_key".path} > /var/lib/nixbuilder/.ssh/authorized_keys
+      chmod 600 /var/lib/nixbuilder/.ssh/authorized_keys
+      chown nixbuilder:nixbuilder /var/lib/nixbuilder/.ssh /var/lib/nixbuilder/.ssh/authorized_keys
     '';
 
     # Ensure SSH is enabled
