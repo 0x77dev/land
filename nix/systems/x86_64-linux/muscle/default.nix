@@ -153,6 +153,12 @@
     displayManager.sddm = {
       enable = true;
       wayland.enable = true; # Wayland is default and recommended for Plasma 6
+      # Enable debug logging to diagnose login issues
+      settings = {
+        General = {
+          DisplayServer = "wayland";
+        };
+      };
     };
     # X11 and input
     xserver = {
@@ -203,6 +209,9 @@
     config.common.default = "kde";
   };
 
+  # Ensure proper session management
+  services.displayManager.defaultSession = "plasma";
+
   # Security configuration
   security = {
     # KWallet PAM integration for automatic unlocking
@@ -245,6 +254,7 @@
       enable = true;
       config = {
         modules.home = {
+          secrets.backend = "disabled";
           ai.enable = true;
           cloud.enable = true;
           fonts.enable = true;
