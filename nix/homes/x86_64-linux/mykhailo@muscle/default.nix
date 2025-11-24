@@ -14,7 +14,7 @@ in
   home = shared.home // {
     file.".local/share/monado/hand-tracking-models".source = pkgs.fetchgit {
       url = "https://gitlab.freedesktop.org/monado/utilities/hand-tracking-models";
-      sha256 = "sha256-KB+LNwmnlXQAS1vRUy9eLn/ECkPNePUmoFW0O2obYno=";
+      sha256 = "sha256-x/X4HyyHdQUxn3CdMbWj5cfLvV7UyQe1D01H93UCk+M=";
       fetchLFS = true;
     };
   };
