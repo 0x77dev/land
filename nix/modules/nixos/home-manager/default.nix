@@ -4,5 +4,7 @@
   ...
 }:
 {
-  home-manager = lib.${namespace}.shared.home-manager-config { inherit lib; };
+  home-manager = lib.${namespace}.shared.home-manager-config { inherit lib; } // {
+    useUserPackages = true;
+  };
 }
