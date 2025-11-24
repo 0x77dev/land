@@ -16,6 +16,7 @@ in
     ai.enable = true;
     cloud.enable = true;
     fonts.enable = true;
+    ghostty.enable = true;
     git.enable = true;
     ide.enable = true;
     media.enable = true;
