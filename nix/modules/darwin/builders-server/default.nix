@@ -10,17 +10,24 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    # Create dedicated builder user on Darwin
-    users.users.nixbuilder = {
-      uid = 350; # High UID to avoid conflicts
-      gid = 350;
-      home = "/var/lib/nixbuilder";
-      shell = pkgs.bash;
-      description = "Nix remote build user";
-    };
+    # Configure users and groups
+    users = {
+      # Add nixbuilder to known users/groups for nix-darwin management (append to existing lists)
+      knownUsers = [ "nixbuilder" ];
+      knownGroups = [ "nixbuilder" ];
 
-    users.groups.nixbuilder = {
-      gid = 350;
+      # Create dedicated builder user on Darwin
+      users.nixbuilder = {
+        uid = 450; # High UID to avoid conflicts (350 is taken by nixbld)
+        gid = 450;
+        home = "/var/lib/nixbuilder";
+        shell = pkgs.bash;
+        description = "Nix remote build user";
+      };
+
+      groups.nixbuilder = {
+        gid = 450;
+      };
     };
 
     # Trust the builder user
