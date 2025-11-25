@@ -193,5 +193,11 @@ in
       # Ensure proper permissions for claiming
       ProtectSystem = lib.mkForce false;
     };
+
+    # Fix /etc/netdata ownership for claiming
+    # The claiming script needs write access to /etc/netdata
+    systemd.tmpfiles.rules = [
+      "d /etc/netdata 0755 ${config.services.netdata.user} ${config.services.netdata.group} -"
+    ];
   };
 }
