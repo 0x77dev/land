@@ -24,8 +24,9 @@
   # Configure private key for systems that use remote builders
   config = lib.mkIf (config.nix.buildMachines != [ ]) {
     sops.secrets."builders/ssh_private_key" = {
-      mode = "0400";
+      mode = "0440"; # Group-readable for nixbld
       owner = "root";
+      group = "nixbld";
       key = "ssh/private_key";
       sopsFile = inputs.self + "/nix/lib/builders/secrets.yaml";
     };
