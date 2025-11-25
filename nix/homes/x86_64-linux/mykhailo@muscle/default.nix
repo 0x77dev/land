@@ -12,7 +12,7 @@ in
   inherit (shared) home;
 
   modules.home = shared.modules.home // {
-    secrets.backend = "gpg";
+    secrets.backend = "age";
     ai.enable = true;
     cloud.enable = true;
     fonts.enable = true;

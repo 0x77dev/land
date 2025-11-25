@@ -102,11 +102,12 @@ in
       nix.buildMachines = remoteBuildMachines;
 
       # Configure SSH to accept new host keys for builders
+      # Note: We don't set User here to avoid interfering with admin SSH access
+      # The sshUser in nix.buildMachines handles the username for Nix builds
       programs.ssh.extraConfig = lib.mkIf (remoteBuildMachines != [ ]) (
         lib.mkAfter ''
           Host ${lib.concatStringsSep " " builderHosts}
             StrictHostKeyChecking accept-new
-            User nixbuilder
             IdentityFile /run/secrets/builders/ssh_private_key
         ''
       );
