@@ -21,33 +21,11 @@
   boot = {
     kernelModules = [
       "kvm-amd"
-      "nvidia-fs" # GPUDirect Storage
-      # VFIO modules for PCI passthrough
-      "vfio"
-      "vfio_pci"
-      "vfio_iommu_type1"
-    ];
-    extraModulePackages = with config.boot.kernelPackages; [
-      pkgs.cudaPackages.nvidia_fs
-    ];
-    kernelParams = [
-      # AMD IOMMU for PCI passthrough
-      "amd_iommu=on"
-      "iommu=pt"
-      # PCIe ACS override for better IOMMU groups
-      "pcie_acs_override=downstream,multifunction"
-      # KVM optimizations
-      "kvm.ignore_msrs=1"
-      "kvm.report_ignored_msrs=0"
+      # TODO: Add nvidia-fs module
     ];
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
-    };
-    # NVMe optimizations
-    kernel.sysctl = {
-      "vm.swappiness" = 10;
-      "vm.vfs_cache_pressure" = 50;
     };
   };
 
@@ -61,8 +39,8 @@
       package = config.boot.kernelPackages.nvidiaPackages.stable;
       nvidiaSettings = true;
       modesetting.enable = true;
-      powerManagement.enable = true; # Enable for better VFIO support
-      powerManagement.finegrained = false; # Disable for workstation GPUs
+      powerManagement.enable = true;
+      powerManagement.finegrained = false;
     };
     # Enable NVIDIA Container Toolkit for Docker/Podman
     nvidia-container-toolkit.enable = true;
@@ -87,29 +65,9 @@
   };
 
   # Virtualisation
-  virtualisation = {
-    docker = {
-      enable = true;
-      storageDriver = "overlay2";
-    };
-
-    # libvirtd for VM management
-    libvirtd = {
-      enable = true;
-      qemu = {
-        package = pkgs.qemu_kvm;
-        runAsRoot = false;
-        swtpm.enable = true;
-        ovmf = {
-          enable = true;
-          packages = [ pkgs.OVMFFull.fd ];
-        };
-      };
-      onBoot = "ignore";
-      onShutdown = "shutdown";
-    };
-
-    spiceUSBRedirection.enable = true;
+  virtualisation.docker = {
+    enable = true;
+    storageDriver = "overlay2";
   };
 
   # Allow unfree packages (needed for NVIDIA drivers)
@@ -169,9 +127,6 @@
       enable = true;
       polkitPolicyOwners = [ "mykhailo" ];
     };
-
-    # Virt-manager for VM management
-    virt-manager.enable = true;
   };
 
   # Services configuration
@@ -300,7 +255,6 @@
       "networkmanager"
       "video"
       "audio"
-      "libvirtd"
       "kvm"
     ];
     shell = pkgs.fish;
@@ -345,9 +299,6 @@
     libfido2 # Support for FIDO2/WebAuthn
     opensc # Smart card library and applications
 
-    # Virtualization tools (additional to programs.virt-manager)
-    looking-glass-client
-
     # KDE utilities (additional, beyond defaults)
     kdePackages.kcalc
     kdePackages.kcolorchooser
@@ -369,7 +320,10 @@
 
   networking.firewall.enable = false;
 
-  nix.buildMachines = lib.mkForce [ ];
+  nix = {
+    buildMachines = lib.mkForce [ ];
+    distributedBuilds = lib.mkForce false;
+  };
 
   system.stateVersion = "25.05";
 }

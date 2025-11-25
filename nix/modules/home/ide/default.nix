@@ -71,7 +71,7 @@ in
         userSettings = {
           agent_servers = {
             OpenCode = {
-              command = "opencode";
+              command = "${pkgs.opencode}/bin/opencode";
               args = [ "acp" ];
             };
           };
@@ -114,7 +114,7 @@ in
                     custom = {
                       name = "OpenCode";
                       command = {
-                        command = "opencode";
+                        command = "${pkgs.opencode}/bin/opencode";
                         args = [ "acp" ];
                       };
                     };
