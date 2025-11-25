@@ -102,12 +102,12 @@ in
       nix.buildMachines = remoteBuildMachines;
 
       # Configure SSH to accept new host keys for builders
-      # Use Match User to only apply to nixbuilder connections
+      # Note: IdentityFile is NOT set here - it's specified in nix.buildMachines[].sshKey
+      # This prevents interference with admin SSH connections
       programs.ssh.extraConfig = lib.mkIf (remoteBuildMachines != [ ]) (
         lib.mkAfter ''
-          Match User nixbuilder Host ${lib.concatStringsSep "," builderHosts}
+          Host ${lib.concatStringsSep " " builderHosts}
             StrictHostKeyChecking accept-new
-            IdentityFile /run/secrets/builders/ssh_private_key
         ''
       );
     };
