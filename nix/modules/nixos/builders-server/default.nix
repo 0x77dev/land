@@ -17,6 +17,8 @@ in
     users.users.nixbuilder = {
       isSystemUser = true;
       group = "nixbuilder";
+      home = "/home/nixbuilder";
+      createHome = true;
       description = "Nix remote build user";
       shell = pkgs.bash;
     };
