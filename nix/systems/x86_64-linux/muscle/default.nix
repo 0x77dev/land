@@ -159,11 +159,6 @@
     chromium = {
       enable = true;
       enablePlasmaBrowserIntegration = true;
-      # Extensions for 1Password integration
-      extensions = [
-        "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
-        "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
-      ];
     };
     # Fish shell
     fish.enable = true;
@@ -323,6 +318,9 @@
     btop
     fastfetch
     hwloc
+
+    # Web Browsers
+    chromium
 
     # Development tools
     git
