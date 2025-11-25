@@ -107,12 +107,8 @@ in
       # Disable anonymous analytics for privacy
       enableAnalyticsReporting = false;
 
-      # Netdata Cloud integration - use sops secret by default, allow override
-      claimTokenFile =
-        if cfg.claimTokenFile != null then
-          cfg.claimTokenFile
-        else
-          config.sops.secrets."netdata/claim_token".path;
+      # Don't use the deprecated claimTokenFile - we'll handle claiming manually via config
+      claimTokenFile = null;
 
       # Enable Python plugins for extended monitoring
       python = {
@@ -175,32 +171,30 @@ in
       ++ lib.optionals (config.virtualisation.incus.enable or false) [ "incus-admin" ]
       ++ lib.optionals (config.virtualisation.libvirtd.enable or false) [ "libvirtd" ];
 
-    # Ensure netdata can read system information
+    # Override systemd service configuration for better monitoring capabilities
     systemd.services.netdata.serviceConfig = {
-      # Allow netdata to monitor all processes
+      # Allow netdata to monitor all processes (required for process monitoring)
       ProtectProc = lib.mkForce "default";
       ProcSubset = lib.mkForce "all";
 
-      # Allow access to hardware information
+      # Allow access to hardware information (required for hardware monitoring)
       PrivateDevices = lib.mkForce false;
 
       # Allow access to cgroups for container monitoring
       ProtectControlGroups = lib.mkForce false;
-
-      # Allow write access to /etc/netdata for claiming
-      ReadWritePaths = lib.mkForce [ "/etc/netdata" ];
-
-      # Ensure proper permissions for claiming
-      ProtectSystem = lib.mkForce false;
-
-      # Add CAP_CHOWN for the claiming script (it tries to chown files)
-      AmbientCapabilities = [ "CAP_CHOWN" ];
     };
 
-    # Fix /etc/netdata ownership for claiming
-    # The claiming script needs write access to /etc/netdata
-    systemd.tmpfiles.rules = [
-      "d /etc/netdata 0755 ${config.services.netdata.user} ${config.services.netdata.group} -"
+    # Manual Netdata Cloud claiming configuration (replaces deprecated netdata-claim.sh)
+    # This writes the claim configuration directly instead of using the buggy claiming script
+    systemd.tmpfiles.rules = lib.mkIf (cfg.claimTokenFile != null) [
+      "d /var/lib/netdata/cloud.d 0755 ${config.services.netdata.user} ${config.services.netdata.group} -"
+      "L+ /var/lib/netdata/cloud.d/token - - - - ${config.sops.secrets."netdata/claim_token".path}"
     ];
+
+    # Configure Netdata Cloud claiming in the main config
+    services.netdata.config.cloud = lib.mkIf (cfg.claimTokenFile != null) {
+      "cloud base url" = "https://app.netdata.cloud";
+      "enabled" = "yes";
+    };
   };
 }
