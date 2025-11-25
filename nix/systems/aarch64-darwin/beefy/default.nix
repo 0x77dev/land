@@ -68,11 +68,12 @@ in
 
   services.openssh = {
     enable = true;
-    extraConfig = {
-      PermitRootLogin = "no";
-      # NOTE: don't do PasswordAuthentication = false; it will prevent remote FileVault unlock
-      AllowAgentForwarding = true;
-      StreamLocalBindUnlink = true;
-    };
+    # TODO: extraConfig is not in 25.05 yet
+    # extraConfig = {
+    #   PermitRootLogin = "no";
+    #   # NOTE: don't do PasswordAuthentication = false; it will prevent remote FileVault unlock
+    #   AllowAgentForwarding = true;
+    #   StreamLocalBindUnlink = true;
+    # };
   };
 }
