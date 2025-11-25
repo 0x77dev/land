@@ -24,12 +24,6 @@ in
       description = "Open firewall port for Netdata web UI";
     };
 
-    dataRetentionDays = lib.mkOption {
-      type = lib.types.int;
-      default = 7;
-      description = "Number of days to retain metrics data";
-    };
-
     enableGpuMonitoring = lib.mkOption {
       type = lib.types.bool;
       default = config.hardware.nvidia.modesetting.enable or false;
@@ -38,58 +32,30 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Netdata Cloud secrets
     sops.secrets."netdata/claim_token" = {
       mode = "0400";
       owner = user;
       inherit group;
-      key = "netdata/claim_token";
       sopsFile = ./secrets.yaml;
     };
 
     services.netdata = {
       enable = true;
       enableAnalyticsReporting = false;
+      claimTokenFile = config.sops.secrets."netdata/claim_token".path;
 
-      python = {
-        enable = true;
-        recommendedPythonPackages = true;
-      };
-
-      config = {
-        global = {
-          "default port" = toString cfg.webPort;
-          "history" = toString (cfg.dataRetentionDays * 86400);
-        };
-
-        web."bind to" = "*";
-
-        cloud = {
-          "cloud base url" = "https://app.netdata.cloud";
-          enabled = "yes";
-        };
-      };
+      config.global."default port" = toString cfg.webPort;
     };
 
-    # Netdata Cloud token
-    systemd.tmpfiles.rules = [
-      "d /var/lib/netdata/cloud.d 0755 ${user} ${group} -"
-      "L+ /var/lib/netdata/cloud.d/token - - - - ${config.sops.secrets."netdata/claim_token".path}"
-    ];
-
-    # GPU monitoring tools
     environment.systemPackages = lib.optional cfg.enableGpuMonitoring pkgs.nvtopPackages.full;
 
-    # Firewall
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.webPort ];
 
-    # Container monitoring groups
     users.users.netdata.extraGroups =
       lib.optional config.virtualisation.docker.enable "docker"
       ++ lib.optional config.virtualisation.incus.enable "incus-admin"
       ++ lib.optional config.virtualisation.libvirtd.enable "libvirtd";
 
-    # Service overrides for monitoring capabilities
     systemd.services.netdata.serviceConfig = {
       ProtectProc = lib.mkForce "default";
       ProcSubset = lib.mkForce "all";
