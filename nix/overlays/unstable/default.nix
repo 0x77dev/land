@@ -24,5 +24,6 @@ _final: _prev: {
     cudatoolkit
     cudaPackages
     opencode
+    netdata
     ;
 }
