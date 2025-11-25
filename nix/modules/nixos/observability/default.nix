@@ -62,7 +62,7 @@ in
           "history" = toString (cfg.dataRetentionDays * 86400);
         };
 
-        web.bindto = "*";
+        web."bind to" = "*";
 
         cloud = {
           "cloud base url" = "https://app.netdata.cloud";
