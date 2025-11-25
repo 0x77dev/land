@@ -192,6 +192,9 @@ in
 
       # Ensure proper permissions for claiming
       ProtectSystem = lib.mkForce false;
+
+      # Add CAP_CHOWN for the claiming script (it tries to chown files)
+      AmbientCapabilities = [ "CAP_CHOWN" ];
     };
 
     # Fix /etc/netdata ownership for claiming
