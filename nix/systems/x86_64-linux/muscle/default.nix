@@ -227,6 +227,7 @@
         PermitRootLogin = "no";
         PasswordAuthentication = false;
         AllowAgentForwarding = true;
+        StreamLocalBindUnlink = true;
       };
     };
     # Yubikey support - PC/SC Smart Card Daemon

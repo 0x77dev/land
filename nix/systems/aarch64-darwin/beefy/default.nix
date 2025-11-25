@@ -66,5 +66,20 @@ in
 
   programs.fish.enable = true;
 
-  services.openssh.enable = true;
+  services = {
+    iperf3 = {
+      enable = true;
+      openFirewall = true;
+    };
+    openssh = {
+      enable = true;
+      openFirewall = true;
+      settings = {
+        PermitRootLogin = "no";
+        PasswordAuthentication = false;
+        AllowAgentForwarding = true;
+        StreamLocalBindUnlink = true;
+      };
+    };
+  };
 }
