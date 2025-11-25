@@ -186,6 +186,12 @@ in
 
       # Allow access to cgroups for container monitoring
       ProtectControlGroups = lib.mkForce false;
+
+      # Allow write access to /etc/netdata for claiming
+      ReadWritePaths = lib.mkForce [ "/etc/netdata" ];
+
+      # Ensure proper permissions for claiming
+      ProtectSystem = lib.mkForce false;
     };
   };
 }
