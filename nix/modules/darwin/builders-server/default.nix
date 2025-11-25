@@ -41,9 +41,8 @@ in
     };
 
     sops.secrets."builders/ssh_private_key" = {
-      mode = "0440"; # Group-readable for nixbld
+      mode = "0400"; # SSH requires strict permissions
       owner = "root";
-      group = "nixbld";
       key = "ssh/private_key";
       sopsFile = inputs.self + "/nix/lib/builders/secrets.yaml";
     };
