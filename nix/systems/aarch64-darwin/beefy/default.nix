@@ -68,9 +68,9 @@ in
 
   services.openssh = {
     enable = true;
-    settings = {
+    extraConfig = {
       PermitRootLogin = "no";
-      PasswordAuthentication = false;
+      # NOTE: don't do PasswordAuthentication = false; it will prevent remote FileVault unlock
       AllowAgentForwarding = true;
       StreamLocalBindUnlink = true;
     };
