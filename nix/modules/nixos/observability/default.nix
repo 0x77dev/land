@@ -95,7 +95,8 @@ in
     # Configure sops secrets for Netdata Cloud
     sops.secrets."netdata/claim_token" = {
       mode = "0400";
-      inherit (config.services.netdata) user group;
+      owner = config.services.netdata.user;
+      inherit (config.services.netdata) group;
       key = "netdata/claim_token";
       sopsFile = ./secrets.yaml;
     };
