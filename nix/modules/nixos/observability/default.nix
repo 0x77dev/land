@@ -41,7 +41,8 @@ in
     # Netdata Cloud secrets
     sops.secrets."netdata/claim_token" = {
       mode = "0400";
-      inherit user group;
+      owner = user;
+      inherit group;
       key = "netdata/claim_token";
       sopsFile = ./secrets.yaml;
     };
