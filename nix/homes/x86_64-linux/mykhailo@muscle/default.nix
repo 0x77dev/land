@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -28,7 +29,10 @@ in
     security.enable = true;
     shell.enable = true;
     ssh.enable = true;
-    gpg.enable = true;
+    gpg = {
+      enable = true;
+      pinentryPackage = pkgs.pinentry-qt;
+    };
   };
 
 }

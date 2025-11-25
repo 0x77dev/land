@@ -245,6 +245,7 @@
     "pinentry",
     "pipefail",
     "pipewire",
+    "PLATFORMTHEME",
     "PKCS",
     "pkgs",
     "pkgsi",

@@ -9,11 +9,34 @@ with lib;
 let
   cfg = config.modules.home.gpg;
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
-  pinentryPackage = if isDarwin then pkgs.pinentry_mac else pkgs.pinentry-curses;
 in
 {
   options.modules.home.gpg = {
     enable = mkEnableOption "gpg";
+
+    pinentryPackage = mkOption {
+      type = types.nullOr types.package;
+      default = null;
+      defaultText = literalExpression "if isDarwin then pkgs.pinentry_mac else pkgs.pinentry-curses";
+      example = literalExpression "pkgs.pinentry-qt";
+      description = ''
+        Override the pinentry package for GPG password prompts.
+
+        If null, uses platform defaults:
+        - macOS: pinentry_mac (native keychain integration)
+        - Linux: pinentry-curses (terminal-based)
+
+        Common options:
+        - pinentry-qt: Qt/KDE integration (recommended for KDE Plasma)
+        - pinentry-gnome3: GNOME integration
+        - pinentry-gtk2: GTK2 integration
+        - pinentry-curses: Terminal-based (lightweight)
+        - pinentry-tty: Minimal TTY version
+
+        Note: For KDE Plasma systems, consider enabling programs.gnupg.agent
+        at the system level instead, which auto-selects pinentry-qt.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -58,7 +81,11 @@ in
       enable = true;
       enableSshSupport = true;
       enableExtraSocket = true;
-      pinentry.package = pinentryPackage;
+      pinentry.package =
+        if cfg.pinentryPackage != null then
+          cfg.pinentryPackage
+        else
+          (if isDarwin then pkgs.pinentry_mac else pkgs.pinentry-curses);
       defaultCacheTtl = 3600;
       defaultCacheTtlSsh = 3600;
       maxCacheTtl = 7200;

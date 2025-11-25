@@ -78,6 +78,14 @@
 
   # Programs configuration
   programs = {
+    # GnuPG agent for GPG and SSH operations
+    # Explicitly set pinentry-qt for KDE Plasma integration
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+      pinentryPackage = pkgs.pinentry-qt;
+    };
+
     # ALVR for VR
     alvr = {
       enable = true;
@@ -262,61 +270,73 @@
 
   fonts.fontconfig.enable = true;
 
-  # System packages for workstation
-  environment.systemPackages = with pkgs; [
-    # NVIDIA utilities
-    nvtopPackages.full
-    cudatoolkit
-    cudaPackages.libcufile
-    cudaPackages.gdrcopy
-    cudaPackages.nccl
+  # Environment configuration
+  environment = {
+    # Qt environment variables for proper pinentry-qt theme integration
+    sessionVariables = {
+      QT_QPA_PLATFORMTHEME = "kde";
+      QT_QPA_PLATFORM = "wayland";
+    };
 
-    # System monitoring
-    btop
-    fastfetch
-    hwloc
+    # System packages for workstation
+    systemPackages = with pkgs; [
+      # NVIDIA utilities
+      nvtopPackages.full
+      cudatoolkit
+      cudaPackages.libcufile
+      cudaPackages.gdrcopy
+      cudaPackages.nccl
 
-    # Web Browsers
-    chromium
+      # System monitoring
+      btop
+      fastfetch
+      hwloc
 
-    # Fonts
-    pkgs.${namespace}.tx-02-variable
+      # Web Browsers
+      chromium
 
-    # Development tools
-    gitFull
-    vim
+      # Fonts
+      pkgs.${namespace}.tx-02-variable
 
-    # Network tools
-    iperf3
+      # Development tools
+      gitFull
+      vim
 
-    # Gaming utilities (additional to programs.*)
-    steamtinkerlaunch # Advanced Steam launcher with many tweaks
-    protontricks # Tool to run Winetricks commands for Proton games
+      # Network tools
+      iperf3
 
-    # Yubikey utilities
-    yubikey-personalization # CLI tools for configuring YubiKey
-    yubikey-manager # YubiKey Manager CLI and GUI
-    libfido2 # Support for FIDO2/WebAuthn
-    opensc # Smart card library and applications
+      # Gaming utilities (additional to programs.*)
+      steamtinkerlaunch # Advanced Steam launcher with many tweaks
+      protontricks # Tool to run Winetricks commands for Proton games
 
-    # KDE utilities (additional, beyond defaults)
-    kdePackages.kcalc
-    kdePackages.kcolorchooser
-    kdePackages.kruler
-    kdePackages.kdenlive
-    kdePackages.krdc # Remote desktop client
-    kdePackages.krfb # Remote desktop server
-    kdePackages.kwalletmanager # KWallet management tool
-    kdePackages.filelight # Disk usage visualization
-  ];
+      # Yubikey utilities
+      yubikey-personalization # CLI tools for configuring YubiKey
+      yubikey-manager # YubiKey Manager CLI and GUI
+      libfido2 # Support for FIDO2/WebAuthn
+      opensc # Smart card library and applications
+
+      # Pinentry for GPG (Qt variant for KDE Plasma integration)
+      pinentry-qt
+
+      # KDE utilities (additional, beyond defaults)
+      kdePackages.kcalc
+      kdePackages.kcolorchooser
+      kdePackages.kruler
+      kdePackages.kdenlive
+      kdePackages.krdc # Remote desktop client
+      kdePackages.krfb # Remote desktop server
+      kdePackages.kwalletmanager # KWallet management tool
+      kdePackages.filelight # Disk usage visualization
+    ];
+
+    # CUDA support
+    variables = {
+      CUDA_PATH = "${pkgs.cudatoolkit}";
+    };
+  };
 
   # Yubikey udev rules for proper device access
   services.udev.packages = [ pkgs.yubikey-personalization ];
-
-  # CUDA support
-  environment.variables = {
-    CUDA_PATH = "${pkgs.cudatoolkit}";
-  };
 
   networking.firewall.enable = false;
 
