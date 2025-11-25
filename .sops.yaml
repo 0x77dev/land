@@ -36,6 +36,7 @@ creation_rules:
       - *tomato
       - *pickle
       - *potato
+      - *muscle
       - *media
       - *ipfs
 

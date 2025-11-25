@@ -91,13 +91,7 @@
       storageDriver = "overlay2";
     };
 
-    # VirtualBox for easier VM management
-    virtualbox.host = {
-      enable = true;
-      enableExtensionPack = true;
-    };
-
-    # Keep libvirtd as backup option
+    # libvirtd for VM management
     libvirtd = {
       enable = true;
       qemu = {
@@ -282,6 +276,7 @@
 
   modules = {
     vscode-server.enable = true;
+    observability.enable = true;
 
     # Distributed builds configuration
     builders = {
@@ -309,7 +304,6 @@
       "audio"
       "libvirtd"
       "kvm"
-      "vboxusers"
     ];
     shell = pkgs.fish;
   };

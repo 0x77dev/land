@@ -20,6 +20,7 @@
       useLatestKernel = true;
     };
     cluster.incus.enable = true;
+    observability.enable = true;
     builders = {
       enable = true;
       speedFactor = 2;
