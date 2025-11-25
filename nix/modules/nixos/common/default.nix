@@ -26,12 +26,7 @@
     btop
     ncdu
     nettools
+    hwloc
     bind
   ];
-
-  # SSH
-  services.openssh = {
-    enable = true;
-    settings.StreamLocalBindUnlink = "yes";
-  };
 }
