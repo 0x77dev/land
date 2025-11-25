@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 {
@@ -305,6 +306,8 @@
     shell = pkgs.fish;
   };
 
+  fonts.fontconfig.enable = true;
+
   # System packages for workstation
   environment.systemPackages = with pkgs; [
     # NVIDIA utilities
@@ -322,8 +325,11 @@
     # Web Browsers
     chromium
 
+    # Fonts
+    pkgs.${namespace}.tx-02-variable
+
     # Development tools
-    git
+    gitFull
     vim
 
     # Network tools
