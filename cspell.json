@@ -36,6 +36,7 @@
     "CCFLAGS",
     "chainguard",
     "chflags",
+    "bindto",
     "CKNN",
     "code-cursor-fhs",
     "colord",
