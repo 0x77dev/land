@@ -13,6 +13,7 @@ keys:
   - &media age1qunw4q04cdg2lzaagkxjkr2gee8kyhxr9l6fsfd5wgm0d2w2tpcsqe8zuw
   - &ipfs age10k62z44u66nw4f3y9qjjf0k36rxv5fd23p0plsrmwem55frpaevsnuwc3p
   - &muscle age1qeflxvwq07z0r70mgunmgxdkclkm324m9t8wjefqqrvwz4lpluhqwpjf05
+  - &muscle_home age16vp3hef207xyu20ndzz9rlqe9a38v6kf9pe8zgv224jxt7c6lflqp6w0fg
   - &beefy age1yfuufkuzey2fvda2slpz3wwyz7suf6f4chha9u7a4hs8gfynr5ds7npram
 
 creation_rules:
@@ -37,6 +38,7 @@ creation_rules:
       - *pickle
       - *potato
       - *muscle
+      - *muscle_home
       - *media
       - *ipfs
 
