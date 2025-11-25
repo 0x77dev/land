@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }:
 {
@@ -363,6 +364,8 @@
   };
 
   networking.firewall.enable = false;
+
+  nix.buildMachines = lib.mkForce [ ];
 
   system.stateVersion = "25.05";
 }
