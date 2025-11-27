@@ -54,13 +54,19 @@ in
     users.users.netdata.extraGroups =
       lib.optional config.virtualisation.docker.enable "docker"
       ++ lib.optional config.virtualisation.incus.enable "incus-admin"
-      ++ lib.optional config.virtualisation.libvirtd.enable "libvirtd";
+      ++ lib.optional config.virtualisation.libvirtd.enable "libvirtd"
+      ++ lib.optional cfg.enableGpuMonitoring "video";
 
-    systemd.services.netdata.serviceConfig = {
-      ProtectProc = lib.mkForce "default";
-      ProcSubset = lib.mkForce "all";
-      PrivateDevices = lib.mkForce false;
-      ProtectControlGroups = lib.mkForce false;
+    systemd.services.netdata = {
+      # Append nvidia package to the existing path (don't replace it)
+      path = lib.mkIf cfg.enableGpuMonitoring [ config.hardware.nvidia.package ];
+
+      serviceConfig = {
+        ProtectProc = lib.mkForce "default";
+        ProcSubset = lib.mkForce "all";
+        PrivateDevices = lib.mkForce false;
+        ProtectControlGroups = lib.mkForce false;
+      };
     };
   };
 }

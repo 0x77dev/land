@@ -27,7 +27,22 @@
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
+    # Kernel tuning for swap behavior
+    kernel.sysctl = {
+      "vm.swappiness" = 10; # Prefer RAM, use swap only when necessary
+      "vm.overcommit_memory" = 1; # Allow memory overcommit
+      "vm.overcommit_ratio" = 100;
+    };
   };
+
+  # 512GB swap file for memory-intensive CUDA builds
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 256 * 1024;
+      options = [ "discard" ]; # Enable TRIM for NVMe longevity
+    }
+  ];
 
   # Hardware configuration
   hardware = {
