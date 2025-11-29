@@ -82,6 +82,7 @@ After initial setup, use `deploy .#potato -s --remote-build` for updates.
 | `potato` | `aarch64-darwin` | Workstation | M4 Max, 48GB |
 | `tomato` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
 | `pickle` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
+| `timey` | `aarch64-linux` | IoT/Edge | RPi 5, eMMC |
 | `melon` | `aarch64-linux` | IoT/Edge | RPi 4B, 4GB+, PoE |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
