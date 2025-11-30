@@ -29,6 +29,10 @@ mkShell {
       inputs.deploy-rs.packages.${system}.deploy-rs
       inputs.nixos-anywhere.packages.${system}.nixos-anywhere
       just
+      cachix
+      rpiboot
+      zstd
+      pv
     ]
     ++ preCommit.enabledPackages;
 }

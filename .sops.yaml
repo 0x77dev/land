@@ -9,6 +9,7 @@ keys:
   - &tomato age1q2w3f6zzt7tgykpy8av47k9xv5lmqthq2yvg7pv3xaa8xzh8lf8qs4zzu0
   - &pickle age1qrvvl2k5jlhe8kr5ng2003vfc7xw5fl4eqt0j3js0luttzv8qsmszey5gp
   - &potato age162xgj9syl0k3fhre4gjc2e4m0vatcz2dw3zw0l65rhqf9mdgvy0s0jaw8t
+  - &timey age1laxcgl7hyyqvlthqv26am0afmtszgnctcllsw6qt4mv5ac3pe9usdl7z3h
 
   - &media age1qunw4q04cdg2lzaagkxjkr2gee8kyhxr9l6fsfd5wgm0d2w2tpcsqe8zuw
   - &ipfs age10k62z44u66nw4f3y9qjjf0k36rxv5fd23p0plsrmwem55frpaevsnuwc3p
@@ -27,6 +28,7 @@ creation_rules:
       - *potato
       - *muscle
       - *beefy
+      - *timey
       - *media
       - *ipfs
   - path_regex: secrets.*\.(yaml|json|env|ini)$
@@ -41,4 +43,6 @@ creation_rules:
       - *muscle_home
       - *media
       - *ipfs
+      - *timey
+      - *beefy
 

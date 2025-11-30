@@ -137,6 +137,8 @@
     firewall.enable = false;
   };
 
+  services.time-client.enable = true;
+
   # User configuration
   snowfallorg.users.mykhailo = {
     create = true;

@@ -49,6 +49,14 @@
   };
 
   services = {
+    time-client = {
+      enable = true;
+      ptp = {
+        enable = true;
+        interface = "enp2s0f0np0"; # First 10GbE NIC (bonded, but PTP uses physical)
+        timestamping = "software"; # Match timey's software timestamping
+      };
+    };
     iperf3 = {
       enable = true;
       openFirewall = true;

@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -23,12 +22,6 @@ in
       default = true;
       description = "Open firewall port for Netdata web UI";
     };
-
-    enableGpuMonitoring = lib.mkOption {
-      type = lib.types.bool;
-      default = config.hardware.nvidia.modesetting.enable or false;
-      description = "Enable NVIDIA GPU monitoring (auto-detected)";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -39,34 +32,25 @@ in
       sopsFile = ./secrets.yaml;
     };
 
-    services.netdata = {
+    services.netdata = lib.mkDefault {
       enable = true;
       enableAnalyticsReporting = false;
       claimTokenFile = config.sops.secrets."netdata/claim_token".path;
-
       config.global."default port" = toString cfg.webPort;
     };
-
-    environment.systemPackages = lib.optional cfg.enableGpuMonitoring pkgs.nvtopPackages.full;
 
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.webPort ];
 
     users.users.netdata.extraGroups =
       lib.optional config.virtualisation.docker.enable "docker"
       ++ lib.optional config.virtualisation.incus.enable "incus-admin"
-      ++ lib.optional config.virtualisation.libvirtd.enable "libvirtd"
-      ++ lib.optional cfg.enableGpuMonitoring "video";
+      ++ lib.optional config.virtualisation.libvirtd.enable "libvirtd";
 
-    systemd.services.netdata = {
-      # Append nvidia package to the existing path (don't replace it)
-      path = lib.mkIf cfg.enableGpuMonitoring [ config.hardware.nvidia.package ];
-
-      serviceConfig = {
-        ProtectProc = lib.mkForce "default";
-        ProcSubset = lib.mkForce "all";
-        PrivateDevices = lib.mkForce false;
-        ProtectControlGroups = lib.mkForce false;
-      };
+    systemd.services.netdata.serviceConfig = {
+      ProtectProc = lib.mkForce "default";
+      ProcSubset = lib.mkForce "all";
+      PrivateDevices = lib.mkForce false;
+      ProtectControlGroups = lib.mkForce false;
     };
   };
 }

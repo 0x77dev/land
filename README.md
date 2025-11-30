@@ -42,6 +42,28 @@ nixos-anywhere --flake .#tomato nixos@<host>
 nix build '.#nixosConfigurations.melon.config.system.build.sdImage'
 ```
 
+### Flashing eMMC via rpiboot
+
+For Compute Modules or devices with eMMC (like `timey`), use
+[`rpiboot`](https://www.raspberrypi.com/documentation/computers/compute-module.html)
+to mount the storage:
+
+1. Connect device via USB slave port (ensure USB boot jumper/switch is set).
+
+2. Run `rpiboot` (available in dev shell):
+
+    ```bash
+    sudo rpiboot
+    ```
+
+3. Flash the image to the exposed block device (e.g. `/dev/sda`):
+
+    ```bash
+    nix build '.#nixosConfigurations.timey.config.system.build.sdImage'
+    zstdcat result/sd-image/nixos-sd-image-rpi5-kernel.img.zst | \
+      sudo dd of=/dev/sdb bs=4M status=progress conv=fsync
+    ```
+
 ### Ongoing Updates
 
 Deploy from development shell:
@@ -82,7 +104,7 @@ After initial setup, use `deploy .#potato -s --remote-build` for updates.
 | `potato` | `aarch64-darwin` | Workstation | M4 Max, 48GB |
 | `tomato` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
 | `pickle` | `x86_64-linux` | Homelab / Cluster | MS-01, i9-13900H, 96GB |
-| `timey` | `aarch64-linux` | IoT/Edge | RPi 5, eMMC |
+| `timey` | `aarch64-linux` | IoT/Edge/Time | RPi 5, eMMC |
 | `melon` | `aarch64-linux` | IoT/Edge | RPi 4B, 4GB+, PoE |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |

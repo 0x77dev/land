@@ -5,23 +5,6 @@
   namespace,
   ...
 }:
-let
-  # Override Monado to use PSVR2 work branch
-  monado-psvr2 = pkgs.monado.overrideAttrs (_oldAttrs: {
-    version = "unstable-psvr2-2025-11-28";
-
-    src = pkgs.fetchFromGitLab {
-      domain = "gitlab.freedesktop.org";
-      owner = "Beyley";
-      repo = "monado";
-      rev = "4cf155b3b0d91b5c2311e997bbf8646ca9df979b";
-      hash = "sha256-zuXxrSydW+0a1n/2oYZ/pXYlk1AzuuM4eXaLMiNLO6A=";
-    };
-
-    # Remove upstream patches since we're using a fork with latest changes
-    patches = [ ];
-  });
-in
 {
   imports = [
     ./disko-config.nix
@@ -228,24 +211,6 @@ in
     # Enables Yubikey for FIDO2, U2F, OTP, PIV, and OpenPGP operations
     # NOTE: Does not affect existing SSH or GPG configurations
     pcscd.enable = true;
-
-    # Monado OpenXR runtime with PSVR2 support
-    monado = {
-      enable = true;
-      package = monado-psvr2;
-      defaultRuntime = true;
-      forceDefaultRuntime = true;
-      highPriority = true;
-    };
-  };
-
-  # Force NVIDIA direct display mode for VR with explicit PSVR2 connector
-  # PSVR2 is on card1 DP-3 (connector id 111: "SNY DP-3-PS VR2")
-  systemd.user.services.monado.environment = {
-    XRT_COMPOSITOR_FORCE_NVIDIA = "1";
-    XRT_COMPOSITOR_FORCE_NVIDIA_DISPLAY = "DP-3";
-    # Enable compute compositor to avoid stuttering when below max refresh rate
-    XRT_COMPOSITOR_COMPUTE = "1";
   };
 
   # XDG Portal support for proper Wayland integration
@@ -299,6 +264,15 @@ in
     };
   };
 
+  services.time-client = {
+    enable = true;
+    ptp = {
+      enable = true;
+      interface = "eno1np0"; # 10GbE NIC with PTP support
+      timestamping = "software"; # Match timey's software timestamping
+    };
+  };
+
   # User configuration
   snowfallorg.users.mykhailo = {
     create = true;
@@ -325,12 +299,6 @@ in
 
   # Environment configuration
   environment = {
-    # Qt environment variables for proper pinentry-qt theme integration
-    sessionVariables = {
-      QT_QPA_PLATFORMTHEME = "kde";
-      QT_QPA_PLATFORM = "wayland";
-    };
-
     # System packages for workstation
     systemPackages = with pkgs; [
       # NVIDIA utilities

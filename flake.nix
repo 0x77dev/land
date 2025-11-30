@@ -85,10 +85,12 @@
     extra-substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
+      "https://nixos-raspberrypi.cachix.org"
     ];
     extra-trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
     ];
   };
 
@@ -114,6 +116,14 @@
       outputs = lib.mkFlake {
         channels-config.allowUnfree = true;
 
+        overlays = with inputs; [
+          nixos-raspberrypi.overlays.bootloader
+          nixos-raspberrypi.overlays.vendor-kernel
+          nixos-raspberrypi.overlays.vendor-firmware
+          nixos-raspberrypi.overlays.kernel-and-firmware
+          nixos-raspberrypi.overlays.vendor-pkgs
+        ];
+
         systems.modules.darwin = with inputs; [
           nix-homebrew.darwinModules.nix-homebrew
           sops-nix.darwinModules.sops
@@ -124,6 +134,7 @@
           disko.nixosModules.disko
           nixos-vscode-server.nixosModules.default
           vpn-confinement.nixosModules.default
+          nixos-generators.nixosModules.all-formats
         ];
 
         homes.modules = with inputs; [
