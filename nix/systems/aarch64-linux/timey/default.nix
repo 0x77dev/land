@@ -8,15 +8,11 @@
 {
   imports = [
     ./disko-config.nix
-    inputs.nixos-hardware.nixosModules.raspberry-pi-5
+    inputs.nixos-raspberrypi.lib.inject-overlays
+    ./raspberrypi/rpi5-base.nix
+    ./raspberrypi/rpi5-page-size-16k.nix
+    ./raspberrypi/usb-gadget-ethernet.nix
   ];
-
-  # Bootloader configuration
-  boot.loader = {
-    grub.enable = false;
-    generic-extlinux-compatible.enable = true;
-    efi.canTouchEfiVariables = false;
-  };
 
   modules = {
     observability.enable = true;

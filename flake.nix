@@ -77,6 +77,8 @@
     };
 
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
+
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
 
   nixConfig = {

@@ -5,6 +5,23 @@
   namespace,
   ...
 }:
+let
+  # Override Monado to use PSVR2 work branch
+  monado-psvr2 = pkgs.monado.overrideAttrs (_oldAttrs: {
+    version = "unstable-psvr2-2025-11-28";
+
+    src = pkgs.fetchFromGitLab {
+      domain = "gitlab.freedesktop.org";
+      owner = "Beyley";
+      repo = "monado";
+      rev = "4cf155b3b0d91b5c2311e997bbf8646ca9df979b";
+      hash = "sha256-zuXxrSydW+0a1n/2oYZ/pXYlk1AzuuM4eXaLMiNLO6A=";
+    };
+
+    # Remove upstream patches since we're using a fork with latest changes
+    patches = [ ];
+  });
+in
 {
   imports = [
     ./disko-config.nix
@@ -33,6 +50,8 @@
       "vm.overcommit_memory" = 1; # Allow memory overcommit
       "vm.overcommit_ratio" = 100;
     };
+    # Enable binfmt emulation for aarch64-linux builds
+    binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
 
   # 512GB swap file for memory-intensive CUDA builds
@@ -209,6 +228,24 @@
     # Enables Yubikey for FIDO2, U2F, OTP, PIV, and OpenPGP operations
     # NOTE: Does not affect existing SSH or GPG configurations
     pcscd.enable = true;
+
+    # Monado OpenXR runtime with PSVR2 support
+    monado = {
+      enable = true;
+      package = monado-psvr2;
+      defaultRuntime = true;
+      forceDefaultRuntime = true;
+      highPriority = true;
+    };
+  };
+
+  # Force NVIDIA direct display mode for VR with explicit PSVR2 connector
+  # PSVR2 is on card1 DP-3 (connector id 111: "SNY DP-3-PS VR2")
+  systemd.user.services.monado.environment = {
+    XRT_COMPOSITOR_FORCE_NVIDIA = "1";
+    XRT_COMPOSITOR_FORCE_NVIDIA_DISPLAY = "DP-3";
+    # Enable compute compositor to avoid stuttering when below max refresh rate
+    XRT_COMPOSITOR_COMPUTE = "1";
   };
 
   # XDG Portal support for proper Wayland integration
@@ -279,6 +316,7 @@
       "video"
       "audio"
       "kvm"
+      "input"
     ];
     shell = pkgs.fish;
   };
@@ -350,8 +388,11 @@
     };
   };
 
-  # Yubikey udev rules for proper device access
-  services.udev.packages = [ pkgs.yubikey-personalization ];
+  # Yubikey and VR device udev rules for proper device access
+  services.udev.packages = with pkgs; [
+    yubikey-personalization
+    xr-hardware
+  ];
 
   networking.firewall.enable = false;
 

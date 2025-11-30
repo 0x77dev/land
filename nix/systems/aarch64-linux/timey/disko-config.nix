@@ -3,24 +3,25 @@
     disk = {
       emmc = {
         type = "disk";
-        # eMMC device path - typically /dev/mmcblk0 for RPi5/CM5
-        # Verify actual device path with: lsblk
         device = "/dev/mmcblk0";
         content = {
           type = "gpt";
           partitions = {
-            # RPi firmware partition (FAT32)
             firmware = {
               size = "512M";
-              type = "EF00"; # EFI System Partition
+              type = "EF00";
               content = {
                 type = "filesystem";
                 format = "vfat";
                 mountpoint = "/boot/firmware";
-                mountOptions = [ "umask=0077" ];
+                mountOptions = [
+                  "noatime"
+                  "noauto"
+                  "x-systemd.automount"
+                  "x-systemd.idle-timeout=1min"
+                ];
               };
             };
-            # Root partition (ext4 for simplicity and reliability on RPi)
             root = {
               size = "100%";
               content = {
