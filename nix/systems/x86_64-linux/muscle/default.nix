@@ -76,7 +76,15 @@
     cudaSupport = true;
   };
 
+  qt = {
+    enable = true;
+    platformTheme = "gnome";
+    style = "adwaita-dark";
+  };
+
   programs = {
+    dconf.enable = true;
+
     gnupg.agent = {
       enable = true;
       enableSSHSupport = true;
@@ -109,6 +117,12 @@
       videoDrivers = [ "nvidia" ];
       desktopManager.gnome.enable = true;
       displayManager.gdm.enable = true;
+    };
+
+    gnome = {
+      core-os-services.enable = true;
+      core-shell.enable = true;
+      core-apps.enable = true;
     };
 
     pipewire = {
@@ -194,17 +208,11 @@
 
   fonts.fontconfig.enable = true;
 
-  environment.gnome.excludePackages = with pkgs; [
-    gnome-tour
-    epiphany
-    geary
-    gnome-music
-    totem
-    gnome-photos
-    gnome-connections
-  ];
-
   environment = {
+    gnome.excludePackages = with pkgs; [
+      yelp
+    ];
+
     systemPackages = with pkgs; [
       nvtopPackages.full
       cudatoolkit
@@ -224,6 +232,10 @@
       libfido2
       opensc
       ghostty
+      adwaita-icon-theme
+      dconf-editor
+      wl-clipboard
+      xdg-utils
       gnome-tweaks
       gnome-extension-manager
       gnomeExtensions.dash-to-panel
@@ -232,7 +244,9 @@
       gnomeExtensions.just-perfection
     ];
 
-    variables.CUDA_PATH = "${pkgs.cudatoolkit}";
+    variables = {
+      CUDA_PATH = "${pkgs.cudatoolkit}";
+    };
   };
 
   services.udev.packages = [ pkgs.yubikey-personalization ];
