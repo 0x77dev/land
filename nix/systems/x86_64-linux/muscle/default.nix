@@ -13,7 +13,7 @@
   networking = {
     hostName = "muscle";
     domain = "0x77.computer";
-    useDHCP = true;
+    useDHCP = lib.mkForce true;
   };
 
   boot = {
