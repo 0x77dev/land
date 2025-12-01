@@ -108,9 +108,8 @@
       xkb.layout = "us";
       videoDrivers = [ "nvidia" ];
       desktopManager.gnome.enable = true;
+      displayManager.gdm.enable = true;
     };
-
-    displayManager.gdm.enable = true;
 
     pipewire = {
       enable = true;
