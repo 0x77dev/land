@@ -196,11 +196,10 @@
 
   environment.gnome.excludePackages = with pkgs; [
     gnome-tour
-    gnome.epiphany
-    gnome.geary
-    gnome.gnome-music
-    gnome.totem
-    gnome.yelp
+    epiphany
+    geary
+    gnome-music
+    totem
     gnome-photos
     gnome-connections
   ];
