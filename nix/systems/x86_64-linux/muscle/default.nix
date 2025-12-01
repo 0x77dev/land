@@ -64,7 +64,6 @@
         };
       };
     };
-    steam-hardware.enable = true;
   };
 
   virtualisation.docker = {
@@ -84,33 +83,6 @@
       pinentryPackage = pkgs.pinentry-gnome3;
     };
 
-    alvr = {
-      enable = true;
-      openFirewall = true;
-    };
-
-    steam = {
-      enable = true;
-      remotePlay.openFirewall = true;
-      dedicatedServer.openFirewall = true;
-      localNetworkGameTransfers.openFirewall = true;
-      gamescopeSession.enable = true;
-      extraCompatPackages = with pkgs; [ proton-ge-bin ];
-    };
-
-    gamemode = {
-      enable = true;
-      enableRenice = true;
-      settings = {
-        general.renice = 10;
-        gpu = {
-          apply_gpu_optimisations = "accept-responsibility";
-          gpu_device = 0;
-          amd_performance_level = "high";
-        };
-      };
-    };
-
     appimage = {
       enable = true;
       binfmt = true;
@@ -126,17 +98,15 @@
   };
 
   services = {
-    desktopManager.cosmic = {
-      enable = true;
-      xwayland.enable = true;
-    };
-    displayManager.cosmic-greeter.enable = true;
-
     xserver = {
       enable = true;
       xkb.layout = "us";
       videoDrivers = [ "nvidia" ];
+      desktopManager.cinnamon.enable = true;
+      displayManager.lightdm.enable = true;
     };
+
+    cinnamon.apps.enable = true;
 
     pipewire = {
       enable = true;
@@ -236,8 +206,6 @@
       gitFull
       vim
       iperf3
-      steamtinkerlaunch
-      protontricks
       yubikey-personalization
       yubikey-manager
       libfido2
@@ -247,10 +215,7 @@
     variables.CUDA_PATH = "${pkgs.cudatoolkit}";
   };
 
-  services.udev.packages = with pkgs; [
-    yubikey-personalization
-    xr-hardware
-  ];
+  services.udev.packages = [ pkgs.yubikey-personalization ];
 
   networking.firewall.enable = false;
 
