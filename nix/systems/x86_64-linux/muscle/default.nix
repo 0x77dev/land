@@ -224,7 +224,7 @@
       libfido2
       opensc
       ghostty
-      gnome.gnome-tweaks
+      gnome-tweaks
       gnome-extension-manager
       gnomeExtensions.dash-to-panel
       gnomeExtensions.appindicator
