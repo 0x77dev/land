@@ -39,6 +39,7 @@
     "bootable",
     "Bootable",
     "bootcode",
+    "xwayland",
     "BOOTCODE",
     "bootloaders",
     "boottarget",

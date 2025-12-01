@@ -10,47 +10,37 @@
     ./disko-config.nix
   ];
 
-  # Hostname and networking
   networking = {
     hostName = "muscle";
     domain = "0x77.computer";
     useDHCP = true;
   };
 
-  # Boot configuration
   boot = {
-    kernelModules = [
-      "kvm-amd"
-      # TODO: Add nvidia-fs module
-    ];
+    kernelModules = [ "kvm-amd" ];
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
-    # Kernel tuning for swap behavior
     kernel.sysctl = {
-      "vm.swappiness" = 10; # Prefer RAM, use swap only when necessary
-      "vm.overcommit_memory" = 1; # Allow memory overcommit
+      "vm.swappiness" = 10;
+      "vm.overcommit_memory" = 1;
       "vm.overcommit_ratio" = 100;
     };
-    # Enable binfmt emulation for aarch64-linux builds
     binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
 
-  # 512GB swap file for memory-intensive CUDA builds
   swapDevices = [
     {
       device = "/var/lib/swapfile";
       size = 256 * 1024;
-      options = [ "discard" ]; # Enable TRIM for NVMe longevity
+      options = [ "discard" ];
     }
   ];
 
-  # Hardware configuration
   hardware = {
     enableRedistributableFirmware = true;
     cpu.amd.updateMicrocode = true;
-    # NVIDIA Configuration (Open-source drivers for RTX 6000 Ada)
     nvidia = {
       open = true;
       package = config.boot.kernelPackages.nvidiaPackages.stable;
@@ -59,74 +49,60 @@
       powerManagement.enable = true;
       powerManagement.finegrained = false;
     };
-    # Enable NVIDIA Container Toolkit for Docker/Podman
     nvidia-container-toolkit.enable = true;
-    # GPU and graphics
     graphics = {
       enable = true;
       enable32Bit = true;
     };
-    # Bluetooth support (integrates with KDE via bluedevil)
     bluetooth = {
       enable = true;
       powerOnBoot = true;
       settings = {
         General = {
           Enable = "Source,Sink,Media,Socket";
-          Experimental = true; # Enable experimental features for better device support
+          Experimental = true;
         };
       };
     };
-    # Steam hardware support (controllers, VR, etc)
     steam-hardware.enable = true;
   };
 
-  # Virtualisation
   virtualisation.docker = {
     enable = true;
     storageDriver = "overlay2";
   };
 
-  # Allow unfree packages (needed for NVIDIA drivers)
   nixpkgs.config = {
     allowUnfree = true;
     cudaSupport = true;
   };
 
-  # Programs configuration
   programs = {
-    # GnuPG agent for GPG and SSH operations
-    # Explicitly set pinentry-qt for KDE Plasma integration
     gnupg.agent = {
       enable = true;
       enableSSHSupport = true;
-      pinentryPackage = pkgs.pinentry-qt;
+      pinentryPackage = pkgs.pinentry-gnome3;
     };
 
-    # ALVR for VR
     alvr = {
       enable = true;
       openFirewall = true;
     };
-    # Gaming - Steam with full optimization (NixOS Wiki best practices)
+
     steam = {
       enable = true;
-      remotePlay.openFirewall = true; # Open ports for Steam Remote Play
-      dedicatedServer.openFirewall = true; # Open ports for Source Dedicated Server
-      localNetworkGameTransfers.openFirewall = true; # Open ports for local transfers
-      gamescopeSession.enable = true; # Enable GameScope session for better gaming performance
-      extraCompatPackages = with pkgs; [
-        proton-ge-bin # GE-Proton for better game compatibility
-      ];
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+      localNetworkGameTransfers.openFirewall = true;
+      gamescopeSession.enable = true;
+      extraCompatPackages = with pkgs; [ proton-ge-bin ];
     };
-    # GameMode for automatic performance optimizations when gaming
+
     gamemode = {
       enable = true;
-      enableRenice = true; # Automatically renice games
+      enableRenice = true;
       settings = {
-        general = {
-          renice = 10; # Priority boost for games
-        };
+        general.renice = 10;
         gpu = {
           apply_gpu_optimisations = "accept-responsibility";
           gpu_device = 0;
@@ -134,69 +110,47 @@
         };
       };
     };
-    # AppImage support
+
     appimage = {
       enable = true;
       binfmt = true;
     };
-    # Chromium browser integration with KDE Plasma
-    chromium = {
-      enable = true;
-      enablePlasmaBrowserIntegration = true;
-    };
-    # Fish shell
+
+    chromium.enable = true;
     fish.enable = true;
 
-    # 1Password GUI with system integration
     _1password-gui = {
       enable = true;
       polkitPolicyOwners = [ "mykhailo" ];
     };
   };
 
-  # Services configuration
   services = {
-    # KDE Plasma 6 Desktop Environment with full ecosystem (2025 best practices)
-    desktopManager.plasma6 = {
+    desktopManager.cosmic = {
       enable = true;
-      enableQt5Integration = true; # Enable Qt5 theming for broader app support
+      xwayland.enable = true;
     };
-    # SDDM Display Manager
-    displayManager.sddm = {
-      enable = true;
-      wayland.enable = true; # Wayland is default and recommended for Plasma 6
-      # Enable debug logging to diagnose login issues
-      settings = {
-        General = {
-          DisplayServer = "wayland";
-        };
-      };
-    };
-    # X11 and input
+    displayManager.cosmic-greeter.enable = true;
+
     xserver = {
       enable = true;
       xkb.layout = "us";
       videoDrivers = [ "nvidia" ];
     };
-    # Color management (integrates with KDE via colord-kde)
-    colord.enable = true;
-    # PipeWire audio (2025 standard)
+
     pipewire = {
       enable = true;
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
       jack.enable = true;
-      # Low latency configuration
-      extraConfig.pipewire = {
-        "context.properties" = {
-          "default.clock.rate" = 48000;
-          "default.clock.quantum" = 512;
-          "default.clock.min-quantum" = 512;
-        };
+      extraConfig.pipewire."context.properties" = {
+        "default.clock.rate" = 48000;
+        "default.clock.quantum" = 512;
+        "default.clock.min-quantum" = 512;
       };
     };
-    # OpenSSH
+
     openssh = {
       enable = true;
       openFirewall = true;
@@ -207,38 +161,15 @@
         StreamLocalBindUnlink = true;
       };
     };
-    # Yubikey support - PC/SC Smart Card Daemon
-    # Enables Yubikey for FIDO2, U2F, OTP, PIV, and OpenPGP operations
-    # NOTE: Does not affect existing SSH or GPG configurations
+
     pcscd.enable = true;
   };
 
-  # XDG Portal support for proper Wayland integration
-  xdg.portal = {
-    enable = true;
-    extraPortals = with pkgs; [
-      kdePackages.xdg-desktop-portal-kde
-    ];
-    config.common.default = "kde";
-  };
-
-  # Ensure proper session management
-  services.displayManager.defaultSession = "plasma";
-
-  # Security configuration
   security = {
-    # KWallet PAM integration for automatic unlocking
-    pam.services = {
-      sddm.kwallet.enable = true;
-      login.kwallet.enable = true;
-    };
-    # Real-time audio
     rtkit.enable = true;
-    # Sudo without password
     sudo.wheelNeedsPassword = false;
   };
 
-  # Never sleep/suspend/hibernate - workstation stays active 24/7
   systemd.sleep.extraConfig = ''
     AllowSuspend=no
     AllowHibernation=no
@@ -246,21 +177,15 @@
     AllowHybridSleep=no
   '';
 
-  # Disable all power management features
-  powerManagement = {
-    enable = false;
-    powertop.enable = false;
-  };
+  powerManagement.enable = false;
 
   modules = {
     vscode-server.enable = true;
     observability.enable = true;
-
-    # Distributed builds configuration
     builders = {
       enable = true;
-      maxJobs = 64; # Half of 128 cores
-      speedFactor = 4; # Threadripper PRO is very fast
+      maxJobs = 64;
+      speedFactor = 4;
     };
   };
 
@@ -268,12 +193,11 @@
     enable = true;
     ptp = {
       enable = true;
-      interface = "eno1np0"; # 10GbE NIC with PTP support
-      timestamping = "software"; # Match timey's software timestamping
+      interface = "eno1np0";
+      timestamping = "software";
     };
   };
 
-  # User configuration
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
@@ -297,66 +221,32 @@
 
   fonts.fontconfig.enable = true;
 
-  # Environment configuration
   environment = {
-    # System packages for workstation
     systemPackages = with pkgs; [
-      # NVIDIA utilities
       nvtopPackages.full
       cudatoolkit
       cudaPackages.libcufile
       cudaPackages.gdrcopy
       cudaPackages.nccl
-
-      # System monitoring
       btop
       fastfetch
       hwloc
-
-      # Web Browsers
       chromium
-
-      # Fonts
       pkgs.${namespace}.tx-02-variable
-
-      # Development tools
       gitFull
       vim
-
-      # Network tools
       iperf3
-
-      # Gaming utilities (additional to programs.*)
-      steamtinkerlaunch # Advanced Steam launcher with many tweaks
-      protontricks # Tool to run Winetricks commands for Proton games
-
-      # Yubikey utilities
-      yubikey-personalization # CLI tools for configuring YubiKey
-      yubikey-manager # YubiKey Manager CLI and GUI
-      libfido2 # Support for FIDO2/WebAuthn
-      opensc # Smart card library and applications
-
-      # Pinentry for GPG (Qt variant for KDE Plasma integration)
-      pinentry-qt
-
-      # KDE utilities (additional, beyond defaults)
-      kdePackages.kcalc
-      kdePackages.kcolorchooser
-      kdePackages.kruler
-      kdePackages.kdenlive
-      kdePackages.krdc # Remote desktop client
-      kdePackages.krfb # Remote desktop server
-      kdePackages.kwalletmanager # KWallet management tool
-      kdePackages.filelight # Disk usage visualization
+      steamtinkerlaunch
+      protontricks
+      yubikey-personalization
+      yubikey-manager
+      libfido2
+      opensc
     ];
 
-    # CUDA support
-    variables = {
-      CUDA_PATH = "${pkgs.cudatoolkit}";
-    };
+    variables.CUDA_PATH = "${pkgs.cudatoolkit}";
   };
 
-  # Yubikey and VR device udev rules for proper device access
   services.udev.packages = with pkgs; [
     yubikey-personalization
     xr-hardware

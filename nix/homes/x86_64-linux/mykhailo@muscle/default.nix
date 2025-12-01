@@ -31,7 +31,7 @@ in
     ssh.enable = true;
     gpg = {
       enable = true;
-      pinentryPackage = pkgs.pinentry-qt;
+      pinentryPackage = pkgs.pinentry-gnome3;
     };
   };
 
