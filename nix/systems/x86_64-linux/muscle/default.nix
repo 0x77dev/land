@@ -85,12 +85,6 @@
   programs = {
     dconf.enable = true;
 
-    gnupg.agent = {
-      enable = true;
-      enableSSHSupport = true;
-      pinentryPackage = pkgs.pinentry-gnome3;
-    };
-
     nautilus-open-any-terminal = {
       enable = true;
       terminal = "ghostty";
