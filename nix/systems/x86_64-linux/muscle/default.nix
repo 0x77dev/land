@@ -83,6 +83,11 @@
       pinentryPackage = pkgs.pinentry-gnome3;
     };
 
+    nautilus-open-any-terminal = {
+      enable = true;
+      terminal = "ghostty";
+    };
+
     appimage = {
       enable = true;
       binfmt = true;
@@ -102,11 +107,10 @@
       enable = true;
       xkb.layout = "us";
       videoDrivers = [ "nvidia" ];
-      desktopManager.cinnamon.enable = true;
-      displayManager.lightdm.enable = true;
     };
 
-    cinnamon.apps.enable = true;
+    desktopManager.gnome.enable = true;
+    displayManager.gdm.enable = true;
 
     pipewire = {
       enable = true;
@@ -191,6 +195,17 @@
 
   fonts.fontconfig.enable = true;
 
+  environment.gnome.excludePackages = with pkgs; [
+    gnome-tour
+    gnome.epiphany
+    gnome.geary
+    gnome.gnome-music
+    gnome.totem
+    gnome.yelp
+    gnome-photos
+    gnome-connections
+  ];
+
   environment = {
     systemPackages = with pkgs; [
       nvtopPackages.full
@@ -210,6 +225,13 @@
       yubikey-manager
       libfido2
       opensc
+      ghostty
+      gnome.gnome-tweaks
+      gnome-extension-manager
+      gnomeExtensions.dash-to-panel
+      gnomeExtensions.appindicator
+      gnomeExtensions.blur-my-shell
+      gnomeExtensions.just-perfection
     ];
 
     variables.CUDA_PATH = "${pkgs.cudatoolkit}";
