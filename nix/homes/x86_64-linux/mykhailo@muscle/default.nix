@@ -35,4 +35,11 @@ in
     };
   };
 
+  # Disable GNOME Keyring SSH component (conflicts with GPG agent SSH)
+  xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=SSH Key Agent
+    Hidden=true
+  '';
 }
