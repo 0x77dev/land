@@ -2,10 +2,12 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 let
   cfg = config.services.gps-time-source;
+  ntpConfig = lib.${namespace}.shared.ntp-config;
 in
 {
   options.services.gps-time-source = {
@@ -41,12 +43,11 @@ in
 
     ntpServers = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [
-        "time.cloudflare.com"
-        "time.nist.gov"
-        "us.pool.ntp.org"
-      ];
-      description = "Fallback NTP servers";
+      default = ntpConfig.defaultServers;
+      description = ''
+        Fallback NTP servers for when GPS/PPS is unavailable.
+        Only includes servers with standard leap second handling (no smearing).
+      '';
     };
 
     localStratum = lib.mkOption {

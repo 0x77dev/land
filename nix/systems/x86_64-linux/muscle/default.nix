@@ -83,7 +83,39 @@
   };
 
   programs = {
-    dconf.enable = true;
+    dconf = {
+      enable = true;
+      profiles = {
+        user.databases = [
+          {
+            settings."org/gnome/mutter".output-luminance = [
+              (lib.gvariant.mkTuple [
+                "DP-4"
+                "SAM"
+                "Odyssey G95SC"
+                "H1AK500000"
+                (lib.gvariant.mkUint32 1)
+                400.0
+              ])
+            ];
+          }
+        ];
+        gdm.databases = [
+          {
+            settings."org/gnome/mutter".output-luminance = [
+              (lib.gvariant.mkTuple [
+                "DP-4"
+                "SAM"
+                "Odyssey G95SC"
+                "H1AK500000"
+                (lib.gvariant.mkUint32 1)
+                400.0
+              ])
+            ];
+          }
+        ];
+      };
+    };
 
     nautilus-open-any-terminal = {
       enable = true;
@@ -145,6 +177,36 @@
 
     pcscd.enable = true;
   };
+
+  systemd.tmpfiles.rules = [
+    "L+ /run/gdm/.config/monitors.xml - - - - ${pkgs.writeText "gdm-monitors.xml" ''
+      <monitors version="2">
+        <configuration>
+          <layoutmode>physical</layoutmode>
+          <logicalmonitor>
+            <x>0</x>
+            <y>0</y>
+            <scale>1</scale>
+            <primary>yes</primary>
+            <monitor>
+              <monitorspec>
+                <connector>DP-4</connector>
+                <vendor>SAM</vendor>
+                <product>Odyssey G95SC</product>
+                <serial>H1AK500000</serial>
+              </monitorspec>
+              <mode>
+                <width>5120</width>
+                <height>1440</height>
+                <rate>239.999</rate>
+              </mode>
+              <colormode>bt2100</colormode>
+            </monitor>
+          </logicalmonitor>
+        </configuration>
+      </monitors>
+    ''}"
+  ];
 
   security = {
     rtkit.enable = true;

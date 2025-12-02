@@ -2,10 +2,12 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 let
   cfg = config.services.time-client;
+  ntpConfig = lib.${namespace}.shared.ntp-config;
 in
 {
   options.services.time-client = {
@@ -19,11 +21,8 @@ in
 
     fallbackServers = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [
-        "time.cloudflare.com"
-        "time.google.com"
-      ];
-      description = "Fallback NTP servers if primary is unavailable";
+      default = ntpConfig.defaultServers;
+      description = "Fallback NTP servers if primary is unavailable (non-smearing only)";
     };
 
     ptp = {

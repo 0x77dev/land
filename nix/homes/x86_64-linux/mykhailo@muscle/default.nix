@@ -42,4 +42,6 @@ in
     Name=SSH Key Agent
     Hidden=true
   '';
+
+  programs.zed-editor.userSettings.buffer_font_size = 18;
 }
