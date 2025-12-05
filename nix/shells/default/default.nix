@@ -19,7 +19,7 @@ mkShell {
   packages =
     with pkgs;
     [
-      gitAndTools.gitFull
+      gitFull
       git-crypt
       sops
       age

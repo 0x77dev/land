@@ -34,7 +34,7 @@ nix/
 
 This flake uses two nixpkgs channels:
 
-- **nixpkgs** (nixos-25.05): Stable channel for primary packages
+- **nixpkgs** (nixos-25.11): Stable channel for primary packages
 - **unstable** (nixpkgs-unstable): Rolling release for bleeding-edge packages
 
 ## Overlays

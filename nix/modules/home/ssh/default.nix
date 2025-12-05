@@ -40,7 +40,7 @@ in
   config = mkIf cfg.enable {
     programs.ssh = {
       enable = true;
-      forwardAgent = true;
+      enableDefaultConfig = true;
 
       # GPG agent forwarding configuration
       extraConfig = mkIf gpgEnabled ''
@@ -53,6 +53,7 @@ in
         # Only forward to specific trusted servers
         "pickle pickle.0x77.computer tomato tomato.0x77.computer muscle muscle.0x77.computer beefy beefy.0x77.computer" =
           {
+            forwardAgent = true;
             # Forward the GPG agent's extra socket to the remote system
             # Local: agent-extra-socket -> Remote: agent-socket (replaces remote agent)
             # Local: agent-ssh-socket -> Remote: agent-ssh-socket (for SSH keys)
