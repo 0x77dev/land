@@ -7,6 +7,11 @@
   config,
   ...
 }:
+let
+  wgcfStateDir = "/var/lib/wgcf";
+  wgcfProfilePath = "${wgcfStateDir}/wgcf-profile.conf";
+  vpnServiceName = "${builtins.head (builtins.attrNames config.vpnNamespaces)}.service";
+in
 {
   imports = [
     "${inputs.nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
@@ -19,38 +24,15 @@
     defaultSopsFile = ./secrets.yaml;
     age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
-    # WireGuard secrets
     secrets = {
-      "wg/private_key" = { };
-      "wg/address" = { };
-      "wg/endpoint" = { };
-      "wg/public_key" = { };
-      "wg/dns" = { };
       "aria2/rpc_token" = { };
-    };
-
-    # Generate WireGuard config from secrets template
-    templates."wg0.conf" = {
-      content = ''
-        [Interface]
-        PrivateKey = ${config.sops.placeholder."wg/private_key"}
-        Address = ${config.sops.placeholder."wg/address"}
-        DNS = ${config.sops.placeholder."wg/dns"}
-
-        [Peer]
-        PublicKey = ${config.sops.placeholder."wg/public_key"}
-        Endpoint = ${config.sops.placeholder."wg/endpoint"}
-        AllowedIPs = 0.0.0.0/0, ::/0
-        PersistentKeepalive = 25
-      '';
-      mode = "0600";
     };
   };
 
   # VPN network namespace configuration
   vpnNamespaces.media = {
     enable = true;
-    wireguardConfigFile = config.sops.templates."wg0.conf".path;
+    wireguardConfigFile = wgcfProfilePath;
     accessibleFrom = [
       "192.168.0.0/16"
     ];
@@ -177,6 +159,29 @@
 
   # VPN Confinement for Servarr services
   systemd.services = {
+    # wgcf service to generate Cloudflare Warp credentials
+    wgcf-setup = {
+      description = "Generate Cloudflare Warp WireGuard configuration";
+      before = [ vpnServiceName ];
+      requiredBy = [ vpnServiceName ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        StateDirectory = "wgcf";
+        WorkingDirectory = wgcfStateDir;
+      };
+      path = [ pkgs.wgcf ];
+      script = ''
+        # Register new account if not exists
+        if [ ! -f wgcf-account.toml ]; then
+          wgcf register --accept-tos
+        fi
+
+        # Always regenerate profile to ensure it's current
+        wgcf generate
+      '';
+    };
+
     sonarr.vpnConfinement = {
       enable = true;
       vpnNamespace = "media";
@@ -236,6 +241,7 @@
   environment.systemPackages = with pkgs; [
     ffmpeg
     aria2
+    wgcf # Cloudflare Warp CLI
     wireguard-tools # For VPN diagnostics
   ];
 
