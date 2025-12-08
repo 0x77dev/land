@@ -114,6 +114,10 @@ in
         to = 8191;
       } # FlareSolverr
     ];
+    openVPNPorts = map (port: {
+      inherit port;
+      protocol = "both";
+    }) (builtins.genList (i: 50101 + i) 9);
   };
 
   # Services configuration
@@ -156,14 +160,29 @@ in
         enable-http-pipelining = true;
 
         # RPC
+        enable-rpc = true;
+        rpc-listen-port = 6800;
+        rpc-listen-all = true;
         rpc-allow-origin-all = true;
 
         # BitTorrent
         bt-max-peers = 0;
+        listen-port = [
+          {
+            from = 50101;
+            to = 50109;
+          }
+        ];
         seed-ratio = 0;
         seed-time = 0;
         enable-dht = true;
         enable-dht6 = true;
+        dht-listen-port = [
+          {
+            from = 50101;
+            to = 50109;
+          }
+        ];
         enable-peer-exchange = true;
         bt-enable-lpd = true;
         peer-id-prefix = "-TR2770-";
