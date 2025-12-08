@@ -66,6 +66,8 @@ in
 
   system.stateVersion = "25.11";
 
+  nixpkgs.config.allowUnfree = true; # Required for Plex
+
   # Sops secrets configuration
   sops = {
     defaultSopsFile = ./secrets.yaml;
@@ -122,8 +124,27 @@ in
 
   # Services configuration
   services = {
-    jellyfin = {
+    # Plex Media Server
+    plex = {
       enable = true;
+      dataDir = "/var/lib/plex";
+      openFirewall = false;
+      user = mediaUser;
+      group = mediaGroup;
+    };
+
+    # Overseerr - Request management for Plex
+    overseerr = {
+      enable = true;
+      port = 5055;
+    };
+
+    # Tautulli - Plex monitoring
+    tautulli = {
+      enable = true;
+      port = 8181;
+      user = mediaUser;
+      group = mediaGroup;
     };
 
     # Aria2 downloader
@@ -311,28 +332,53 @@ in
             };
           }
 
-          # Jellyfin media server
+          # Plex Media Server
           {
-            name = "jellyfin.${domain}";
+            name = "plex.${domain}";
             value = {
               extraConfig = ''
-                client_max_body_size 20M;
+                send_timeout 100m;
+                # Plex headers
+                proxy_set_header X-Plex-Client-Identifier $http_x_plex_client_identifier;
+                proxy_set_header X-Plex-Device $http_x_plex_device;
+                proxy_set_header X-Plex-Device-Name $http_x_plex_device_name;
+                proxy_set_header X-Plex-Platform $http_x_plex_platform;
+                proxy_set_header X-Plex-Platform-Version $http_x_plex_platform_version;
+                proxy_set_header X-Plex-Product $http_x_plex_product;
+                proxy_set_header X-Plex-Token $http_x_plex_token;
+                proxy_set_header X-Plex-Version $http_x_plex_version;
+                proxy_set_header X-Plex-Nocache $http_x_plex_nocache;
+                proxy_set_header X-Plex-Provides $http_x_plex_provides;
+                proxy_set_header X-Plex-Device-Vendor $http_x_plex_device_vendor;
+                proxy_set_header X-Plex-Model $http_x_plex_model;
+                proxy_redirect off;
+                proxy_buffering off;
               '';
               locations."/" = {
-                proxyPass = "http://127.0.0.1:8096";
-                extraConfig = ''
-                  proxy_set_header X-Forwarded-Protocol $scheme;
-                  proxy_set_header X-Forwarded-Host $http_host;
-                  proxy_buffering off;
-                '';
-              };
-              locations."/socket" = {
-                proxyPass = "http://127.0.0.1:8096";
+                proxyPass = "http://127.0.0.1:32400";
                 proxyWebsockets = true;
-                extraConfig = ''
-                  proxy_set_header X-Forwarded-Protocol $scheme;
-                  proxy_set_header X-Forwarded-Host $http_host;
-                '';
+              };
+            };
+          }
+
+          # Overseerr - Request management
+          {
+            name = "overseerr.${domain}";
+            value = {
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:5055";
+                proxyWebsockets = true;
+              };
+            };
+          }
+
+          # Tautulli - Plex monitoring
+          {
+            name = "tautulli.${domain}";
+            value = {
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:8181";
+                proxyWebsockets = true;
               };
             };
           }
@@ -422,6 +468,8 @@ in
   environment.systemPackages = with pkgs; [
     ffmpeg
     aria2
+    nvtopPackages.intel
+    intel-gpu-tools
   ];
 
   # Networking
