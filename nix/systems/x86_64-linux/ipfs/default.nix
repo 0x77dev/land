@@ -4,7 +4,6 @@
 {
   pkgs,
   inputs,
-  config,
   lib,
   ...
 }:
@@ -13,67 +12,30 @@
     "${inputs.nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
   ];
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 
-  # Sops secrets configuration
-  sops = {
-    defaultSopsFile = ./secrets.yaml;
-    age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-    # WireGuard secrets
-    secrets = {
-      "wg/private_key" = { };
-      "wg/address" = { };
-      "wg/endpoint" = { };
-      "wg/public_key" = { };
-      "wg/dns" = { };
-    };
-
-    # Generate WireGuard config from secrets template
-    templates."wg0.conf" = {
-      content = ''
-        [Interface]
-        PrivateKey = ${config.sops.placeholder."wg/private_key"}
-        Address = ${config.sops.placeholder."wg/address"}
-        DNS = ${config.sops.placeholder."wg/dns"}
-
-        [Peer]
-        PublicKey = ${config.sops.placeholder."wg/public_key"}
-        Endpoint = ${config.sops.placeholder."wg/endpoint"}
-        AllowedIPs = 0.0.0.0/0, ::/0
-        PersistentKeepalive = 25
-      '';
-      mode = "0600";
-    };
-  };
-
-  # VPN network namespace configuration
-  vpnNamespaces.vpn = {
-    enable = true;
-    wireguardConfigFile = config.sops.templates."wg0.conf".path;
-    accessibleFrom = [
-      "192.168.0.0/16"
-    ];
-    # Port mappings for IPFS services
-    portMappings = [
-      {
-        from = 4001;
-        to = 4001;
-        protocol = "both";
-      } # Swarm
-      {
-        from = 5001;
-        to = 5001;
-      } # API
-      {
-        from = 8080;
-        to = 8080;
-      } # Gateway
-    ];
-  };
-
-  # Services configuration
   services = {
+    # Cloudflare Warp VPN
+    wgcf = {
+      enable = true;
+      accessibleFrom = [ "192.168.0.0/16" ];
+      portMappings = [
+        {
+          from = 4001;
+          to = 4001;
+          protocol = "both";
+        } # Swarm
+        {
+          from = 5001;
+          to = 5001;
+        } # API
+        {
+          from = 8080;
+          to = 8080;
+        } # Gateway
+      ];
+    };
+
     # Kubo (IPFS) configuration
     kubo = {
       enable = true;
@@ -96,6 +58,8 @@
         PasswordAuthentication = false;
       };
     };
+
+    time-client.enable = true;
   };
 
   virtualisation.incus.agent.enable = true;
@@ -104,32 +68,22 @@
   # The systemd service name for kubo is 'ipfs'
   systemd.services.ipfs.vpnConfinement = {
     enable = true;
-    vpnNamespace = "vpn";
+    vpnNamespace = "wgcf";
   };
 
   security.sudo.wheelNeedsPassword = false;
 
-  users = {
-    users = {
-      mykhailo = {
-        isNormalUser = true;
-        description = "Mykhailo Marynenko";
-        extraGroups = [
-          "wheel"
-          "networkmanager"
-          "ipfs"
-        ];
-        shell = pkgs.fish;
-      };
-    };
+  users.users.mykhailo = {
+    isNormalUser = true;
+    description = "Mykhailo Marynenko";
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "ipfs"
+    ];
+    shell = pkgs.fish;
   };
 
-  # Additional tools
-  environment.systemPackages = with pkgs; [
-    wireguard-tools
-  ];
-
-  # Networking
   networking = {
     hostName = "ipfs";
     domain = "0x77.computer";
@@ -137,9 +91,6 @@
     firewall.enable = false;
   };
 
-  services.time-client.enable = true;
-
-  # User configuration
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
