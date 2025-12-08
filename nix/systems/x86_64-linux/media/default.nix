@@ -3,7 +3,6 @@
 # See: ./NOTICE for complete legal disclaimer and terms of use.
 {
   pkgs,
-  lib,
   inputs,
   config,
   ...
@@ -211,14 +210,15 @@ in
 
   # Create media directory structure
   # Format: "type path mode user group age argument"
+  # Using 0777 for universal r/w access by all services
   systemd.tmpfiles.rules = [
-    "d ${mediaRoot}           0775 ${mediaUser} ${mediaGroup} -"
-    "d ${mediaRoot}/downloads 0775 ${mediaUser} ${mediaGroup} -"
-    "d ${mediaRoot}/tv        0775 ${mediaUser} ${mediaGroup} -"
-    "d ${mediaRoot}/movies    0775 ${mediaUser} ${mediaGroup} -"
-    "d ${mediaRoot}/music     0775 ${mediaUser} ${mediaGroup} -"
-    "d ${mediaRoot}/books     0775 ${mediaUser} ${mediaGroup} -"
-    "d ${mediaRoot}/xxx       0775 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}           0777 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/downloads 0777 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/tv        0777 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/movies    0777 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/music     0777 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/books     0777 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/xxx       0777 ${mediaUser} ${mediaGroup} -"
   ];
 
   # VPN Confinement for Servarr services
@@ -247,17 +247,9 @@ in
       enable = true;
       vpnNamespace = "wgcf";
     };
-    aria2 = {
-      vpnConfinement = {
-        enable = true;
-        vpnNamespace = "wgcf";
-      };
-      # Run as media user for shared directory access
-      serviceConfig = {
-        User = lib.mkForce mediaUser;
-        Group = lib.mkForce mediaGroup;
-        DynamicUser = lib.mkForce false;
-      };
+    aria2.vpnConfinement = {
+      enable = true;
+      vpnNamespace = "wgcf";
     };
     flaresolverr.vpnConfinement = {
       enable = true;
