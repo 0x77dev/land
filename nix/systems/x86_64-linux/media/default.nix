@@ -156,10 +156,7 @@ in
         enable-http-pipelining = true;
 
         # RPC
-        enable-rpc = true;
-        rpc-listen-port = 6800;
         rpc-allow-origin-all = true;
-        rpc-listen-all = true;
 
         # BitTorrent
         bt-max-peers = 0;
