@@ -12,7 +12,7 @@
     "${inputs.nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
   ];
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 
   # Sops secrets configuration
   sops = {
@@ -149,6 +149,8 @@
     };
 
     prowlarr.enable = true;
+
+    flaresolverr.enable = true;
 
     readarr = {
       enable = true;
