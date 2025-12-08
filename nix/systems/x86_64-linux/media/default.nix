@@ -177,12 +177,7 @@ in
         seed-time = 0;
         enable-dht = true;
         enable-dht6 = true;
-        dht-listen-port = [
-          {
-            from = 50101;
-            to = 50109;
-          }
-        ];
+        dht-listen-port = "50101-50109";
         enable-peer-exchange = true;
         bt-enable-lpd = true;
         peer-id-prefix = "-TR2770-";
