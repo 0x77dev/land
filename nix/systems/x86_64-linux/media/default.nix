@@ -7,6 +7,12 @@
   config,
   ...
 }:
+let
+  # Media root directory - all media content lives here
+  mediaRoot = "/data";
+  mediaUser = "media";
+  mediaGroup = "media";
+in
 {
   imports = [
     "${inputs.nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
@@ -76,7 +82,7 @@
       openPorts = true;
       rpcSecretFile = config.sops.secrets."aria2/rpc_token".path;
       settings = {
-        dir = "/var/lib/aria2/downloads";
+        dir = "${mediaRoot}/downloads";
         rpc-listen-port = 6800;
         rpc-allow-origin-all = true;
         rpc-listen-all = true;
@@ -152,6 +158,18 @@
 
   virtualisation.incus.agent.enable = true;
 
+  # Create media directory structure
+  # Format: "type path mode user group age argument"
+  systemd.tmpfiles.rules = [
+    "d ${mediaRoot}           0775 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/downloads 0775 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/tv        0775 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/movies    0775 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/music     0775 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/books     0775 ${mediaUser} ${mediaGroup} -"
+    "d ${mediaRoot}/xxx       0775 ${mediaUser} ${mediaGroup} -"
+  ];
+
   # VPN Confinement for Servarr services
   systemd.services = {
     sonarr.vpnConfinement = {
@@ -178,9 +196,17 @@
       enable = true;
       vpnNamespace = "wgcf";
     };
-    aria2.vpnConfinement = {
-      enable = true;
-      vpnNamespace = "wgcf";
+    aria2 = {
+      vpnConfinement = {
+        enable = true;
+        vpnNamespace = "wgcf";
+      };
+      # Run as media user for shared directory access
+      serviceConfig = {
+        User = mediaUser;
+        Group = mediaGroup;
+        DynamicUser = false;
+      };
     };
     flaresolverr.vpnConfinement = {
       enable = true;
@@ -198,6 +224,7 @@
         extraGroups = [
           "wheel"
           "networkmanager"
+          mediaGroup
         ];
         shell = pkgs.fish;
       };
