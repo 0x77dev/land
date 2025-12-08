@@ -7,11 +7,6 @@
   config,
   ...
 }:
-let
-  wgcfStateDir = "/var/lib/wgcf";
-  wgcfProfilePath = "${wgcfStateDir}/wgcf-profile.conf";
-  vpnServiceName = "${builtins.head (builtins.attrNames config.vpnNamespaces)}.service";
-in
 {
   imports = [
     "${inputs.nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
@@ -29,14 +24,10 @@ in
     };
   };
 
-  # VPN network namespace configuration
-  vpnNamespaces.media = {
+  # Cloudflare Warp VPN
+  services.wgcf = {
     enable = true;
-    wireguardConfigFile = wgcfProfilePath;
-    accessibleFrom = [
-      "192.168.0.0/16"
-    ];
-    # Port mappings for Servarr services
+    accessibleFrom = [ "192.168.0.0/16" ];
     portMappings = [
       {
         from = 8989;
@@ -163,66 +154,37 @@ in
 
   # VPN Confinement for Servarr services
   systemd.services = {
-    # wgcf service to generate Cloudflare Warp credentials
-    wgcf-setup = {
-      description = "Generate Cloudflare Warp WireGuard configuration";
-      before = [ vpnServiceName ];
-      requiredBy = [ vpnServiceName ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        StateDirectory = "wgcf";
-        WorkingDirectory = wgcfStateDir;
-      };
-      path = [
-        pkgs.wgcf
-        pkgs.gnused
-      ];
-      script = ''
-        # Register new account if not exists
-        if [ ! -f wgcf-account.toml ]; then
-          wgcf register --accept-tos
-        fi
-
-        # Always regenerate profile to ensure it's current
-        wgcf generate
-
-        # Replace hostname/IPv6 endpoint with IPv4 (Cloudflare Warp IPv4 endpoint)
-        sed -i 's/Endpoint = .*/Endpoint = 162.159.192.1:2408/' wgcf-profile.conf
-      '';
-    };
-
     sonarr.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
     radarr.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
     lidarr.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
     prowlarr.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
     readarr.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
     whisparr.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
     aria2.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
     flaresolverr.vpnConfinement = {
       enable = true;
-      vpnNamespace = "media";
+      vpnNamespace = "wgcf";
     };
   };
 
@@ -255,8 +217,6 @@ in
   environment.systemPackages = with pkgs; [
     ffmpeg
     aria2
-    wgcf # Cloudflare Warp CLI
-    wireguard-tools # For VPN diagnostics
   ];
 
   # Networking

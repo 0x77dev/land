@@ -241,6 +241,7 @@
     "netdev",
     "netdevs",
     "netnod",
+    "netns",
     "nettools",
     "networkd",
     "Networkd",
