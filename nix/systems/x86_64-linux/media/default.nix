@@ -160,12 +160,10 @@ in
 
         # BitTorrent
         bt-max-peers = 0;
-        listen-port = "50101-50109";
         seed-ratio = 0;
         seed-time = 0;
         enable-dht = true;
         enable-dht6 = true;
-        dht-listen-port = "50101-50109";
         enable-peer-exchange = true;
         bt-enable-lpd = true;
         peer-id-prefix = "-TR2770-";
