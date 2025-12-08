@@ -128,33 +128,52 @@ in
       openPorts = true;
       rpcSecretFile = config.sops.secrets."aria2/rpc_token".path;
       settings = {
+        # Basic
         dir = "${mediaRoot}/downloads";
+        continue = true;
+        max-concurrent-downloads = 5;
+        max-overall-download-limit = 0;
+        max-download-limit = 0;
+
+        # Advanced
+        allow-overwrite = true;
+        allow-piece-length-change = true;
+        always-resume = true;
+        async-dns = false;
+        auto-file-renaming = true;
+        content-disposition-default-utf8 = true;
+
+        # Disk I/O
+        file-allocation = "falloc";
+        no-file-allocation-limit = "8M";
+        disk-cache = "64M";
+
+        # HTTP/FTP/SFTP
+        max-connection-per-server = 16;
+        min-split-size = "8M";
+        split = 32;
+        user-agent = "Transmission/2.77";
+        enable-http-pipelining = true;
+
+        # RPC
+        enable-rpc = true;
         rpc-listen-port = 6800;
         rpc-allow-origin-all = true;
         rpc-listen-all = true;
 
-        # Performance & Speed Optimization
-        max-connection-per-server = 16;
-        split = 32;
-        min-split-size = "1M";
-        max-concurrent-downloads = 16;
-        max-overall-download-limit = 0;
-        max-download-limit = 0;
-
-        # Disk I/O Optimization
-        file-allocation = "falloc";
-        disk-cache = "64M";
-
-        enable-http-pipelining = true;
-
-        # BitTorrent Optimization
-        bt-max-peers = 0; # Unlimited peers
+        # BitTorrent
+        bt-max-peers = 0;
+        listen-port = "50101-50109";
+        seed-ratio = 0;
+        seed-time = 0;
         enable-dht = true;
+        enable-dht6 = true;
+        dht-listen-port = "50101-50109";
         enable-peer-exchange = true;
-        bt-enable-lpd = true; # Local Peer Discovery
+        bt-enable-lpd = true;
+        peer-id-prefix = "-TR2770-";
+        peer-agent = "Transmission/2.77";
         bt-seed-unverified = true;
-        seed-ratio = 2.0;
-        seed-time = 60;
       };
     };
 
