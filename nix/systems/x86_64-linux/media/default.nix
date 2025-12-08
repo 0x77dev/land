@@ -12,6 +12,52 @@ let
   mediaRoot = "/data";
   mediaUser = "media";
   mediaGroup = "media";
+  domain = "media.0x77.computer";
+  vpnUpstream = "192.168.15.1";
+
+  # Servarr services running in VPN namespace
+  serrarvServices = [
+    {
+      name = "sonarr";
+      port = 8989;
+    }
+    {
+      name = "radarr";
+      port = 7878;
+    }
+    {
+      name = "lidarr";
+      port = 8686;
+    }
+    {
+      name = "prowlarr";
+      port = 9696;
+    }
+    {
+      name = "readarr";
+      port = 8787;
+    }
+    {
+      name = "whisparr";
+      port = 6969;
+    }
+  ];
+
+  # Generate nginx vhost for a Servarr service
+  mkSerrarvVhost =
+    { name, port }:
+    {
+      name = "${name}.${domain}";
+      value = {
+        locations."/" = {
+          proxyPass = "http://${vpnUpstream}:${toString port}";
+          proxyWebsockets = true;
+          extraConfig = ''
+            proxy_redirect off;
+          '';
+        };
+      };
+    };
 in
 {
   imports = [
@@ -203,6 +249,67 @@ in
         enable = true;
         userServices = true;
       };
+    };
+
+    # Nginx reverse proxy for all services
+    nginx = {
+      enable = true;
+      recommendedOptimisation = true;
+      recommendedGzipSettings = true;
+      recommendedProxySettings = true;
+      clientMaxBodySize = "0"; # Unlimited for large media uploads
+
+      virtualHosts = builtins.listToAttrs (
+        # Servarr services (DRY generation)
+        (map mkSerrarvVhost serrarvServices)
+        ++ [
+          # AriaNg web UI for aria2
+          {
+            name = "aria2.${domain}";
+            value = {
+              locations."/" = {
+                root = "${pkgs.ariang}/share/ariang";
+                index = "index.html";
+              };
+              locations."/jsonrpc" = {
+                proxyPass = "http://${vpnUpstream}:6800/jsonrpc";
+                extraConfig = ''
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_redirect off;
+                '';
+              };
+            };
+          }
+
+          # Jellyfin media server
+          {
+            name = "jellyfin.${domain}";
+            value = {
+              extraConfig = ''
+                client_max_body_size 20M;
+              '';
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:8096";
+                extraConfig = ''
+                  proxy_set_header X-Forwarded-Protocol $scheme;
+                  proxy_set_header X-Forwarded-Host $http_host;
+                  proxy_buffering off;
+                '';
+              };
+              locations."/socket" = {
+                proxyPass = "http://127.0.0.1:8096";
+                proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_set_header X-Forwarded-Protocol $scheme;
+                  proxy_set_header X-Forwarded-Host $http_host;
+                '';
+              };
+            };
+          }
+        ]
+      );
     };
   };
 
