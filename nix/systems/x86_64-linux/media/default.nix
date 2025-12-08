@@ -174,7 +174,10 @@ in
         StateDirectory = "wgcf";
         WorkingDirectory = wgcfStateDir;
       };
-      path = [ pkgs.wgcf ];
+      path = [
+        pkgs.wgcf
+        pkgs.gnused
+      ];
       script = ''
         # Register new account if not exists
         if [ ! -f wgcf-account.toml ]; then
@@ -183,6 +186,9 @@ in
 
         # Always regenerate profile to ensure it's current
         wgcf generate
+
+        # Replace hostname/IPv6 endpoint with IPv4 (Cloudflare Warp IPv4 endpoint)
+        sed -i 's/Endpoint = .*/Endpoint = 162.159.192.1:2408/' wgcf-profile.conf
       '';
     };
 
