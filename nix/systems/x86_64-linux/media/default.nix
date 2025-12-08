@@ -3,6 +3,7 @@
 # See: ./NOTICE for complete legal disclaimer and terms of use.
 {
   pkgs,
+  lib,
   inputs,
   config,
   ...
@@ -154,6 +155,56 @@ in
         PasswordAuthentication = false;
       };
     };
+
+    # Samba share for media
+    samba = {
+      enable = true;
+      openFirewall = true;
+      settings = {
+        global = {
+          workgroup = "WORKGROUP";
+          "server string" = "media";
+          "netbios name" = "media";
+          security = "user";
+          "map to guest" = "Bad User";
+          # Performance tuning
+          "socket options" = "TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=131072 SO_SNDBUF=131072";
+          "read raw" = "yes";
+          "write raw" = "yes";
+          "use sendfile" = "yes";
+          "aio read size" = "16384";
+          "aio write size" = "16384";
+          "min receivefile size" = "16384";
+        };
+        data = {
+          path = mediaRoot;
+          browseable = "yes";
+          "read only" = "no";
+          "guest ok" = "yes";
+          "force user" = mediaUser;
+          "force group" = mediaGroup;
+          "create mask" = "0664";
+          "directory mask" = "0775";
+        };
+      };
+    };
+
+    # Windows network discovery
+    samba-wsdd = {
+      enable = true;
+      openFirewall = true;
+    };
+
+    # mDNS/Bonjour discovery (macOS/Linux)
+    avahi = {
+      enable = true;
+      openFirewall = true;
+      nssmdns4 = true;
+      publish = {
+        enable = true;
+        userServices = true;
+      };
+    };
   };
 
   virtualisation.incus.agent.enable = true;
@@ -203,9 +254,9 @@ in
       };
       # Run as media user for shared directory access
       serviceConfig = {
-        User = mediaUser;
-        Group = mediaGroup;
-        DynamicUser = false;
+        User = lib.mkForce mediaUser;
+        Group = lib.mkForce mediaGroup;
+        DynamicUser = lib.mkForce false;
       };
     };
     flaresolverr.vpnConfinement = {
