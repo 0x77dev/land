@@ -66,6 +66,10 @@ in
         from = 6800;
         to = 6800;
       } # Aria2 RPC
+      {
+        from = 8191;
+        to = 8191;
+      } # FlareSolverr
     ];
   };
 
@@ -207,6 +211,10 @@ in
       vpnNamespace = "media";
     };
     aria2.vpnConfinement = {
+      enable = true;
+      vpnNamespace = "media";
+    };
+    flaresolverr.vpnConfinement = {
       enable = true;
       vpnNamespace = "media";
     };
