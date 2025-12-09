@@ -19,6 +19,12 @@
     };
   };
 
+  virtualisation.docker = {
+    storageDriver = "zfs";
+    liveRestore = true;
+    autoPrune.enable = true;
+  };
+
   networking = {
     hostName = "pickle";
     domain = "0x77.computer";
@@ -73,7 +79,7 @@
     };
   };
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 
   documentation.nixos.enable = false;
 }

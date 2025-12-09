@@ -27,6 +27,12 @@
     };
   };
 
+  virtualisation.docker = {
+    storageDriver = "zfs";
+    liveRestore = true;
+    autoPrune.enable = true;
+  };
+
   services.time-client = {
     enable = true;
     ptp = {
@@ -77,5 +83,5 @@
     };
   };
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }
