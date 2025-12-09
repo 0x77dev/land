@@ -43,14 +43,15 @@
       extraPackages = with pkgs; [
         intel-media-driver # VAAPI driver for modern Intel GPUs (Broadwell+)
         intel-vaapi-driver # Older VAAPI driver (for compatibility)
-        vaapiVdpau
+        libva-vdpau-driver
+        intel-gpu-tools
         libvdpau-va-gl
         intel-compute-runtime # OpenCL support
       ];
       extraPackages32 = with pkgs.pkgsi686Linux; [
         intel-media-driver
         intel-vaapi-driver
-        vaapiVdpau
+        libva-vdpau-driver
         libvdpau-va-gl
       ];
       enable32Bit = true;
