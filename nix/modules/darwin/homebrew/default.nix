@@ -20,7 +20,7 @@ in
       "homebrew/homebrew-cask" = inputs.homebrew-cask;
     };
 
-    mutableTaps = lib.mkDefault false;
+    mutableTaps = lib.mkDefault true;
   };
 
   homebrew = {
