@@ -18,6 +18,14 @@
 
   boot = {
     kernelModules = [ "kvm-amd" ];
+    kernelParams = [
+      "video=DP-4:5120x1440@240"
+      "quiet"
+      "loglevel=3"
+      "rd.systemd.show_status=auto"
+      "rd.udev.log_level=3"
+    ];
+    consoleLogLevel = 3;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -28,6 +36,30 @@
       "vm.overcommit_ratio" = 100;
     };
     binfmt.emulatedSystems = [ "aarch64-linux" ];
+  };
+
+  console = {
+    earlySetup = true;
+    font = "ter-v32n";
+    packages = with pkgs; [ terminus_font ];
+    colors = [
+      "002b36"
+      "dc322f"
+      "859900"
+      "b58900"
+      "268bd2"
+      "d33682"
+      "2aa198"
+      "eee8d5"
+      "002b36"
+      "cb4b16"
+      "586e75"
+      "657b83"
+      "839496"
+      "6c71c4"
+      "93a1a1"
+      "fdf6e3"
+    ];
   };
 
   swapDevices = [
@@ -154,6 +186,21 @@
   };
 
   services = {
+    kmscon = {
+      enable = true;
+      hwRender = true;
+      fonts = [
+        {
+          name = "Terminus";
+          package = pkgs.terminus_font;
+        }
+      ];
+      extraConfig = ''
+        font-size=18
+        xkb-layout=us
+      '';
+    };
+
     xserver = {
       enable = true;
       xkb.layout = "us";
@@ -193,6 +240,15 @@
     };
 
     pcscd.enable = true;
+
+    time-client = {
+      enable = true;
+      ptp = {
+        enable = true;
+        interface = "eno1np0";
+        timestamping = "software";
+      };
+    };
   };
 
   systemd.tmpfiles.rules = [
@@ -246,15 +302,6 @@
       enable = true;
       maxJobs = 64;
       speedFactor = 4;
-    };
-  };
-
-  services.time-client = {
-    enable = true;
-    ptp = {
-      enable = true;
-      interface = "eno1np0";
-      timestamping = "software";
     };
   };
 
@@ -316,7 +363,6 @@
       gnomeExtensions.blur-my-shell
       gnomeExtensions.just-perfection
       mangohud
-      gamescope-wsi
       protonup-qt
     ];
 
