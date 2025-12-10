@@ -39,12 +39,6 @@
     binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
 
-  console = {
-    earlySetup = true;
-    font = "ter-v32n";
-    packages = with pkgs; [ terminus_font ];
-  };
-
   swapDevices = [
     {
       device = "/var/lib/swapfile";
@@ -169,21 +163,6 @@
   };
 
   services = {
-    kmscon = {
-      enable = true;
-      hwRender = true;
-      fonts = [
-        {
-          name = "TX-02-Variable";
-          package = pkgs.${namespace}.tx-02-variable;
-        }
-      ];
-      extraConfig = ''
-        font-size=14
-        xkb-layout=us
-      '';
-    };
-
     xserver = {
       enable = true;
       xkb.layout = "us";
@@ -291,7 +270,7 @@
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
-    # home.enable = true;
+    home.enable = true;
   };
 
   users.users.mykhailo = {
