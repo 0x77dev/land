@@ -291,7 +291,7 @@
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
-    home.enable = true;
+    # home.enable = true;
   };
 
   users.users.mykhailo = {
