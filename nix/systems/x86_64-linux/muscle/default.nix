@@ -43,31 +43,13 @@
     earlySetup = true;
     font = "ter-v32n";
     packages = with pkgs; [ terminus_font ];
-    colors = [
-      "002b36"
-      "dc322f"
-      "859900"
-      "b58900"
-      "268bd2"
-      "d33682"
-      "2aa198"
-      "eee8d5"
-      "002b36"
-      "cb4b16"
-      "586e75"
-      "657b83"
-      "839496"
-      "6c71c4"
-      "93a1a1"
-      "fdf6e3"
-    ];
   };
 
   swapDevices = [
     {
       device = "/var/lib/swapfile";
       size = 256 * 1024;
-      options = [ "discard" ];
+      discardPolicy = "once";
     }
   ];
 
@@ -192,12 +174,12 @@
       hwRender = true;
       fonts = [
         {
-          name = "Terminus";
-          package = pkgs.terminus_font;
+          name = "TX-02-Variable";
+          package = pkgs.${namespace}.tx-02-variable;
         }
       ];
       extraConfig = ''
-        font-size=18
+        font-size=14
         xkb-layout=us
       '';
     };
