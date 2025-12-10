@@ -127,6 +127,17 @@
       binfmt = true;
     };
 
+    steam = {
+      enable = true;
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+      localNetworkGameTransfers.openFirewall = true;
+      gamescopeSession.enable = true;
+    };
+
+    gamemode.enable = true;
+    gamescope.enable = true;
+
     chromium.enable = true;
     fish.enable = true;
 
@@ -298,6 +309,8 @@
       gnomeExtensions.appindicator
       gnomeExtensions.blur-my-shell
       gnomeExtensions.just-perfection
+      mangohud
+      protonup-qt
     ];
 
     variables = {
