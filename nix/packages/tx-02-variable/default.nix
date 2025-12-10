@@ -121,11 +121,10 @@ stdenvNoCC.mkDerivation rec {
 
     ${lib.optionalString isLinux ''
       # Install PSF console fonts (Linux only)
+      # NixOS expects console fonts to be gzipped, so we only install the .gz version
       mkdir -p $out/share/consolefonts
       for size in 16 20 24 32; do
-        install -Dm644 tx-02-''${size}.psf $out/share/consolefonts/tx-02-''${size}.psf
-        gzip -c tx-02-''${size}.psf > tx-02-''${size}.psf.gz
-        install -Dm644 tx-02-''${size}.psf.gz $out/share/consolefonts/tx-02-''${size}.psf.gz
+        gzip -c tx-02-''${size}.psf > $out/share/consolefonts/tx-02-''${size}.psf.gz
       done
     ''}
 
