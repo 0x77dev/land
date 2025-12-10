@@ -133,10 +133,16 @@
       dedicatedServer.openFirewall = true;
       localNetworkGameTransfers.openFirewall = true;
       gamescopeSession.enable = true;
+      extraCompatPackages = with pkgs; [
+        proton-ge-bin
+      ];
     };
 
     gamemode.enable = true;
-    gamescope.enable = true;
+    gamescope = {
+      enable = true;
+      capSysNice = true;
+    };
 
     chromium.enable = true;
     fish.enable = true;
@@ -310,6 +316,7 @@
       gnomeExtensions.blur-my-shell
       gnomeExtensions.just-perfection
       mangohud
+      gamescope-wsi
       protonup-qt
     ];
 
