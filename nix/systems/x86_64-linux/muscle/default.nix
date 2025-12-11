@@ -17,7 +17,10 @@
   };
 
   boot = {
-    supportedFilesystems = [ "ntfs" ];
+    supportedFilesystems = [
+      "ntfs"
+      "ext2"
+    ];
     kernelModules = [ "kvm-amd" ];
     kernelParams = [
       "video=DP-4:5120x1440@240"
