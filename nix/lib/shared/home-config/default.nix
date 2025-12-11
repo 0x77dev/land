@@ -21,7 +21,7 @@ _:
     reverse-engineering.enable = lib.mkDefault false;
     comms.enable = lib.mkDefault false;
     secrets.backend = lib.mkDefault "disabled";
-    security.enable = lib.mkDefault true;
+    security-tools.enable = lib.mkDefault true;
     shell.enable = lib.mkDefault true;
     ssh.enable = lib.mkDefault true;
     gpg.enable = lib.mkDefault true;

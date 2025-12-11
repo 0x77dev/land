@@ -158,11 +158,6 @@
 
     chromium.enable = true;
     fish.enable = true;
-
-    _1password-gui = {
-      enable = true;
-      polkitPolicyOwners = [ "mykhailo" ];
-    };
   };
 
   services = {
@@ -263,6 +258,7 @@
   modules = {
     vscode-server.enable = true;
     observability.enable = true;
+    security-tools.enable = true;
     builders = {
       enable = true;
       maxJobs = 64;
@@ -312,8 +308,6 @@
       gitFull
       vim
       iperf3
-      yubikey-personalization
-      yubikey-manager
       libfido2
       opensc
       ghostty
@@ -335,8 +329,6 @@
       CUDA_PATH = "${pkgs.cudatoolkit}";
     };
   };
-
-  services.udev.packages = [ pkgs.yubikey-personalization ];
 
   networking.firewall.enable = false;
 
