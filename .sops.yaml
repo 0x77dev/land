@@ -1,5 +1,5 @@
 keys:
-  - &mykhailo C33BFD3230B660CF147762D2BF5C81B531164955
+  - &mykhailo A6337A4AB36481FB18A4FCC5F1171FAAAA237211
 
   # System SSH host keys (get via: ssh-to-age)
   # Commands to get your system keys:

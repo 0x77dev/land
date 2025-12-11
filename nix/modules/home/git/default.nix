@@ -22,7 +22,7 @@ in
         package = pkgs.gitFull;
         lfs.enable = true;
         signing = {
-          key = "C33BFD3230B660CF147762D2BF5C81B531164955";
+          key = "A6337A4AB36481FB18A4FCC5F1171FAAAA237211";
           signByDefault = true;
         };
         settings = {
