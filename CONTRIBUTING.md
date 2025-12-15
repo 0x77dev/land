@@ -365,7 +365,8 @@ exactly one canonical location:
 
 ### Documentation Update Requirements
 
-**All changes that affect user-facing behavior MUST update documentation before merge:**
+**All changes that affect user-facing behavior MUST update documentation
+before merge:**
 
 1. **Code changes** - Update affected documentation in the same commit
 2. **New features** - Add to README.md features list if user-visible

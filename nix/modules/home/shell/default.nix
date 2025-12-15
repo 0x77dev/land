@@ -104,7 +104,11 @@ in
 
       fish = {
         enable = true;
-        shellAliases = commonAliases;
+        shellAliases = commonAliases // {
+          # Keep muscle memory after switching to VSCodium.
+          code = "codium";
+          cursor = "codium";
+        };
         shellAbbrs = commonAbbreviations;
         interactiveShellInit = ''
           set fish_greeting
@@ -149,7 +153,7 @@ in
 
       starship = {
         enable = true;
-        enableBashIntegration = true;
+        enableBashIntegration = false;
         enableFishIntegration = true;
         enableZshIntegration = true;
       };

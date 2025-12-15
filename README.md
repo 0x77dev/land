@@ -108,6 +108,7 @@ After initial setup, use `deploy .#potato -s --remote-build` for updates.
 | `melon` | `aarch64-linux` | IoT/Edge | RPi 4B, 4GB+, PoE |
 | `beefy` | `aarch64-darwin` | Media | M2 Ultra, 64GB |
 | `muscle` | `x86_64-linux` | AI/Compute | TR 7985WX, RTX6000, 250GB |
+| `visy` | `x86_64-linux` | Controller Host | Celeron N5105, 16GB |
 | `shadow` | `x86_64-linux` | Fun | T480, 16GB |
 
 ## Development

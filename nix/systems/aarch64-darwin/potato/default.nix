@@ -44,7 +44,7 @@ in
           p2p.enable = true;
           reverse-engineering.enable = true;
           comms.enable = true;
-          security.enable = true;
+          security-tools.enable = true;
           shell.enable = true;
           ssh.enable = true;
           gpg.enable = true;

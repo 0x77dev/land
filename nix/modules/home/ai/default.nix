@@ -8,6 +8,24 @@ with lib;
 let
   cfg = config.modules.home.ai;
 
+  mcpServers = {
+    context7 = {
+      url = "https://mcp.context7.com/mcp";
+    };
+    gh_grep = {
+      url = "https://mcp.grep.app";
+    };
+    nixos = {
+      command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
+    };
+    rust = {
+      command = "rust-docs-mcp";
+    };
+    exa = {
+      url = "https://mcp.exa.ai/mcp";
+    };
+  };
+
   opencodeConfig = {
     "$schema" = "https://opencode.ai/config.json";
     theme = "system";
@@ -276,27 +294,27 @@ let
     mcp = {
       context7 = {
         type = "remote";
-        url = "https://mcp.context7.com/mcp";
+        inherit (mcpServers.context7) url;
         enabled = true;
       };
       gh_grep = {
         type = "remote";
-        url = "https://mcp.grep.app";
+        inherit (mcpServers.gh_grep) url;
         enabled = true;
       };
       nixos = {
         type = "local";
-        command = [ "${pkgs.mcp-nixos}/bin/mcp-nixos" ];
+        command = [ mcpServers.nixos.command ];
         enabled = true;
       };
       rust = {
         type = "local";
-        command = [ "rust-docs-mcp" ];
+        command = [ mcpServers.rust.command ];
         enabled = true;
       };
       exa = {
         type = "remote";
-        url = "https://mcp.exa.ai/mcp";
+        inherit (mcpServers.exa) url;
         enabled = true;
       };
     };
@@ -313,6 +331,11 @@ in
       opencode
       mcp-nixos
     ];
+
+    programs.mcp = {
+      enable = true;
+      servers = mcpServers;
+    };
 
     # TODO: Migrate to `programs.opencode` on next home-manager release
     home.file."${config.xdg.configHome}/opencode/config.json".text = builtins.toJSON opencodeConfig;

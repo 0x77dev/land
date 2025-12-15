@@ -10,7 +10,7 @@ let
 in
 {
   nix-homebrew = {
-    enable = lib.mkDefault true;
+    enable = lib.mkDefault false;
     enableRosetta = lib.mkDefault true;
     user = lib.mkDefault primaryUser;
     autoMigrate = lib.mkDefault false;
@@ -24,7 +24,7 @@ in
   };
 
   homebrew = {
-    enable = lib.mkDefault true;
+    enable = lib.mkDefault false;
     taps = lib.mkDefault (builtins.attrNames config.nix-homebrew.taps);
 
     global.autoUpdate = lib.mkDefault false;
