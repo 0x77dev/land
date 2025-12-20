@@ -209,6 +209,8 @@
         timestamping = "software";
       };
     };
+
+    tailscale.enable = true;
   };
 
   systemd.tmpfiles.rules = [
