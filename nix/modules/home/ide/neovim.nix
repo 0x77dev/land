@@ -114,6 +114,26 @@ in
                 "path"
                 "buffer"
               ];
+              providers = {
+                avante_commands = {
+                  name = "avante_commands";
+                  module = "blink.compat.source";
+                  score_offset = 15;
+                  async = true;
+                };
+                avante_mentions = {
+                  name = "avante_mentions";
+                  module = "blink.compat.source";
+                  score_offset = 10;
+                  async = true;
+                };
+                avante_files = {
+                  name = "avante_files";
+                  module = "blink.compat.source";
+                  score_offset = 5;
+                  async = true;
+                };
+              };
             };
             signature.enabled = true;
             completion = {
@@ -124,6 +144,11 @@ in
               ghost_text.enabled = true;
             };
           };
+        };
+
+        # blink.cmp compatibility layer for nvim-cmp sources
+        blink-compat = {
+          enable = true;
         };
 
         # Snippets
@@ -251,6 +276,10 @@ in
                 __unkeyed-1 = "<leader>x";
                 group = "Diagnostics";
               }
+              {
+                __unkeyed-1 = "<leader>a";
+                group = "AI (Avante)";
+              }
             ];
           };
         };
@@ -331,6 +360,43 @@ in
 
         # Highlight todo comments
         todo-comments.enable = true;
+
+        # AI Assistant (Avante)
+        avante = {
+          enable = true;
+          settings = {
+            provider = "openai";
+            auto_suggestions_provider = "openai";
+            openai = {
+              endpoint = "https://developer.osv.engineering/inference/v1";
+              model = "anthropic/claude-sonnet-4-5";
+              api_key_name = "OSV_API_KEY";
+              max_tokens = 8192;
+            };
+            behaviour = {
+              auto_suggestions = false;
+              auto_set_highlight_group = true;
+              auto_set_keymaps = true;
+              auto_apply_diff_after_generation = false;
+              support_paste_from_clipboard = true;
+            };
+            windows = {
+              position = "right";
+              wrap = true;
+              width = 30;
+              sidebar_header = {
+                align = "center";
+                rounded = true;
+              };
+            };
+            highlights = {
+              diff = {
+                current = "DiffText";
+                incoming = "DiffAdd";
+              };
+            };
+          };
+        };
       };
 
       # ── LSP ──────────────────────────────────────────────────────────
@@ -556,6 +622,50 @@ in
           key = "<A-k>";
           action = ":m '<-2<cr>gv=gv";
           options.desc = "Move selection up";
+        }
+
+        # Avante AI
+        {
+          mode = "n";
+          key = "<leader>aa";
+          action = "<cmd>AvanteAsk<cr>";
+          options.desc = "Ask Avante";
+        }
+        {
+          mode = "v";
+          key = "<leader>aa";
+          action = "<cmd>AvanteAsk<cr>";
+          options.desc = "Ask Avante (selection)";
+        }
+        {
+          mode = "n";
+          key = "<leader>at";
+          action = "<cmd>AvanteToggle<cr>";
+          options.desc = "Toggle Avante";
+        }
+        {
+          mode = "n";
+          key = "<leader>ac";
+          action = "<cmd>AvanteChat<cr>";
+          options.desc = "Avante Chat";
+        }
+        {
+          mode = "n";
+          key = "<leader>ae";
+          action = "<cmd>AvanteEdit<cr>";
+          options.desc = "Edit with Avante";
+        }
+        {
+          mode = "v";
+          key = "<leader>ae";
+          action = "<cmd>AvanteEdit<cr>";
+          options.desc = "Edit with Avante (selection)";
+        }
+        {
+          mode = "n";
+          key = "<leader>ar";
+          action = "<cmd>AvanteRefresh<cr>";
+          options.desc = "Refresh Avante";
         }
       ];
     };

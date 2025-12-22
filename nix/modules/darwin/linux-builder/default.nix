@@ -32,7 +32,7 @@ in
       "benchmark"
       "big-parallel"
     ];
-    maxJobs = mkDefault defaultCores;
+    # maxJobs = mkDefault defaultCores;
 
     # config = _: {
     #   # NOTE: requires distributed build with aarch64-linux builders
