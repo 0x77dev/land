@@ -1,6 +1,5 @@
 {
   pkgs,
-  namespace,
   ...
 }:
 let
@@ -10,16 +9,10 @@ in
   system.stateVersion = 6;
   system.primaryUser = userName;
 
-  modules.builders.enable = true;
-
   networking = {
     hostName = "beefy";
     domain = "0x77.computer";
   };
-
-  environment.systemPackages = with pkgs.${namespace}; [
-    ua-connect
-  ];
 
   snowfallorg.users.${userName} = {
     create = true;

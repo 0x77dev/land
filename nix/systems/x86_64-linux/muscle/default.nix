@@ -261,11 +261,6 @@
     vscode-server.enable = true;
     observability.enable = true;
     security-tools.enable = true;
-    builders = {
-      enable = true;
-      maxJobs = 64;
-      speedFactor = 4;
-    };
   };
 
   snowfallorg.users.mykhailo = {

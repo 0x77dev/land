@@ -10,7 +10,6 @@
       useLatestKernel = true;
     };
     observability.enable = true;
-    builders.enable = false; # EXPLICITLY DISABLED - not a builder
   };
 
   virtualisation.docker = {

@@ -147,28 +147,12 @@
         ];
       };
 
-      # Generate the builders module after outputs are created
-      buildersModule = outputs.lib.builders.mkBuildersModule {
-        inherit (outputs) darwinConfigurations nixosConfigurations;
-      };
-
-      # Extend all configurations with the builders module
-      outputsWithBuilders = outputs // {
-        darwinConfigurations = lib.mapAttrs (
-          _: config: config.extendModules { modules = [ buildersModule ]; }
-        ) outputs.darwinConfigurations;
-
-        nixosConfigurations = lib.mapAttrs (
-          _: config: config.extendModules { modules = [ buildersModule ]; }
-        ) outputs.nixosConfigurations;
-      };
-
       # Automatically generate deploy-rs nodes from all configurations
       deployNodes = outputs.lib.deployment.mkDeployNodes {
-        inherit (outputsWithBuilders) darwinConfigurations nixosConfigurations;
+        inherit (outputs) darwinConfigurations nixosConfigurations;
       };
     in
-    outputsWithBuilders
+    outputs
     // {
       deploy.nodes = deployNodes;
     };

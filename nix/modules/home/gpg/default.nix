@@ -60,7 +60,7 @@ in
         charset = "utf-8";
         trust-model = "tofu+pgp";
         auto-key-locate = "wkd cert pka ldap hkps://keys.openpgp.org";
-        keyserver = "hkps://keys.openpgp.org";
+        fixed-list-mode = true;
         no-comments = true;
         no-emit-version = true;
         no-greeting = true;

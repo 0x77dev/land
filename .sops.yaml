@@ -18,19 +18,6 @@ keys:
   - &beefy age1yfuufkuzey2fvda2slpz3wwyz7suf6f4chha9u7a4hs8gfynr5ds7npram
 
 creation_rules:
-  - path_regex: nix/lib/builders/secrets\.(yaml|json|env|ini)$
-    key_groups:
-    - pgp:
-      - *mykhailo
-      age:
-      - *tomato
-      - *pickle
-      - *potato
-      - *muscle
-      - *beefy
-      - *timey
-      - *media
-      - *ipfs
   - path_regex: secrets.*\.(yaml|json|env|ini)$
     key_groups:
     - pgp:
@@ -45,4 +32,3 @@ creation_rules:
       - *ipfs
       - *timey
       - *beefy
-
