@@ -23,8 +23,9 @@ in
       enableBashIntegration = true;
       enableZshIntegration = true;
       enableFishIntegration = true;
+      installVimSyntax = true;
       themes = {
-        github-dark = {
+        gdd = {
           palette = [
             "0=#484f58"
             "1=#ff7b72"
@@ -50,7 +51,7 @@ in
           selection-background = "e6edf3";
           selection-foreground = "0d1117";
         };
-        github-light = {
+        gld = {
           palette = [
             "0=#24292f"
             "1=#cf222e"
@@ -82,7 +83,7 @@ in
         font-variation = "wght=600";
         font-size = 16;
         font-feature = "+calt,+liga";
-        theme = "dark:github-dark,light:github-light";
+        theme = "dark:gdd,light:gld";
       };
     };
 
