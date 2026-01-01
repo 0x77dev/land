@@ -32,10 +32,8 @@
     consoleLogLevel = 3;
     loader = {
       systemd-boot.enable = false;
-      grub = {
-        enable = true;
-        device = "/dev/nvme0n1"; # Legacy BIOS boot on main disk
-      };
+      grub.enable = true;
+      # Device is set by disko based on disk configuration
     };
     kernel.sysctl = {
       "vm.swappiness" = 10;
