@@ -30,11 +30,6 @@
       "rd.udev.log_level=3"
     ];
     consoleLogLevel = 3;
-    loader = {
-      systemd-boot.enable = false;
-      grub.enable = true;
-      # Device is set by disko based on disk configuration
-    };
     kernel.sysctl = {
       "vm.swappiness" = 10;
       "vm.overcommit_memory" = 1;
@@ -182,6 +177,9 @@
     rtkit.enable = true;
     sudo.wheelNeedsPassword = false;
   };
+
+  # Disable sops validation during installation (SSH keys don't exist yet)
+  sops.validateSopsFiles = false;
 
   modules = {
     vscode-server.enable = true;
