@@ -230,5 +230,6 @@
     ];
   };
 
+  networking.firewall.enable = false;
   system.stateVersion = "25.11";
 }
