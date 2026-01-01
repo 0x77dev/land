@@ -84,6 +84,7 @@
   # Cinnamon uses GTK, no Qt needed
   programs = {
     dconf.enable = true;
+    nix-ld.enable = true;
 
     appimage = {
       enable = true;
