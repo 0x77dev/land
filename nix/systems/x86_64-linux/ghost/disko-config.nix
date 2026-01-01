@@ -7,9 +7,18 @@
         content = {
           type = "gpt";
           partitions = {
-            boot = {
+            bios = {
               size = "1M";
               type = "EF02"; # BIOS boot partition for GRUB
+              priority = 1; # Needs to be first partition
+            };
+            boot = {
+              size = "512M";
+              content = {
+                type = "filesystem";
+                format = "xfs";
+                mountpoint = "/boot";
+              };
             };
             root = {
               size = "100%";
