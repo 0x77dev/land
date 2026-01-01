@@ -32,11 +32,9 @@
     consoleLogLevel = 3;
     loader = {
       systemd-boot.enable = false;
-      efi.canTouchEfiVariables = true;
       grub = {
         enable = true;
-        devices = [ "nodev" ];
-        efiSupport = true;
+        device = "/dev/nvme0n1"; # Legacy BIOS boot on main disk
       };
     };
     kernel.sysctl = {
