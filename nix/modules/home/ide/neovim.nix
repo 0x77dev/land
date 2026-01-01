@@ -21,6 +21,9 @@ in
       globals.mapleader = " ";
       globals.maplocalleader = " ";
 
+      # Enable built-in editorconfig support (Neovim 0.9+)
+      editorconfig.enable = true;
+
       opts = {
         # Line numbers
         number = true;
@@ -367,11 +370,13 @@ in
           settings = {
             provider = "openai";
             auto_suggestions_provider = "openai";
-            openai = {
-              endpoint = "https://developer.osv.engineering/inference/v1";
-              model = "anthropic/claude-sonnet-4-5";
-              api_key_name = "OSV_API_KEY";
-              max_tokens = 8192;
+            providers = {
+              openai = {
+                endpoint = "https://developer.osv.engineering/inference/v1";
+                model = "anthropic/claude-sonnet-4-5";
+                api_key_name = "OSV_API_KEY";
+                max_tokens = 8192;
+              };
             };
             behaviour = {
               auto_suggestions = false;
