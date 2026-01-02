@@ -81,6 +81,11 @@
   virtualisation.docker = {
     enable = true;
     storageDriver = "overlay2";
+    daemon.settings = {
+      features = {
+        containerd-snapshotter = true;
+      };
+    };
   };
 
   nixpkgs.config = {
