@@ -47,6 +47,7 @@ in
       "discord"
       "orbstack"
       "google-chrome"
+      "helium-browser"
       "slack"
       "linear-linear"
       "zoom"
