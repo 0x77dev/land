@@ -15,9 +15,6 @@ let
     gh_grep = {
       url = "https://mcp.grep.app";
     };
-    nixos = {
-      command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
-    };
     rust = {
       command = "rust-docs-mcp";
     };
@@ -302,16 +299,6 @@ let
         inherit (mcpServers.gh_grep) url;
         enabled = true;
       };
-      nixos = {
-        type = "local";
-        command = [ mcpServers.nixos.command ];
-        enabled = true;
-      };
-      rust = {
-        type = "local";
-        command = [ mcpServers.rust.command ];
-        enabled = true;
-      };
       exa = {
         type = "remote";
         inherit (mcpServers.exa) url;
@@ -329,7 +316,6 @@ in
     home.packages = with pkgs; [
       aichat
       opencode
-      mcp-nixos
     ];
 
     programs.mcp = {
