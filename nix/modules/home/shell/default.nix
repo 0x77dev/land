@@ -17,6 +17,8 @@ let
 
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 
+  userName = config.home.username;
+
   commonPaths = unique (
     [
       "$HOME/go/bin"
@@ -26,6 +28,7 @@ let
       "/run/wrappers/bin"
     ]
     ++ optional isDarwin "/opt/homebrew/bin"
+    ++ optional isDarwin "/etc/profiles/per-user/${userName}/bin"
   );
 
   exportedPath = concatStringsSep ":" commonPaths;
