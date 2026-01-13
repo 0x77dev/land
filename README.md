@@ -83,7 +83,7 @@ deploy . -s --remote-build
 ### NixOS Bootstrap
 
 ```bash
-nixos-rebuild switch --flake sourcehut:~0x77dev/land --refresh
+nixos-rebuild switch -L --flake sourcehut:~dev0x77/land --refresh
 ```
 
 ### Darwin Bootstrap
@@ -92,10 +92,8 @@ Initial setup requires sandbox disabled on macOS:
 
 ```bash
 sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
-  switch --flake sourcehut:~0x77dev/land --option sandbox false
+  switch -L --flake sourcehut:~dev0x77/land --option sandbox false
 ```
-
-After initial setup, use `deploy .#potato -s --remote-build` for updates.
 
 ## Systems
 
@@ -138,7 +136,7 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [maintained-badge]: https://img.shields.io/badge/maintained-yes-success.svg?style=flat
 
 <!-- Project Links -->
-[commits]: https://github.com/0x77dev/land/graphs/commit-activity
+[commits]: https://git.sr.ht/~dev0x77/land/log
 [contributing]: /CONTRIBUTING.md
 [wtfpl]: /LICENSE
 

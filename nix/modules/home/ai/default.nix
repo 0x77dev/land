@@ -313,8 +313,12 @@ in
   };
 
   config = mkIf cfg.enable {
+    services.ollama.enable = true;
+
     home.packages = with pkgs; [
       aichat
+      opencode
+      ollama
       opencode
     ];
 
@@ -323,7 +327,9 @@ in
       servers = mcpServers;
     };
 
-    # TODO: Migrate to `programs.opencode` on next home-manager release
-    home.file."${config.xdg.configHome}/opencode/config.json".text = builtins.toJSON opencodeConfig;
+    programs.opencode = {
+      enable = true;
+      settings = opencodeConfig;
+    };
   };
 }

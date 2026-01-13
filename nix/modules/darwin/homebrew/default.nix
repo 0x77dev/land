@@ -53,13 +53,13 @@ in
       "zoom"
       "steam"
       "notion"
+      "homebrew/cask/betterdisplay"
     ];
 
     masApps = lib.mkDefault {
-      "Things" = 904280696;
       "WireGuard" = 1451685025;
       # TODO: Xcode automatic install fails
-      # "Xcode" = 497799835;
+      "Xcode" = 497799835;
     };
   };
 }
