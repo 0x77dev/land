@@ -7,6 +7,7 @@
 with lib;
 let
   cfg = config.modules.home.secrets;
+  inherit (pkgs.stdenv.hostPlatform) isDarwin;
 
   # Generate export commands for all secrets dynamically
   exportAllSecrets =
@@ -81,6 +82,11 @@ in
       };
 
       home.packages = with pkgs; [ sops ];
+
+      # Fix sops-nix LaunchAgent PATH on Darwin
+      launchd.agents.sops-nix.config.EnvironmentVariables.PATH = mkIf isDarwin (
+        lib.mkForce "/usr/bin:/bin:/usr/sbin:/sbin"
+      );
     }
 
     # Age-specific configuration
