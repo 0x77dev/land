@@ -53,7 +53,6 @@ in
         "*" = {
           extraOptions = {
             AddKeysToAgent = "yes";
-            IdentitiesOnly = "yes";
           };
         };
       }
