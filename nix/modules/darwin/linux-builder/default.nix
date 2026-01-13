@@ -25,7 +25,7 @@ let
 in
 {
   nix.linux-builder = {
-    enable = mkDefault false;
+    enable = mkDefault true;
     systems = mkDefault linuxSystems;
     supportedFeatures = mkDefault [
       "kvm"
@@ -36,15 +36,15 @@ in
 
     config = _: {
       #   # NOTE: requires distributed build with aarch64-linux builders
-      #   nix.settings = {
-      #     auto-optimise-store = true;
-      #     builders-use-substitutes = true;
-      #     extra-platforms = linuxSystems;
-      #     keep-derivations = true;
-      #     keep-outputs = true;
-      #     log-lines = 50;
-      #     cores = 0;
-      #   };
+      nix.settings = {
+        auto-optimise-store = true;
+        builders-use-substitutes = true;
+        extra-platforms = linuxSystems;
+        keep-derivations = true;
+        keep-outputs = true;
+        log-lines = 50;
+        cores = 0;
+      };
 
       boot.binfmt.emulatedSystems = emulatedSystems;
 
