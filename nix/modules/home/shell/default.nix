@@ -107,11 +107,7 @@ in
 
       fish = {
         enable = true;
-        shellAliases = commonAliases // {
-          # Keep muscle memory after switching to VSCodium.
-          code = "codium";
-          cursor = "codium";
-        };
+        shellAliases = commonAliases;
         shellAbbrs = commonAbbreviations;
         interactiveShellInit = ''
           set fish_greeting

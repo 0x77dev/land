@@ -184,7 +184,7 @@ prek run -a
 prek run
 
 # Run specific hook
-prek run nixfmt-rfc-style
+prek run nixfmt
 ```
 
 **Important**: `prek` only processes **git-tracked files**. If you're working with
@@ -409,7 +409,7 @@ style rules.
 
 Project-specific requirements:
 
-- 2-space indentation (enforced by `nixfmt-rfc-style`)
+- 2-space indentation (enforced by `nixfmt`)
 - Verb-first function naming: `mkPackage`, `buildConfig`
 - Use `lib.land` namespace for custom functions
 - Modules named by concern, not implementation

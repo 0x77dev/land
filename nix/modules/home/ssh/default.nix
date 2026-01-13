@@ -40,7 +40,7 @@ in
   config = mkIf cfg.enable {
     programs.ssh = {
       enable = true;
-      enableDefaultConfig = true;
+      enableDefaultConfig = false;
 
       # GPG agent forwarding configuration
       extraConfig = mkIf gpgEnabled ''
@@ -48,8 +48,16 @@ in
         StreamLocalBindUnlink yes
       '';
 
-      # Configure GPG agent forwarding for specific hosts
-      matchBlocks = mkIf gpgEnabled {
+      matchBlocks = {
+        # Default settings for all hosts (replaces enableDefaultConfig)
+        "*" = {
+          extraOptions = {
+            AddKeysToAgent = "yes";
+            IdentitiesOnly = "yes";
+          };
+        };
+      }
+      // optionalAttrs gpgEnabled {
         # Only forward to specific trusted servers
         "pickle pickle.0x77.computer tomato tomato.0x77.computer muscle muscle.0x77.computer beefy beefy.0x77.computer" =
           {

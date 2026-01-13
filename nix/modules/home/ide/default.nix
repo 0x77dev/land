@@ -22,7 +22,7 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       nixd
-      nixfmt-rfc-style
+      nixfmt
     ];
   };
 }
