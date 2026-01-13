@@ -9,7 +9,7 @@ let
 
   hostIsAarch64 = pkgs.stdenv.hostPlatform.isAarch64;
   linuxSystems = unique ([ "x86_64-linux" ] ++ optional hostIsAarch64 "aarch64-linux");
-  # emulatedSystems = if hostIsAarch64 then [ "x86_64-linux" ] else [ "aarch64-linux" ];
+  emulatedSystems = if hostIsAarch64 then [ "x86_64-linux" ] else [ "aarch64-linux" ];
 
   # rawHostCores = attrByPath [ "parsed" "cpu" "cores" ] 6 pkgs.stdenv.hostPlatform;
   # defaultCores =
@@ -34,26 +34,26 @@ in
     ];
     # maxJobs = mkDefault defaultCores;
 
-    # config = _: {
-    #   # NOTE: requires distributed build with aarch64-linux builders
-    #   nix.settings = {
-    #     auto-optimise-store = true;
-    #     builders-use-substitutes = true;
-    #     extra-platforms = linuxSystems;
-    #     keep-derivations = true;
-    #     keep-outputs = true;
-    #     log-lines = 50;
-    #     cores = 0;
-    #   };
+    config = _: {
+      #   # NOTE: requires distributed build with aarch64-linux builders
+      #   nix.settings = {
+      #     auto-optimise-store = true;
+      #     builders-use-substitutes = true;
+      #     extra-platforms = linuxSystems;
+      #     keep-derivations = true;
+      #     keep-outputs = true;
+      #     log-lines = 50;
+      #     cores = 0;
+      #   };
 
-    #   boot.binfmt.emulatedSystems = emulatedSystems;
+      boot.binfmt.emulatedSystems = emulatedSystems;
 
-    #   virtualisation = {
-    #     cores = mkDefault defaultCores;
-    #     memorySize = mkDefault defaultMemoryMiB;
-    #     diskSize = mkDefault defaultDiskMiB;
-    #     graphics = mkDefault false;
-    #   };
-    # };
+      #   virtualisation = {
+      #     cores = mkDefault defaultCores;
+      #     memorySize = mkDefault defaultMemoryMiB;
+      #     diskSize = mkDefault defaultDiskMiB;
+      #     graphics = mkDefault false;
+      #   };
+    };
   };
 }
