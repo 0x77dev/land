@@ -66,6 +66,7 @@ in
 
     home.packages = with pkgs; [
       bat
+      btop
       coreutils
       devenv
       direnv
