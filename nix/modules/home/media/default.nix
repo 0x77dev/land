@@ -17,8 +17,8 @@ in
     home.packages = with pkgs; [
       aria2
       ffmpeg
-      spotdl
-      yt-dlp
+      # spotdl
+      # yt-dlp
     ];
   };
 }

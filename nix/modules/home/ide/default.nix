@@ -12,7 +12,7 @@ in
   imports = [
     ./vscode.nix
     ./zed.nix
-    ./neovim.nix
+    # ./neovim.nix
   ];
 
   options.modules.home.ide = {
