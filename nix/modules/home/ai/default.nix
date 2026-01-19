@@ -21,6 +21,9 @@ let
     exa = {
       url = "https://mcp.exa.ai/mcp";
     };
+    linear = {
+      url = "https://mcp.linear.app/mcp";
+    };
   };
 
   opencodeConfig = {
@@ -67,11 +70,14 @@ let
               output = [ "text" ];
             };
             headers = {
-              "anthropic-beta" = "context-1m-2025-08-07";
+              "anthropic-beta" = "context-1m-2025-08-07,interleaved-thinking-2025-05-14";
             };
-            # options = {
-            #   reasoningEffort = "high";
-            # };
+            options = {
+              thinking = {
+                type = "enabled";
+                budget_tokens = 16000;
+              };
+            };
           };
           "vertex_ai/gemini-3-pro" = {
             id = "vertex_ai/gemini-3-pro";
@@ -137,7 +143,46 @@ let
               output = [ "text" ];
             };
             options = {
-              reasoningEffort = "high";
+              thinking = {
+                type = "enabled";
+                budget_tokens = 16000;
+              };
+            };
+          };
+          "anthropic/claude-opus-4-5" = {
+            id = "anthropic/claude-opus-4-5";
+            name = "Claude Opus 4.5";
+            release_date = "2025-11-24";
+            attachment = true;
+            reasoning = true;
+            temperature = true;
+            tool_call = true;
+            cost = {
+              input = 5.25;
+              output = 26.25;
+              cache_read = 0.525;
+              cache_write = 6.5625;
+            };
+            limit = {
+              context = 200000;
+              output = 32000;
+            };
+            modalities = {
+              input = [
+                "text"
+                "image"
+                "pdf"
+              ];
+              output = [ "text" ];
+            };
+            headers = {
+              "anthropic-beta" = "interleaved-thinking-2025-05-14";
+            };
+            options = {
+              thinking = {
+                type = "enabled";
+                budget_tokens = 16000;
+              };
             };
           };
           "openai/gpt-5.1" = {
@@ -217,9 +262,12 @@ let
               ];
               output = [ "text" ];
             };
-          };
-          options = {
-            reasoningEffort = "high";
+            options = {
+              thinking = {
+                type = "enabled";
+                budget_tokens = 8000;
+              };
+            };
           };
         };
         options = {
