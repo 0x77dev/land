@@ -4,6 +4,15 @@ _:
   home = {
     stateVersion = lib.mkDefault "25.05";
     packages = lib.mkDefault [ ];
+    sessionVariables = {
+      EDITOR = lib.mkDefault "nvim";
+      VISUAL = lib.mkDefault "cursor --wait";
+    };
+  };
+
+  programs.neovim = {
+    enable = lib.mkDefault true;
+    defaultEditor = lib.mkDefault false;
   };
 
   modules.home = {
