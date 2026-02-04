@@ -144,7 +144,7 @@
       };
     };
 
-    # GameMode: CPU governor, I/O priority, GPU optimizations
+    # GameMode: CPU governor, I/O priority optimizations
     # Use with: gamemoderun %command% in Steam launch options
     # https://wiki.nixos.org/wiki/GameMode
     gamemode = {
@@ -155,9 +155,10 @@
           softrealtime = "auto";
           inhibit_screensaver = 0; # KDE handles this
         };
+        # GPU clock offsets via nvidia-settings don't work on Wayland
+        # NVIDIA driver handles boost clocks automatically
         gpu = {
-          apply_gpu_optimisations = "accept-responsibility";
-          gpu_device = 0;
+          apply_gpu_optimisations = "off";
         };
       };
     };
