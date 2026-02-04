@@ -40,11 +40,7 @@ in
 
     # Samsung Odyssey G95SC ultra-wide monitor configuration
     niri.settings.outputs."DP-4" = {
-      mode = {
-        width = 5120;
-        height = 1440;
-        refresh = 240.0;
-      };
+      mode = "5120x1440@240.000";
       scale = 1.0;
       position = {
         x = 0;
