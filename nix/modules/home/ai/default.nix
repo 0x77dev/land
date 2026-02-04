@@ -16,7 +16,7 @@ let
       url = "https://mcp.grep.app";
     };
     rust = {
-      command = "rust-docs-mcp";
+      command = "~/.local/bin/rust-docs-mcp";
     };
     exa = {
       url = "https://mcp.exa.ai/mcp";
@@ -94,9 +94,26 @@ let
           };
         };
       };
+      "furnace-exp-glm47" = {
+        npm = "@ai-sdk/openai-compatible";
+        name = "GLM-4.7 on Furnace Cluster";
+        options = {
+          apiKey = "{env:FURNACE_GLM_API_KEY}";
+          baseURL = "{env:FURNACE_GLM_ENDPOINT}";
+        };
+        models = {
+          "zai-org/GLM-4.7" = {
+            name = "GLM-4.7";
+            limit = {
+              context = 200000;
+              output = 131072;
+            };
+          };
+        };
+      };
     };
 
-    model = "ai-lab/anthropic/claude-sonnet-4-5";
+    model = "furnace-exp-glm47/zai-org/GLM-4.7";
 
     mcp = {
       context7 = {

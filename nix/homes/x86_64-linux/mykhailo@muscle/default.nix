@@ -8,8 +8,6 @@ let
   shared = lib.${namespace}.shared.home-config { inherit lib; };
 in
 {
-  programs.home-manager.enable = true;
-
   inherit (shared) home;
 
   modules.home = shared.modules.home // {
@@ -22,6 +20,7 @@ in
     ide.enable = true;
     media.enable = true;
     network.enable = true;
+    niri.enable = true;
     nix.enable = true;
     p2p.enable = true;
     reverse-engineering.enable = true;
@@ -35,13 +34,23 @@ in
     };
   };
 
-  # Disable GNOME Keyring SSH component (conflicts with GPG agent SSH)
-  xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=SSH Key Agent
-    Hidden=true
-  '';
+  programs = {
+    home-manager.enable = true;
+    zed-editor.userSettings.buffer_font_size = 18;
 
-  programs.zed-editor.userSettings.buffer_font_size = 18;
+    # Samsung Odyssey G95SC ultra-wide monitor configuration
+    niri.settings.outputs."DP-4" = {
+      mode = {
+        width = 5120;
+        height = 1440;
+        refresh = 240.0;
+      };
+      scale = 1.0;
+      position = {
+        x = 0;
+        y = 0;
+      };
+      variable-refresh-rate = true;
+    };
+  };
 }

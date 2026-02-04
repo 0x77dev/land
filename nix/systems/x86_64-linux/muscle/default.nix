@@ -99,39 +99,7 @@
   };
 
   programs = {
-    dconf = {
-      enable = true;
-      profiles = {
-        user.databases = [
-          {
-            settings."org/gnome/mutter".output-luminance = [
-              (lib.gvariant.mkTuple [
-                "DP-4"
-                "SAM"
-                "Odyssey G95SC"
-                "H1AK500000"
-                (lib.gvariant.mkUint32 1)
-                400.0
-              ])
-            ];
-          }
-        ];
-        gdm.databases = [
-          {
-            settings."org/gnome/mutter".output-luminance = [
-              (lib.gvariant.mkTuple [
-                "DP-4"
-                "SAM"
-                "Odyssey G95SC"
-                "H1AK500000"
-                (lib.gvariant.mkUint32 1)
-                400.0
-              ])
-            ];
-          }
-        ];
-      };
-    };
+    dconf.enable = true;
 
     nautilus-open-any-terminal = {
       enable = true;
@@ -169,14 +137,6 @@
       enable = true;
       xkb.layout = "us";
       videoDrivers = [ "nvidia" ];
-      desktopManager.gnome.enable = true;
-      displayManager.gdm.enable = true;
-    };
-
-    gnome = {
-      core-os-services.enable = true;
-      core-shell.enable = true;
-      core-apps.enable = true;
     };
 
     pipewire = {
@@ -217,36 +177,6 @@
     tailscale.enable = true;
   };
 
-  systemd.tmpfiles.rules = [
-    "L+ /run/gdm/.config/monitors.xml - - - - ${pkgs.writeText "gdm-monitors.xml" ''
-      <monitors version="2">
-        <configuration>
-          <layoutmode>physical</layoutmode>
-          <logicalmonitor>
-            <x>0</x>
-            <y>0</y>
-            <scale>1</scale>
-            <primary>yes</primary>
-            <monitor>
-              <monitorspec>
-                <connector>DP-4</connector>
-                <vendor>SAM</vendor>
-                <product>Odyssey G95SC</product>
-                <serial>H1AK500000</serial>
-              </monitorspec>
-              <mode>
-                <width>5120</width>
-                <height>1440</height>
-                <rate>239.999</rate>
-              </mode>
-              <colormode>bt2100</colormode>
-            </monitor>
-          </logicalmonitor>
-        </configuration>
-      </monitors>
-    ''}"
-  ];
-
   security = {
     rtkit.enable = true;
     sudo.wheelNeedsPassword = false;
@@ -265,6 +195,7 @@
     vscode-server.enable = true;
     observability.enable = true;
     security-tools.enable = true;
+    niri.enable = true;
   };
 
   snowfallorg.users.mykhailo = {
@@ -291,10 +222,6 @@
   fonts.fontconfig.enable = true;
 
   environment = {
-    gnome.excludePackages = with pkgs; [
-      yelp
-    ];
-
     systemPackages = with pkgs; [
       nvtopPackages.full
       cudatoolkit
@@ -316,14 +243,10 @@
       dconf-editor
       wl-clipboard
       xdg-utils
-      gnome-tweaks
-      gnome-extension-manager
-      gnomeExtensions.dash-to-panel
-      gnomeExtensions.appindicator
-      gnomeExtensions.blur-my-shell
-      gnomeExtensions.just-perfection
       mangohud
       protonup-qt
+      nautilus
+      file-roller
     ];
 
     variables = {

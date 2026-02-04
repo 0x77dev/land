@@ -25,6 +25,7 @@ _:
     media.enable = lib.mkDefault false;
     mobile.enable = lib.mkDefault false;
     network.enable = lib.mkDefault false;
+    niri.enable = lib.mkDefault false;
     nix.enable = lib.mkDefault false;
     p2p.enable = lib.mkDefault false;
     reverse-engineering.enable = lib.mkDefault false;
