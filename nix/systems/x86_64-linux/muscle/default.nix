@@ -175,6 +175,7 @@
         "-r 240"
         "--adaptive-sync"
         "--hdr-enabled"
+        "--mangoapp" # Enable MangoHud overlay
       ];
     };
 
