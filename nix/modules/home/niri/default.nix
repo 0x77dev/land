@@ -151,17 +151,8 @@ in
           };
 
           # Spawn commands at startup
+          # Note: waybar and mako are started via systemd (programs.waybar.systemd.enable, services.mako)
           spawn-at-startup = [
-            { command = [ "waybar" ]; }
-            { command = [ "mako" ]; }
-            {
-              command = [
-                "systemctl"
-                "--user"
-                "reset-failed"
-                "waybar.service"
-              ];
-            }
             { command = [ "xwayland-satellite" ]; }
           ];
 
