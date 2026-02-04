@@ -91,7 +91,14 @@
       binfmt = true;
     };
 
-    chromium.enable = true;
+    chromium = {
+      enable = true;
+      extensions = [
+        # cspell:disable-next-line
+        "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
+        "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
+      ];
+    };
     fish.enable = true;
   };
 
