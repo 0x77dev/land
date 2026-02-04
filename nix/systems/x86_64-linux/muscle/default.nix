@@ -231,7 +231,7 @@
       btop
       fastfetch
       hwloc
-      chromium
+      google-chrome
       pkgs.${namespace}.tx-02-variable
       gitFull
       vim
