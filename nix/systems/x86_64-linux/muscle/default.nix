@@ -21,6 +21,13 @@
       "ntfs"
       "ext2"
     ];
+    # Load NVIDIA modules early for better KMS
+    initrd.kernelModules = [
+      "nvidia"
+      "nvidia_modeset"
+      "nvidia_uvm"
+      "nvidia_drm"
+    ];
     kernelModules = [ "kvm-amd" ];
     kernelParams = [
       "video=DP-4:5120x1440@240"
@@ -28,6 +35,8 @@
       "loglevel=3"
       "rd.systemd.show_status=auto"
       "rd.udev.log_level=3"
+      # Some games need split lock detection disabled
+      "split_lock_detect=off"
     ];
     consoleLogLevel = 3;
     loader = {
@@ -38,6 +47,7 @@
       "vm.swappiness" = 10;
       "vm.overcommit_memory" = 1;
       "vm.overcommit_ratio" = 100;
+      "vm.max_map_count" = 2147483642;
     };
     binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
@@ -101,11 +111,6 @@
   programs = {
     dconf.enable = true;
 
-    nautilus-open-any-terminal = {
-      enable = true;
-      terminal = "ghostty";
-    };
-
     appimage = {
       enable = true;
       binfmt = true;
@@ -120,9 +125,45 @@
       extraCompatPackages = with pkgs; [
         proton-ge-bin
       ];
+      # Add libraries needed for gamescope within Steam
+      # https://wiki.nixos.org/wiki/Steam#Gamescope_fails_to_launch_when_used_within_Steam
+      package = pkgs.steam.override {
+        extraPkgs =
+          pkgs': with pkgs'; [
+            xorg.libXcursor
+            xorg.libXi
+            xorg.libXinerama
+            xorg.libXScrnSaver
+            libpng
+            libpulseaudio
+            libvorbis
+            stdenv.cc.cc.lib
+            libkrb5
+            keyutils
+          ];
+      };
     };
 
-    gamemode.enable = true;
+    # GameMode: CPU governor, I/O priority, GPU optimizations
+    # Use with: gamemoderun %command% in Steam launch options
+    # https://wiki.nixos.org/wiki/GameMode
+    gamemode = {
+      enable = true;
+      settings = {
+        general = {
+          renice = 10;
+          softrealtime = "auto";
+          inhibit_screensaver = 0; # KDE handles this
+        };
+        gpu = {
+          apply_gpu_optimisations = "accept-responsibility";
+          gpu_device = 0;
+        };
+      };
+    };
+
+    # Gamescope: Steam Deck-like compositor for games
+    # https://wiki.nixos.org/wiki/Steam#Gamescope_Compositor_/_Boot_to_Steam_Deck
     gamescope = {
       enable = true;
       capSysNice = true;
@@ -228,6 +269,7 @@
       "audio"
       "kvm"
       "input"
+      "gamemode" # Required for GameMode CPU governor changes
     ];
     shell = pkgs.fish;
   };
@@ -236,14 +278,33 @@
 
   environment = {
     systemPackages = with pkgs; [
+      # System monitoring
       nvtopPackages.full
+      btop
+      fastfetch
+      hwloc
+
+      # CUDA
       cudatoolkit
       cudaPackages.libcufile
       cudaPackages.gdrcopy
       cudaPackages.nccl
-      btop
-      fastfetch
-      hwloc
+
+      # Gaming - HDR support for gamescope
+      # https://wiki.nixos.org/wiki/Steam#Gamescope_HDR
+      gamescope-wsi
+
+      # Gaming - Performance overlay (use with mangohud %command%)
+      mangohud
+
+      # Gaming - Custom Proton versions
+      protonup-qt
+
+      # Gaming - Non-Steam launchers
+      heroic # Epic/GOG games
+      lutris # General game launcher
+
+      # Desktop apps
       google-chrome
       pkgs.${namespace}.tx-02-variable
       gitFull
@@ -252,12 +313,11 @@
       libfido2
       opensc
       ghostty
-      adwaita-icon-theme
-      dconf-editor
       wl-clipboard
       xdg-utils
-      mangohud
-      protonup-qt
+      dconf-editor
+
+      # KDE apps
       kdePackages.dolphin
       kdePackages.ark
       kdePackages.kcalc
