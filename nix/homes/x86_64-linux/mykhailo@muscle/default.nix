@@ -43,7 +43,7 @@ in
       mode = {
         width = 5120;
         height = 1440;
-        refresh = 240.000;
+        refresh = 239.999;
       };
       scale = 1.0;
       position = {
