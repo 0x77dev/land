@@ -168,6 +168,14 @@
     gamescope = {
       enable = true;
       capSysNice = true;
+      args = [
+        # Samsung Odyssey G95SC: 5120x1440 @ 240Hz
+        "-W 5120"
+        "-H 1440"
+        "-r 240"
+        "--adaptive-sync"
+        "--hdr-enabled"
+      ];
     };
 
     chromium = {
