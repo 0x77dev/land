@@ -24,12 +24,10 @@ in
     ];
 
     # Display manager - GDM supports niri sessions
-    services.xserver = {
+    services.xserver.enable = true;
+    services.displayManager.gdm = {
       enable = true;
-      displayManager.gdm = {
-        enable = true;
-        wayland = true;
-      };
+      wayland = true;
     };
 
     # Environment variables for Wayland/Electron apps

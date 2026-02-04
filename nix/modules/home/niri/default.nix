@@ -29,7 +29,7 @@ in
     # Enable mako for notifications
     services.mako = {
       enable = true;
-      defaultTimeout = 5000;
+      settings.default-timeout = 5000;
     };
 
     # Enable swayidle for idle management

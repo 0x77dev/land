@@ -144,7 +144,6 @@ in
 
     home.packages = with pkgs; [
       aichat
-      ollama
       opencode
     ];
 
