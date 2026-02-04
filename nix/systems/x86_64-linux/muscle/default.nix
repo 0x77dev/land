@@ -94,8 +94,8 @@
 
   qt = {
     enable = true;
-    platformTheme = "gnome";
-    style = "adwaita-dark";
+    platformTheme = "kde";
+    style = "breeze";
   };
 
   programs = {
@@ -144,6 +144,13 @@
       enable = true;
       xkb.layout = "us";
       videoDrivers = [ "nvidia" ];
+    };
+
+    # KDE Plasma 6 with Wayland
+    desktopManager.plasma6.enable = true;
+    displayManager.sddm = {
+      enable = true;
+      wayland.enable = true;
     };
 
     pipewire = {
@@ -202,7 +209,6 @@
     vscode-server.enable = true;
     observability.enable = true;
     security-tools.enable = true;
-    niri.enable = true;
   };
 
   snowfallorg.users.mykhailo = {
@@ -252,12 +258,22 @@
       xdg-utils
       mangohud
       protonup-qt
-      nautilus
-      file-roller
+      kdePackages.dolphin
+      kdePackages.ark
+      kdePackages.kcalc
+      kdePackages.spectacle
+      kdePackages.gwenview
+      kdePackages.konsole
+      kdePackages.kate
     ];
 
     variables = {
       CUDA_PATH = "${pkgs.cudatoolkit}";
+    };
+
+    # Session variables for Wayland/Electron apps
+    sessionVariables = {
+      NIXOS_OZONE_WL = "1";
     };
   };
 
