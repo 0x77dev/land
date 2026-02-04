@@ -168,9 +168,12 @@
     gamescope = {
       enable = true;
       capSysNice = true;
-      # Don't force resolution/refresh - let gamescope detect from display
-      # These args apply to the Steam session (embedded mode)
+      # Samsung Odyssey G95SC: 5120x1440 @ 239.999Hz (reported as 239)
       args = [
+        "-W 5120"
+        "-H 1440"
+        "-r 239"
+        "-f" # fullscreen
         "--adaptive-sync"
         "--hdr-enabled"
         "--mangoapp"
