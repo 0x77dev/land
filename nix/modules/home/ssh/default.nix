@@ -38,6 +38,10 @@ in
   };
 
   config = mkIf cfg.enable {
+    home.packages = with pkgs; [
+      unison
+    ];
+
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
