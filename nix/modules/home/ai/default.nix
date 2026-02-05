@@ -108,6 +108,7 @@ let
               context = 262000;
               output = 128000;
             };
+            include = [ "reasoning" ];
             # Thinking is enabled by default
             # Use chat_template_kwargs to control per-request
             variants = {
