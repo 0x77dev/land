@@ -19,7 +19,7 @@ let
       command = "~/.local/bin/rust-docs-mcp";
     };
     exa = {
-      url = "https://mcp.exa.ai/mcp";
+      url = "{env:EXA_MCP_ENDPOINT}";
     };
     linear = {
       url = "https://mcp.linear.app/mcp";
@@ -94,26 +94,40 @@ let
           };
         };
       };
-      "furnace-exp-glm47" = {
+      "furnace-exp-k25" = {
         npm = "@ai-sdk/openai-compatible";
-        name = "GLM-4.7 on Furnace Cluster";
+        name = "Furnace Cluster";
         options = {
           apiKey = "{env:FURNACE_GLM_API_KEY}";
           baseURL = "{env:FURNACE_GLM_ENDPOINT}";
         };
         models = {
-          "zai-org/GLM-4.7" = {
-            name = "GLM-4.7";
+          "moonshotai/kimi-k2p5" = {
+            name = "Kimi K2.5";
             limit = {
-              context = 200000;
-              output = 131072;
+              context = 262000;
+              output = 128000;
+            };
+            # Thinking is enabled by default
+            # Use chat_template_kwargs to control per-request
+            variants = {
+              # Instant mode - reasoning disabled for faster responses
+              instant = {
+                chat_template_kwargs = {
+                  thinking = false;
+                };
+              };
+              # Thinking mode (default) - full reasoning enabled
+              thinking = {
+                include = [ "reasoning" ];
+              };
             };
           };
         };
       };
     };
 
-    model = "furnace-exp-glm47/zai-org/GLM-4.7";
+    model = "furnace-exp-k25/moonshotai/kimi-k2p5:instant";
 
     mcp = {
       context7 = {

@@ -61,6 +61,9 @@ in
           OSV_INFERENCE_ENDPOINT = { };
           OC_GOOGLE_CLOUD_PROJECT = { };
           OC_VERTEX_LOCATION = { };
+          FURNACE_GLM_API_KEY = { };
+          FURNACE_GLM_ENDPOINT = { };
+          EXA_MCP_ENDPOINT = { };
         };
       };
 

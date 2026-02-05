@@ -5,6 +5,5 @@
     "*.md",
     "*.nix",
     "nix/**/*.nix"
-  ],
-  "model": "anthropic/claude-sonnet-4-5"
+  ]
 }
