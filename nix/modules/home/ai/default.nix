@@ -108,7 +108,6 @@ let
               context = 262000;
               output = 128000;
             };
-            include = [ "reasoning" ];
             # Thinking is enabled by default
             # Use chat_template_kwargs to control per-request
             variants = {
@@ -129,6 +128,18 @@ let
     };
 
     model = "furnace-exp-k25/moonshotai/kimi-k2p5:instant";
+
+    agent = {
+      # Plan mode uses reasoning for deeper analysis (default behavior)
+      plan.model = "furnace-exp-k25/moonshotai/kimi-k2p5";
+      # Build mode uses instant - reasoning disabled for faster responses
+      build = {
+        model = "furnace-exp-k25/moonshotai/kimi-k2p5";
+        chat_template_kwargs = {
+          thinking = false;
+        };
+      };
+    };
 
     mcp = {
       context7 = {
