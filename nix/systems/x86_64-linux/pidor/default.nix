@@ -68,26 +68,21 @@
     admin = true;
     home.enable = true;
     home.config = {
-      modules.home = {
-        # OpenClaw
-        openclaw = {
-          enable = true;
-        };
+      openclaw.enable = true;
 
-        # Shell & tools
-        shell.enable = true;
-        git.enable = true;
-        nix.enable = true;
-        ssh.enable = true;
-        gpg.enable = true;
-        security-tools.enable = true;
+      # Shell & tools
+      shell.enable = true;
+      git.enable = true;
+      nix.enable = true;
+      ssh.enable = true;
+      gpg.enable = true;
+      security-tools.enable = true;
 
-        # Utilities
-        cloud.enable = true;
-        media.enable = true;
-        network.enable = true;
-        p2p.enable = true;
-      };
+      # Utilities
+      cloud.enable = true;
+      media.enable = true;
+      network.enable = true;
+      p2p.enable = true;
     };
   };
 }
