@@ -64,32 +64,28 @@ in
     home.sessionVariables.KEYID =
       config.programs.gpg.settings.default-key or "C33BFD3230B660CF147762D2BF5C81B531164955";
 
-    home.packages =
-      with pkgs;
-      [
-        bat
-        btop
-        coreutils
-        devenv
-        direnv
-        fd
-        figlet
-        fzf
-        glow
-        hwatch
-        starship
-        watchexec
-        yazi
-        zoxide
-        httpie
-        oha
-        curl
-        bun
-        fastfetch
-      ]
-      ++ lib.optionals (!config.modules.home.openclaw.enable) [
-        nodejs_24
-      ];
+    home.packages = with pkgs; [
+      bat
+      btop
+      coreutils
+      devenv
+      direnv
+      fd
+      figlet
+      fzf
+      glow
+      hwatch
+      starship
+      watchexec
+      yazi
+      zoxide
+      httpie
+      oha
+      curl
+      bun
+      nodejs_24
+      fastfetch
+    ];
 
     programs = {
       bash = {
