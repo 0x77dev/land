@@ -128,6 +128,7 @@
           nixos-raspberrypi.overlays.vendor-firmware
           nixos-raspberrypi.overlays.kernel-and-firmware
           nixos-raspberrypi.overlays.vendor-pkgs
+          nix-openclaw.overlays.default
         ];
 
         systems.modules.darwin = with inputs; [
