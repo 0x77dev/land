@@ -44,9 +44,9 @@ in
       exposePluginPackages = false;
 
       # Linux-compatible bundled plugins
+      # (peekaboo, bird, poltergeist, imsg are Darwin-only)
       bundledPlugins = {
         summarize.enable = true;
-        peekaboo.enable = true;
         oracle.enable = true;
         sag.enable = true;
         camsnap.enable = true;
