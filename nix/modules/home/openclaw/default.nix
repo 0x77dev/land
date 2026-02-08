@@ -40,7 +40,10 @@ in
         };
       };
 
-      # All Linux-compatible bundled plugins
+      # Don't expose plugin packages on PATH (avoids osc-progress collision)
+      exposePluginPackages = false;
+
+      # Linux-compatible bundled plugins
       bundledPlugins = {
         summarize.enable = true;
         peekaboo.enable = true;
@@ -49,7 +52,6 @@ in
         camsnap.enable = true;
         gogcli.enable = true;
         goplaces.enable = true;
-        bird.enable = true;
       };
     };
   };
