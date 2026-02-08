@@ -1,7 +1,6 @@
 {
   pkgs,
   inputs,
-  config,
   ...
 }:
 {
@@ -10,27 +9,6 @@
   ];
 
   system.stateVersion = "25.11";
-
-  # Sops secrets for OpenClaw
-  # sops = {
-  #   defaultSopsFile = ./secrets.yaml;
-  #   age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-  #   secrets = {
-  #     "openclaw/telegram_token" = {
-  #       owner = "mykhailo";
-  #       mode = "0400";
-  #     };
-  #     "openclaw/anthropic_key" = {
-  #       owner = "mykhailo";
-  #       mode = "0400";
-  #     };
-  #     "openclaw/gateway_token" = {
-  #       owner = "mykhailo";
-  #       mode = "0400";
-  #     };
-  #   };
-  # };
 
   services = {
     openssh = {
@@ -65,34 +43,50 @@
     firewall.enable = false;
   };
 
+  # Hardware acceleration
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-vaapi-driver
+      libva-vdpau-driver
+      intel-gpu-tools
+      libvdpau-va-gl
+      intel-compute-runtime
+    ];
+    extraPackages32 = with pkgs.pkgsi686Linux; [
+      intel-media-driver
+      intel-vaapi-driver
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
+    enable32Bit = true;
+  };
+
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
     home.enable = true;
     home.config = {
-      programs.openclaw = {
-        enable = false;
-
-        config = {
-          gateway = {
-            mode = "local";
-            auth.token = "file:${config.sops.secrets."openclaw/gateway_token".path}";
-          };
-
-          channels.telegram = {
-            tokenFile = config.sops.secrets."openclaw/telegram_token".path;
-            allowFrom = [ ]; # TODO: add your Telegram user ID
-          };
-
-          env.vars = {
-            ANTHROPIC_API_KEY = "file:${config.sops.secrets."openclaw/anthropic_key".path}";
-          };
+      modules.home = {
+        # OpenClaw
+        openclaw = {
+          enable = true;
         };
 
-        bundledPlugins = {
-          summarize.enable = true;
-          oracle.enable = true;
-        };
+        # Shell & tools
+        shell.enable = true;
+        git.enable = true;
+        nix.enable = true;
+        ssh.enable = true;
+        gpg.enable = true;
+        security-tools.enable = true;
+
+        # Utilities
+        cloud.enable = true;
+        media.enable = true;
+        network.enable = true;
+        p2p.enable = true;
       };
     };
   };
