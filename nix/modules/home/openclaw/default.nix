@@ -13,6 +13,21 @@ in
   };
 
   config = mkIf cfg.enable {
-    programs.openclaw.enable = true;
+    programs.openclaw = {
+      enable = true;
+
+      config = {
+        gateway = {
+          mode = "local";
+          bind = "loopback";
+          tailscale.mode = "serve";
+        };
+      };
+
+      bundledPlugins = {
+        summarize.enable = true;
+        oracle.enable = true;
+      };
+    };
   };
 }

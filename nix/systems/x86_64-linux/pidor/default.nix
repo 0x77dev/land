@@ -20,6 +20,11 @@
     };
 
     time-client.enable = true;
+
+    tailscale = {
+      enable = true;
+      permitCertUid = "mykhailo";
+    };
   };
 
   virtualisation.incus.agent.enable = true;
