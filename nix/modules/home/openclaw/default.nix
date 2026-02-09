@@ -64,8 +64,9 @@ in
 
   config = mkIf cfg.enable {
     home = {
-      packages = [
-        pkgs.land.mcporter
+      packages = with pkgs; [
+        land.mcporter
+        chromium
       ];
 
       # Point mcporter at the programs.mcp config
