@@ -1,29 +1,34 @@
 {
   lib,
-  buildNpmPackage,
-  fetchFromGitHub,
+  stdenv,
+  fetchurl,
   nodejs_24,
+  makeWrapper,
 }:
 
-buildNpmPackage rec {
+# mcporter's npm tarball ships pre-built dist/ with all code bundled.
+# It has zero runtime node_modules dependencies (rolldown bundles everything).
+stdenv.mkDerivation rec {
   pname = "mcporter";
   version = "0.7.3";
 
-  src = fetchFromGitHub {
-    owner = "steipete";
-    repo = "mcporter";
-    rev = "v${version}";
-    hash = "sha256-x/2Ln6kohj59RSJgctWlYKckmGbWjY2ryPaLhoj0Q48=";
+  src = fetchurl {
+    url = "https://registry.npmjs.org/${pname}/-/${pname}-${version}.tgz";
+    hash = "sha256-zTxBHWrceM0I8dVHWZYQaJ9fFaTD4x+B6ifaCaTZHHo=";
   };
 
-  npmDepsHash = lib.fakeHash;
+  nativeBuildInputs = [ makeWrapper ];
 
-  nodejs = nodejs_24;
+  unpackPhase = ''
+    mkdir -p source
+    tar xzf $src --strip-components=1 -C source
+  '';
 
-  buildPhase = ''
-    runHook preBuild
-    npm run build
-    runHook postBuild
+  installPhase = ''
+    mkdir -p $out/lib/mcporter $out/bin
+    cp -r source/dist source/package.json $out/lib/mcporter/
+    makeWrapper ${nodejs_24}/bin/node $out/bin/mcporter \
+      --add-flags "$out/lib/mcporter/dist/cli.js"
   '';
 
   meta = {
