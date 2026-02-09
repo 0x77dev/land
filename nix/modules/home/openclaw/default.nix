@@ -135,7 +135,7 @@ in
       Service = {
         ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
         Environment = mkAfter [
-          "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:/run/wrappers/bin:\${PATH}"
+          "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
         ];
       };
     };
