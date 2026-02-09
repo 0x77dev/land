@@ -1,35 +1,29 @@
 {
   lib,
-  stdenv,
-  fetchurl,
+  buildNpmPackage,
+  fetchFromGitHub,
   nodejs_24,
-  makeWrapper,
 }:
 
-let
-  version = "0.7.3";
-in
-stdenv.mkDerivation {
+buildNpmPackage rec {
   pname = "mcporter";
-  inherit version;
+  version = "0.7.3";
 
-  src = fetchurl {
-    url = "https://registry.npmjs.org/mcporter/-/mcporter-${version}.tgz";
-    hash = "sha256-zTxBHWrceM0I8dVHWZYQaJ9fFaTD4x+B6ifaCaTZHHo=";
+  src = fetchFromGitHub {
+    owner = "steipete";
+    repo = "mcporter";
+    rev = "v${version}";
+    hash = "sha256-x/2Ln6kohj59RSJgctWlYKckmGbWjY2ryPaLhoj0Q48=";
   };
 
-  nativeBuildInputs = [ makeWrapper ];
+  npmDepsHash = lib.fakeHash;
 
-  unpackPhase = ''
-    mkdir -p source
-    tar xzf $src --strip-components=1 -C source
-  '';
+  nodejs = nodejs_24;
 
-  installPhase = ''
-    mkdir -p $out/lib/mcporter $out/bin
-    cp -r source/dist source/node_modules source/package.json $out/lib/mcporter/
-    makeWrapper ${nodejs_24}/bin/node $out/bin/mcporter \
-      --add-flags "$out/lib/mcporter/dist/cli.js"
+  buildPhase = ''
+    runHook preBuild
+    npm run build
+    runHook postBuild
   '';
 
   meta = {
