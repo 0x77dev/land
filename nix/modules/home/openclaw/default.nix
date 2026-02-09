@@ -170,7 +170,10 @@ in
           Unit.After = [ "sops-nix.service" ];
           Install.WantedBy = [ "default.target" ];
           Service = {
-            ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
+            # Resolve sops secrets into the config before the gateway starts.
+            # The nix-openclaw wrapper (ExecStart) is preserved -- it sets up
+            # plugin PATH and execs openclaw. We only prepend a config resolver.
+            ExecStartPre = [ "${loadSecretsScript} ${lib.getExe' pkgs.coreutils "true"}" ];
             Environment = mkAfter [
               "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
             ];
