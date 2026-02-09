@@ -16,14 +16,14 @@ let
     OPENCLAW_TELEGRAM_TOKEN = config.sops.secrets.OPENCLAW_TELEGRAM_TOKEN.path;
   };
 
-  loadSecretsScript = pkgs.writeShellScript "openclaw-load-secrets" (
-    lib.concatStringsSep "\n" (
+  loadSecretsScript = pkgs.writeShellScript "openclaw-load-secrets" ''
+    ${lib.concatStringsSep "\n" (
       lib.mapAttrsToList (
         name: path: ''export ${name}="$(${lib.getExe' pkgs.coreutils "cat"} "${path}")"''
       ) secretEnvVars
-    )
-    + ''\nexec "$@"''
-  );
+    )}
+    exec "$@"
+  '';
 in
 {
   options.modules.home.openclaw = {
