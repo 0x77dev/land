@@ -76,11 +76,13 @@ in
           telegram.enabled = true;
           "memory-lancedb" = {
             enabled = true;
-            embedding = {
-              provider = "openai";
-              model = "Qwen/Qwen3-Embedding-0.6B";
-              apiKey = "\${FURNACE_GLM_API_KEY}";
-              baseUrl = "\${FURNACE_EMBEDDINGS_ENDPOINT}";
+            config = {
+              embedding = {
+                provider = "openai";
+                model = "Qwen/Qwen3-Embedding-0.6B";
+                apiKey = "\${FURNACE_GLM_API_KEY}";
+                baseUrl = "\${FURNACE_EMBEDDINGS_ENDPOINT}";
+              };
             };
           };
         };
