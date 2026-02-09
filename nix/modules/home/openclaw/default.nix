@@ -17,6 +17,9 @@ let
     OPENCLAW_GATEWAY_TOKEN = config.sops.secrets.OPENCLAW_GATEWAY_TOKEN.path;
     TELEGRAM_BOT_TOKEN = config.sops.secrets.TELEGRAM_BOT_TOKEN.path;
     FURNACE_EMBEDDINGS_ENDPOINT = config.sops.secrets.FURNACE_EMBEDDINGS_ENDPOINT.path;
+    OPENCLAW_HOOK_TOKEN = config.sops.secrets.OPENCLAW_HOOK_TOKEN.path;
+    OPENCLAW_GMAIL_ACCOUNT = config.sops.secrets.OPENCLAW_GMAIL_ACCOUNT.path;
+    OPENCLAW_GCP_TOPIC = config.sops.secrets.OPENCLAW_GCP_TOPIC.path;
   };
 
   loadSecretsScript = pkgs.writeShellScript "openclaw-load-secrets" ''
@@ -69,8 +72,43 @@ in
           auth.token = "\${OPENCLAW_GATEWAY_TOKEN}";
         };
 
-        # Override runtime mutation from openclaw doctor
-        plugins.entries.telegram.enabled = true;
+        plugins.entries = {
+          telegram.enabled = true;
+          "memory-lancedb" = {
+            enabled = true;
+            embedding = {
+              provider = "openai";
+              model = "Qwen/Qwen3-Embedding-0.6B";
+              apiKey = "\${FURNACE_GLM_API_KEY}";
+              baseUrl = "\${FURNACE_EMBEDDINGS_ENDPOINT}";
+            };
+          };
+        };
+
+        hooks = {
+          enabled = true;
+          token = "\${OPENCLAW_HOOK_TOKEN}";
+          presets = [ "gmail" ];
+          gmail = {
+            account = "\${OPENCLAW_GMAIL_ACCOUNT}";
+            topic = "\${OPENCLAW_GCP_TOPIC}";
+            includeBody = true;
+            maxBytes = 20000;
+            tailscale.mode = "funnel";
+          };
+          mappings = [
+            {
+              match.path = "gmail";
+              action = "agent";
+              wakeMode = "now";
+              name = "Gmail";
+              sessionKey = "hook:gmail:{{messages[0].id}}";
+              messageTemplate = "New email from {{messages[0].from}}\nSubject: {{messages[0].subject}}\n{{messages[0].snippet}}\n{{messages[0].body}}";
+              deliver = true;
+              channel = "telegram";
+            }
+          ];
+        };
 
         channels.telegram = {
           enabled = true;

@@ -257,6 +257,7 @@
     "kwalletmanager",
     "kwargs",
     "LACP",
+    "lancedb",
     "largeio",
     "layoutmode",
     "LDFLAGS",

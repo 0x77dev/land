@@ -67,6 +67,9 @@ in
           EXA_MCP_ENDPOINT = { };
           TELEGRAM_BOT_TOKEN = { };
           OPENCLAW_GATEWAY_TOKEN = { };
+          OPENCLAW_HOOK_TOKEN = { };
+          OPENCLAW_GMAIL_ACCOUNT = { };
+          OPENCLAW_GCP_TOPIC = { };
         };
       };
 
