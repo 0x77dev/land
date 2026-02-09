@@ -74,6 +74,7 @@ in
             baseUrl = "\${FURNACE_GLM_ENDPOINT}";
             apiKey = "\${FURNACE_GLM_API_KEY}";
             api = "openai-completions";
+            headers."User-Agent" = "openclaw/1.0";
             models = [
               {
                 id = "moonshotai/kimi-k2p5";
