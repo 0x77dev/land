@@ -18,6 +18,7 @@ let
     TELEGRAM_BOT_TOKEN = config.sops.secrets.TELEGRAM_BOT_TOKEN.path;
     FURNACE_EMBEDDINGS_ENDPOINT = config.sops.secrets.FURNACE_EMBEDDINGS_ENDPOINT.path;
     OPENCLAW_HOOK_TOKEN = config.sops.secrets.OPENCLAW_HOOK_TOKEN.path;
+    GOG_KEYRING_PASSWORD = config.sops.secrets.GOG_KEYRING_PASSWORD.path;
     OPENCLAW_GMAIL_ACCOUNT = config.sops.secrets.OPENCLAW_GMAIL_ACCOUNT.path;
     OPENCLAW_GCP_TOPIC = config.sops.secrets.OPENCLAW_GCP_TOPIC.path;
   };
