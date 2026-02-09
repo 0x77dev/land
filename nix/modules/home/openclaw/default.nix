@@ -76,17 +76,6 @@ in
 
         plugins.entries = {
           telegram.enabled = true;
-          "memory-lancedb" = {
-            enabled = true;
-            config = {
-              embedding = {
-                provider = "openai";
-                model = "Qwen/Qwen3-Embedding-0.6B";
-                apiKey = "\${FURNACE_GLM_API_KEY}";
-                baseUrl = "\${FURNACE_EMBEDDINGS_ENDPOINT}";
-              };
-            };
-          };
         };
 
         hooks = {
@@ -124,20 +113,6 @@ in
         agents.defaults = {
           model.primary = "kimi-osv/moonshotai/kimi-k2p5";
           models."kimi-osv/moonshotai/kimi-k2p5" = { };
-          memorySearch = {
-            enabled = true;
-            provider = "openai";
-            model = "Qwen/Qwen3-Embedding-0.6B";
-            remote = {
-              baseUrl = "\${FURNACE_EMBEDDINGS_ENDPOINT}";
-              apiKey = "\${FURNACE_GLM_API_KEY}";
-              headers = {
-                "User-Agent" = "openclaw/1.0 land0x77";
-                "Authorization" = "Bearer \${FURNACE_GLM_API_KEY}";
-              };
-              batch.enabled = true;
-            };
-          };
         };
 
         models = {
