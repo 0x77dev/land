@@ -31,17 +31,20 @@ let
       ) secretEnvVars
     )}
 
-    # Resolve env vars in the Nix-managed config to a writable copy
+    # Always resolve env vars in the config from the Nix-managed source
     cfg="${configPath}"
-    if [ -L "$cfg" ] || [ ! -w "$cfg" ]; then
+    # Read from the symlink target (Nix store) if it's a symlink, otherwise read as-is
+    if [ -L "$cfg" ]; then
+      resolved="$(${lib.getExe' pkgs.coreutils "cat"} "$(${lib.getExe' pkgs.coreutils "readlink"} -f "$cfg")")"
+    else
       resolved="$(${lib.getExe' pkgs.coreutils "cat"} "$cfg")"
-      for var in ${lib.concatStringsSep " " (lib.attrNames secretEnvVars)}; do
-        resolved="$(echo "$resolved" | ${lib.getExe' pkgs.gnused "sed"} "s|\''${$var}|$(printenv "$var")|g")"
-      done
-      rm -f "$cfg"
-      echo "$resolved" > "$cfg"
-      chmod 600 "$cfg"
     fi
+    for var in ${lib.concatStringsSep " " (lib.attrNames secretEnvVars)}; do
+      resolved="$(echo "$resolved" | ${lib.getExe' pkgs.gnused "sed"} "s|\''${$var}|$(printenv "$var")|g")"
+    done
+    rm -f "$cfg"
+    echo "$resolved" > "$cfg"
+    chmod 600 "$cfg"
 
     # Write env file for the gateway service to pick up at runtime
     env_file="${homeDir}/.openclaw/.env.secrets"
