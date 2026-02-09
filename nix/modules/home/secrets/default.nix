@@ -64,6 +64,8 @@ in
           FURNACE_GLM_API_KEY = { };
           FURNACE_GLM_ENDPOINT = { };
           EXA_MCP_ENDPOINT = { };
+          OPENCLAW_TELEGRAM_TOKEN = { };
+          OPENCLAW_GATEWAY_TOKEN = { };
         };
       };
 

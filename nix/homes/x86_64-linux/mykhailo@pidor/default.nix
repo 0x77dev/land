@@ -12,6 +12,7 @@ in
   inherit (shared) home;
 
   modules.home = shared.modules.home // {
+    secrets.backend = "age";
     openclaw.enable = true;
     cloud.enable = true;
     git.enable = true;

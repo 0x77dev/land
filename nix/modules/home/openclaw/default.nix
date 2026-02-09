@@ -1,11 +1,29 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 with lib;
 let
   cfg = config.modules.home.openclaw;
+
+  # Sops secrets to pass to the gateway as env vars
+  secretEnvVars = {
+    FURNACE_GLM_API_KEY = config.sops.secrets.FURNACE_GLM_API_KEY.path;
+    FURNACE_GLM_ENDPOINT = config.sops.secrets.FURNACE_GLM_ENDPOINT.path;
+    OPENCLAW_GATEWAY_TOKEN = config.sops.secrets.OPENCLAW_GATEWAY_TOKEN.path;
+    OPENCLAW_TELEGRAM_TOKEN = config.sops.secrets.OPENCLAW_TELEGRAM_TOKEN.path;
+  };
+
+  loadSecretsScript = pkgs.writeShellScript "openclaw-load-secrets" (
+    lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (
+        name: path: ''export ${name}="$(${lib.getExe' pkgs.coreutils "cat"} "${path}")"''
+      ) secretEnvVars
+    )
+    + ''\nexec "$@"''
+  );
 in
 {
   options.modules.home.openclaw = {
@@ -32,11 +50,46 @@ in
           mode = "local";
           bind = "loopback";
           tailscale.mode = "serve";
+          auth.token = "\${OPENCLAW_GATEWAY_TOKEN}";
         };
 
-        env.shellEnv = {
-          enabled = true;
-          timeoutMs = 15000;
+        channels.telegram = {
+          botToken = "\${OPENCLAW_TELEGRAM_TOKEN}";
+          dmPolicy = "pairing";
+          groups."*".requireMention = true;
+        };
+
+        agents.defaults = {
+          model.primary = "kimi-osv/moonshotai/kimi-k2p5";
+          models."kimi-osv/moonshotai/kimi-k2p5" = { };
+        };
+
+        models = {
+          mode = "merge";
+          providers."kimi-osv" = {
+            baseUrl = "\${FURNACE_GLM_ENDPOINT}";
+            apiKey = "\${FURNACE_GLM_API_KEY}";
+            api = "openai-completions";
+            models = [
+              {
+                id = "moonshotai/kimi-k2p5";
+                name = "Kimi K2.5";
+                reasoning = true;
+                input = [
+                  "text"
+                  "image"
+                ];
+                cost = {
+                  input = 0;
+                  output = 0;
+                  cacheRead = 0;
+                  cacheWrite = 0;
+                };
+                contextWindow = 262144;
+                maxTokens = 131072;
+              }
+            ];
+          };
         };
       };
 
@@ -53,6 +106,13 @@ in
         gogcli.enable = true;
         goplaces.enable = true;
       };
+    };
+
+    # Wrap the gateway ExecStart to load sops secrets at runtime
+    # Secrets stay on tmpfs (XDG_RUNTIME_DIR), never written to disk
+    systemd.user.services.openclaw-gateway = {
+      Unit.After = [ "sops-nix.service" ];
+      Service.ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
     };
   };
 }
