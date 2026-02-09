@@ -53,6 +53,9 @@ in
           auth.token = "\${OPENCLAW_GATEWAY_TOKEN}";
         };
 
+        # Override runtime mutation from openclaw doctor
+        plugins.entries.telegram.enabled = true;
+
         channels.telegram = {
           enabled = true;
           botToken = "\${TELEGRAM_BOT_TOKEN}";
