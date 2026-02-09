@@ -54,6 +54,7 @@ in
         };
 
         channels.telegram = {
+          enabled = true;
           botToken = "\${TELEGRAM_BOT_TOKEN}";
           dmPolicy = "pairing";
           groups."*".requireMention = true;
@@ -112,7 +113,12 @@ in
     # Secrets stay on tmpfs (XDG_RUNTIME_DIR), never written to disk
     systemd.user.services.openclaw-gateway = {
       Unit.After = [ "sops-nix.service" ];
-      Service.ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
+      Service = {
+        ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
+        Environment = mkAfter [
+          "PATH=${config.home.homeDirectory}/.local/bin:${config.home.homeDirectory}/go/bin:${config.home.homeDirectory}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
+        ];
+      };
     };
   };
 }
