@@ -43,6 +43,14 @@ let
       chmod 600 "$cfg"
     fi
 
+    # Write env file for the gateway service to pick up at runtime
+    env_file="${homeDir}/.openclaw/.env.secrets"
+    : > "$env_file"
+    ${lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (name: _: ''echo "${name}=$(printenv "${name}")" >> "$env_file"'') secretEnvVars
+    )}
+    chmod 600 "$env_file"
+
     exec "$@"
   '';
 in
@@ -175,6 +183,10 @@ in
             # The nix-openclaw wrapper (ExecStart) is preserved -- it sets up
             # plugin PATH and execs openclaw. We only prepend a config resolver.
             ExecStartPre = [ "${loadSecretsScript} ${lib.getExe' pkgs.coreutils "true"}" ];
+            # .env.secrets is written by ExecStartPre; the - prefix makes it
+            # optional on very first boot (before sops-nix has run).
+            # On subsequent starts the file exists from the previous run.
+            EnvironmentFile = [ "-${homeDir}/.openclaw/.env.secrets" ];
             Environment = mkAfter [
               "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
             ];
