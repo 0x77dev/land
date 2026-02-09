@@ -63,21 +63,29 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [
-      pkgs.land.mcporter
-    ];
+    home = {
+      packages = [
+        pkgs.land.mcporter
+      ];
 
-    # Override home.path to allow collisions (summarize + oracle ship osc-progress)
-    home.path = mkForce (
-      pkgs.buildEnv {
-        name = "home-manager-path";
-        paths = config.home.packages;
-        inherit (config.home) extraOutputsToInstall;
-        postBuild = config.home.extraProfileCommands;
-        ignoreCollisions = true;
-        meta.description = "Environment of packages installed through home-manager";
-      }
-    );
+      # Point mcporter at the programs.mcp config
+      file.".mcporter/mcporter.json".text = builtins.toJSON {
+        mcpServers = { };
+        imports = [ "~/.config/mcp/mcp.json" ];
+      };
+
+      # Override home.path to allow collisions (summarize + oracle ship osc-progress)
+      path = mkForce (
+        pkgs.buildEnv {
+          name = "home-manager-path";
+          paths = config.home.packages;
+          inherit (config.home) extraOutputsToInstall;
+          postBuild = config.home.extraProfileCommands;
+          ignoreCollisions = true;
+          meta.description = "Environment of packages installed through home-manager";
+        }
+      );
+    };
 
     programs.openclaw = {
       enable = true;
