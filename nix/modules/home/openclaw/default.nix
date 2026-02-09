@@ -191,8 +191,7 @@ in
         };
       };
 
-      # Don't expose all plugin packages on PATH (osc-progress collision)
-      exposePluginPackages = false;
+      exposePluginPackages = true;
 
       # Linux-compatible bundled plugins
       # (peekaboo, bird, poltergeist, imsg are Darwin-only)
