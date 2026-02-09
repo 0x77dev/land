@@ -69,6 +69,7 @@ in
           OPENCLAW_GATEWAY_TOKEN = { };
           OPENCLAW_HOOK_TOKEN = { };
           OPENCLAW_GMAIL_ACCOUNT = { };
+          OPENCLAW_GMAIL_ACCOUNTS = { };
           OPENCLAW_GCP_TOPIC = { };
           GOG_KEYRING_PASSWORD = { };
         };

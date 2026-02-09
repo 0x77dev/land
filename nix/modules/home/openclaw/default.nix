@@ -20,6 +20,7 @@ let
     OPENCLAW_HOOK_TOKEN = config.sops.secrets.OPENCLAW_HOOK_TOKEN.path;
     GOG_KEYRING_PASSWORD = config.sops.secrets.GOG_KEYRING_PASSWORD.path;
     OPENCLAW_GMAIL_ACCOUNT = config.sops.secrets.OPENCLAW_GMAIL_ACCOUNT.path;
+    OPENCLAW_GMAIL_ACCOUNTS = config.sops.secrets.OPENCLAW_GMAIL_ACCOUNTS.path;
     OPENCLAW_GCP_TOPIC = config.sops.secrets.OPENCLAW_GCP_TOPIC.path;
   };
 
@@ -172,7 +173,7 @@ in
         };
       };
 
-      # Don't expose plugin packages on PATH (avoids osc-progress collision)
+      # Don't expose all plugin packages on PATH (osc-progress collision)
       exposePluginPackages = false;
 
       # Linux-compatible bundled plugins
@@ -187,15 +188,54 @@ in
       };
     };
 
-    # Wrap the gateway ExecStart to load sops secrets and resolve config
-    systemd.user.services.openclaw-gateway = {
-      Unit.After = [ "sops-nix.service" ];
-      Install.WantedBy = [ "default.target" ];
-      Service = {
-        ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
-        Environment = mkAfter [
-          "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
-        ];
+    systemd.user = {
+      services = {
+        # Wrap the gateway ExecStart to load sops secrets and resolve config
+        openclaw-gateway = {
+          Unit.After = [ "sops-nix.service" ];
+          Install.WantedBy = [ "default.target" ];
+          Service = {
+            ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
+            Environment = mkAfter [
+              "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
+            ];
+          };
+        };
+
+        # Renew Gmail watch for all gog accounts (gateway only auto-renews the primary)
+        openclaw-gmail-watch-renew = {
+          Unit.Description = "Renew Gmail watch for all gog accounts";
+          Service = {
+            Type = "oneshot";
+            ExecStart =
+              let
+                cat = lib.getExe' pkgs.coreutils "cat";
+              in
+              toString (
+                pkgs.writeShellScript "gmail-watch-renew" ''
+                  export GOG_KEYRING_PASSWORD="$(${cat} "${config.sops.secrets.GOG_KEYRING_PASSWORD.path}")"
+                  TOPIC="$(${cat} "${config.sops.secrets.OPENCLAW_GCP_TOPIC.path}")"
+                  IFS=',' read -ra accounts < "${config.sops.secrets.OPENCLAW_GMAIL_ACCOUNTS.path}"
+                  for account in "''${accounts[@]}"; do
+                    account="$(echo "$account" | ${lib.getExe' pkgs.coreutils "tr"} -d ' ')"
+                    [ -z "$account" ] && continue
+                    gog gmail watch start --account "$account" --label INBOX --topic "$TOPIC" || true
+                  done
+                ''
+              );
+            # Inherit PATH from the gateway service (includes plugin binaries)
+            inherit (config.systemd.user.services.openclaw-gateway.Service) Environment;
+          };
+        };
+      };
+
+      timers.openclaw-gmail-watch-renew = {
+        Unit.Description = "Renew Gmail watch weekly";
+        Timer = {
+          OnCalendar = "weekly";
+          Persistent = true;
+        };
+        Install.WantedBy = [ "timers.target" ];
       };
     };
   };
