@@ -63,6 +63,7 @@ in
           OC_VERTEX_LOCATION = { };
           FURNACE_GLM_API_KEY = { };
           FURNACE_GLM_ENDPOINT = { };
+          FURNACE_EMBEDDINGS_ENDPOINT = { };
           EXA_MCP_ENDPOINT = { };
           TELEGRAM_BOT_TOKEN = { };
           OPENCLAW_GATEWAY_TOKEN = { };

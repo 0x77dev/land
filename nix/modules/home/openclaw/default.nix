@@ -16,6 +16,7 @@ let
     FURNACE_GLM_ENDPOINT = config.sops.secrets.FURNACE_GLM_ENDPOINT.path;
     OPENCLAW_GATEWAY_TOKEN = config.sops.secrets.OPENCLAW_GATEWAY_TOKEN.path;
     TELEGRAM_BOT_TOKEN = config.sops.secrets.TELEGRAM_BOT_TOKEN.path;
+    FURNACE_EMBEDDINGS_ENDPOINT = config.sops.secrets.FURNACE_EMBEDDINGS_ENDPOINT.path;
   };
 
   loadSecretsScript = pkgs.writeShellScript "openclaw-load-secrets" ''
@@ -81,6 +82,20 @@ in
         agents.defaults = {
           model.primary = "kimi-osv/moonshotai/kimi-k2p5";
           models."kimi-osv/moonshotai/kimi-k2p5" = { };
+          memorySearch = {
+            enabled = true;
+            provider = "openai";
+            model = "Qwen/Qwen3-Embedding-0.6B";
+            remote = {
+              baseUrl = "\${FURNACE_EMBEDDINGS_ENDPOINT}";
+              apiKey = "\${FURNACE_GLM_API_KEY}";
+              headers = {
+                "User-Agent" = "openclaw/1.0 land0x77";
+                "Authorization" = "Bearer \${FURNACE_GLM_API_KEY}";
+              };
+              batch.enabled = true;
+            };
+          };
         };
 
         models = {
