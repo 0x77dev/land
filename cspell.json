@@ -117,6 +117,7 @@
     "dnsaddr",
     "dnsmasq",
     "dockercompose",
+    "dont",
     "dontUnpack",
     "dotenv",
     "dotgg",
