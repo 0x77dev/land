@@ -1,13 +1,11 @@
 {
   lib,
   writeShellScriptBin,
-  nodejs_24,
+  bun,
 }:
 
-# mcporter via npx -- avoids complex pnpm build packaging.
-# npx caches the package after first run.
 writeShellScriptBin "mcporter" ''
-  exec ${nodejs_24}/bin/npx --yes mcporter@0.7.3 "$@"
+  exec ${bun}/bin/bunx --bun mcporter@0.7.3 "$@"
 ''
 // {
   meta = {
