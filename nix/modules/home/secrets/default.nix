@@ -70,6 +70,7 @@ in
           OPENCLAW_HOOK_TOKEN = { };
           OPENCLAW_GMAIL_ACCOUNT = { };
           OPENCLAW_GCP_TOPIC = { };
+          GOG_KEYRING_PASSWORD = { };
         };
       };
 
