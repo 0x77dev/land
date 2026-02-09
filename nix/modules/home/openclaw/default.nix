@@ -7,6 +7,8 @@
 with lib;
 let
   cfg = config.modules.home.openclaw;
+  homeDir = config.home.homeDirectory;
+  configPath = "${homeDir}/.openclaw/openclaw.json";
 
   # Sops secrets to pass to the gateway as env vars
   secretEnvVars = {
@@ -22,6 +24,19 @@ let
         name: path: ''export ${name}="$(${lib.getExe' pkgs.coreutils "cat"} "${path}")"''
       ) secretEnvVars
     )}
+
+    # Resolve env vars in the Nix-managed config to a writable copy
+    cfg="${configPath}"
+    if [ -L "$cfg" ] || [ ! -w "$cfg" ]; then
+      resolved="$(${lib.getExe' pkgs.coreutils "cat"} "$cfg")"
+      for var in ${lib.concatStringsSep " " (lib.attrNames secretEnvVars)}; do
+        resolved="$(echo "$resolved" | ${lib.getExe' pkgs.gnused "sed"} "s|\''${$var}|$(printenv "$var")|g")"
+      done
+      rm -f "$cfg"
+      echo "$resolved" > "$cfg"
+      chmod 600 "$cfg"
+    fi
+
     exec "$@"
   '';
 in
@@ -114,14 +129,13 @@ in
       };
     };
 
-    # Wrap the gateway ExecStart to load sops secrets at runtime
-    # Secrets stay on tmpfs (XDG_RUNTIME_DIR), never written to disk
+    # Wrap the gateway ExecStart to load sops secrets and resolve config
     systemd.user.services.openclaw-gateway = {
       Unit.After = [ "sops-nix.service" ];
       Service = {
         ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
         Environment = mkAfter [
-          "PATH=${config.home.homeDirectory}/.local/bin:${config.home.homeDirectory}/go/bin:${config.home.homeDirectory}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
+          "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:/run/wrappers/bin:\${PATH}"
         ];
       };
     };
