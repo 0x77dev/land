@@ -13,7 +13,7 @@ let
     FURNACE_GLM_API_KEY = config.sops.secrets.FURNACE_GLM_API_KEY.path;
     FURNACE_GLM_ENDPOINT = config.sops.secrets.FURNACE_GLM_ENDPOINT.path;
     OPENCLAW_GATEWAY_TOKEN = config.sops.secrets.OPENCLAW_GATEWAY_TOKEN.path;
-    OPENCLAW_TELEGRAM_TOKEN = config.sops.secrets.OPENCLAW_TELEGRAM_TOKEN.path;
+    TELEGRAM_BOT_TOKEN = config.sops.secrets.OPENCLAW_TELEGRAM_TOKEN.path;
   };
 
   loadSecretsScript = pkgs.writeShellScript "openclaw-load-secrets" ''
@@ -54,7 +54,7 @@ in
         };
 
         channels.telegram = {
-          botToken = "\${OPENCLAW_TELEGRAM_TOKEN}";
+          botToken = "\${TELEGRAM_BOT_TOKEN}";
           dmPolicy = "pairing";
           groups."*".requireMention = true;
         };
