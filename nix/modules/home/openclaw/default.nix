@@ -149,6 +149,7 @@ in
     # Wrap the gateway ExecStart to load sops secrets and resolve config
     systemd.user.services.openclaw-gateway = {
       Unit.After = [ "sops-nix.service" ];
+      Install.WantedBy = [ "default.target" ];
       Service = {
         ExecStart = mkForce "${loadSecretsScript} ${config.programs.openclaw.package}/bin/openclaw gateway --port 18789";
         Environment = mkAfter [
