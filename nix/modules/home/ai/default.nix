@@ -24,6 +24,12 @@ let
     linear = {
       url = "https://mcp.linear.app/mcp";
     };
+    homeassistant = {
+      url = "{env:HOME_ASSISTANT_URL}/api/mcp";
+      headers = {
+        Authorization = "Bearer {env:HOME_ASSISTANT_TOKEN}";
+      };
+    };
   };
 
   opencodeConfig = {

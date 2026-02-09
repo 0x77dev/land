@@ -72,6 +72,8 @@ in
           OPENCLAW_GMAIL_ACCOUNTS = { };
           OPENCLAW_GCP_TOPIC = { };
           GOG_KEYRING_PASSWORD = { };
+          HOME_ASSISTANT_URL = { };
+          HOME_ASSISTANT_TOKEN = { };
         };
       };
 

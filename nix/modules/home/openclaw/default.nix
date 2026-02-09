@@ -63,6 +63,10 @@ in
   };
 
   config = mkIf cfg.enable {
+    home.packages = with pkgs; [
+      mcporter
+    ];
+
     # Override home.path to allow collisions (summarize + oracle ship osc-progress)
     home.path = mkForce (
       pkgs.buildEnv {
