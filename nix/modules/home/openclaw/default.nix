@@ -63,6 +63,18 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Override home.path to allow collisions (summarize + oracle ship osc-progress)
+    home.path = mkForce (
+      pkgs.buildEnv {
+        name = "home-manager-path";
+        paths = config.home.packages;
+        inherit (config.home) extraOutputsToInstall;
+        postBuild = config.home.extraProfileCommands;
+        ignoreCollisions = true;
+        meta.description = "Environment of packages installed through home-manager";
+      }
+    );
+
     programs.openclaw = {
       enable = true;
 
