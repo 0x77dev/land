@@ -85,6 +85,7 @@ in
           gmail = {
             account = "\${OPENCLAW_GMAIL_ACCOUNT}";
             topic = "\${OPENCLAW_GCP_TOPIC}";
+            pushToken = "\${OPENCLAW_HOOK_TOKEN}";
             includeBody = true;
             maxBytes = 20000;
             tailscale.mode = "funnel";
