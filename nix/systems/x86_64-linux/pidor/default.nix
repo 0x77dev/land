@@ -68,6 +68,8 @@
     enable32Bit = true;
   };
 
+  home-manager.backupFileExtension = "hm-bak";
+
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
