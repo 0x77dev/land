@@ -15,7 +15,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://registry.npmjs.org/mcporter/-/mcporter-${version}.tgz";
-    hash = "sha256-DuyxWUumBY5LbSr0w9O7FSznh1cy84vZIF2EakM5rAo=";
+    hash = "sha256-zTxBHWrceM0I8dVHWZYQaJ9fFaTD4x+B6ifaCaTZHHo=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
