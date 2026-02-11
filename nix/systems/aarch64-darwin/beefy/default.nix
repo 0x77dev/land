@@ -3,7 +3,7 @@
   ...
 }:
 let
-  userName = "0x77";
+  userName = "mykhailo";
 in
 {
   system.stateVersion = 6;
