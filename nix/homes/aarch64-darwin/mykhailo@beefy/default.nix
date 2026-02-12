@@ -15,13 +15,13 @@ in
       config = {
         plugins = {
           telegram.enable = true;
-          oracle.enable = true;
-          sag.enable = true;
-          gogcli.enable = true;
-          goplaces.enable = true;
-          peekaboo.enable = true;
-          poltergeist.enable = true;
-          imsg.enable = true;
+          # oracle.enable = true;
+          # sag.enable = true;
+          # gogcli.enable = true;
+          # goplaces.enable = true;
+          # peekaboo.enable = true;
+          # poltergeist.enable = true;
+          # imsg.enable = true;
         };
       };
       instances.default = {
