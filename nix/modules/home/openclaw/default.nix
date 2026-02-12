@@ -7,55 +7,7 @@
 with lib;
 let
   cfg = config.modules.home.openclaw;
-  homeDir = config.home.homeDirectory;
-  configPath = "${homeDir}/.openclaw/openclaw.json";
-
-  # Sops secrets to pass to the gateway as env vars
-  secretEnvVars = {
-    FURNACE_GLM_API_KEY = config.sops.secrets.FURNACE_GLM_API_KEY.path;
-    FURNACE_GLM_ENDPOINT = config.sops.secrets.FURNACE_GLM_ENDPOINT.path;
-    OPENCLAW_GATEWAY_TOKEN = config.sops.secrets.OPENCLAW_GATEWAY_TOKEN.path;
-    TELEGRAM_BOT_TOKEN = config.sops.secrets.TELEGRAM_BOT_TOKEN.path;
-    FURNACE_EMBEDDINGS_ENDPOINT = config.sops.secrets.FURNACE_EMBEDDINGS_ENDPOINT.path;
-    OPENCLAW_HOOK_TOKEN = config.sops.secrets.OPENCLAW_HOOK_TOKEN.path;
-    GOG_KEYRING_PASSWORD = config.sops.secrets.GOG_KEYRING_PASSWORD.path;
-    OPENCLAW_GMAIL_ACCOUNT = config.sops.secrets.OPENCLAW_GMAIL_ACCOUNT.path;
-    OPENCLAW_GMAIL_ACCOUNTS = config.sops.secrets.OPENCLAW_GMAIL_ACCOUNTS.path;
-    OPENCLAW_GCP_TOPIC = config.sops.secrets.OPENCLAW_GCP_TOPIC.path;
-  };
-
-  loadSecretsScript = pkgs.writeShellScript "openclaw-load-secrets" ''
-    ${lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (
-        name: path: ''export ${name}="$(${lib.getExe' pkgs.coreutils "cat"} "${path}")"''
-      ) secretEnvVars
-    )}
-
-    # Always resolve env vars in the config from the Nix-managed source
-    cfg="${configPath}"
-    # Read from the symlink target (Nix store) if it's a symlink, otherwise read as-is
-    if [ -L "$cfg" ]; then
-      resolved="$(${lib.getExe' pkgs.coreutils "cat"} "$(${lib.getExe' pkgs.coreutils "readlink"} -f "$cfg")")"
-    else
-      resolved="$(${lib.getExe' pkgs.coreutils "cat"} "$cfg")"
-    fi
-    for var in ${lib.concatStringsSep " " (lib.attrNames secretEnvVars)}; do
-      resolved="$(echo "$resolved" | ${lib.getExe' pkgs.gnused "sed"} "s|\''${$var}|$(printenv "$var")|g")"
-    done
-    rm -f "$cfg"
-    echo "$resolved" > "$cfg"
-    chmod 600 "$cfg"
-
-    # Write env file for the gateway service to pick up at runtime
-    env_file="${homeDir}/.openclaw/.env.secrets"
-    : > "$env_file"
-    ${lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (name: _: ''echo "${name}=$(printenv "${name}")" >> "$env_file"'') secretEnvVars
-    )}
-    chmod 600 "$env_file"
-
-    exec "$@"
-  '';
+  inherit (pkgs.stdenv) isDarwin;
 in
 {
   options.modules.home.openclaw = {
@@ -64,10 +16,14 @@ in
 
   config = mkIf cfg.enable {
     home = {
-      packages = with pkgs; [
-        land.mcporter
-        chromium
-      ];
+      packages =
+        with pkgs;
+        [
+          land.mcporter
+        ]
+        ++ optionals (!isDarwin) [
+          chromium
+        ];
 
       # Point mcporter at the programs.mcp config
       file.".mcporter/mcporter.json".text = builtins.toJSON {
@@ -218,73 +174,20 @@ in
 
       exposePluginPackages = true;
 
-      # Linux-compatible bundled plugins
-      # (peekaboo, bird, poltergeist, imsg are Darwin-only)
       bundledPlugins = {
+        # Cross-platform
         summarize.enable = true;
         oracle.enable = true;
         sag.enable = true;
         camsnap.enable = true;
         gogcli.enable = true;
         goplaces.enable = true;
-      };
-    };
 
-    systemd.user = {
-      services = {
-        # Wrap the gateway ExecStart to load sops secrets and resolve config
-        openclaw-gateway = {
-          Unit.After = [ "sops-nix.service" ];
-          Install.WantedBy = [ "default.target" ];
-          Service = {
-            # Resolve sops secrets into the config before the gateway starts.
-            # The nix-openclaw wrapper (ExecStart) is preserved -- it sets up
-            # plugin PATH and execs openclaw. We only prepend a config resolver.
-            ExecStartPre = [ "${loadSecretsScript} ${lib.getExe' pkgs.coreutils "true"}" ];
-            # .env.secrets is written by ExecStartPre; the - prefix makes it
-            # optional on very first boot (before sops-nix has run).
-            # On subsequent starts the file exists from the previous run.
-            EnvironmentFile = [ "-${homeDir}/.openclaw/.env.secrets" ];
-            Environment = mkAfter [
-              "PATH=${homeDir}/.local/bin:${homeDir}/go/bin:${homeDir}/.bun/bin:/run/current-system/sw/bin:\${PATH}"
-            ];
-          };
-        };
-
-        # Renew Gmail watch for all gog accounts (gateway only auto-renews the primary)
-        openclaw-gmail-watch-renew = {
-          Unit.Description = "Renew Gmail watch for all gog accounts";
-          Service = {
-            Type = "oneshot";
-            ExecStart =
-              let
-                cat = lib.getExe' pkgs.coreutils "cat";
-              in
-              toString (
-                pkgs.writeShellScript "gmail-watch-renew" ''
-                  export GOG_KEYRING_PASSWORD="$(${cat} "${config.sops.secrets.GOG_KEYRING_PASSWORD.path}")"
-                  TOPIC="$(${cat} "${config.sops.secrets.OPENCLAW_GCP_TOPIC.path}")"
-                  IFS=',' read -ra accounts < "${config.sops.secrets.OPENCLAW_GMAIL_ACCOUNTS.path}"
-                  for account in "''${accounts[@]}"; do
-                    account="$(echo "$account" | ${lib.getExe' pkgs.coreutils "tr"} -d ' ')"
-                    [ -z "$account" ] && continue
-                    gog gmail watch start --account "$account" --label INBOX --topic "$TOPIC" || true
-                  done
-                ''
-              );
-            # Inherit PATH from the gateway service (includes plugin binaries)
-            inherit (config.systemd.user.services.openclaw-gateway.Service) Environment;
-          };
-        };
-      };
-
-      timers.openclaw-gmail-watch-renew = {
-        Unit.Description = "Renew Gmail watch weekly";
-        Timer = {
-          OnCalendar = "weekly";
-          Persistent = true;
-        };
-        Install.WantedBy = [ "timers.target" ];
+        # Darwin-only
+        peekaboo.enable = isDarwin;
+        bird.enable = isDarwin;
+        poltergeist.enable = isDarwin;
+        imsg.enable = isDarwin;
       };
     };
   };

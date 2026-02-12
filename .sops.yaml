@@ -15,9 +15,7 @@ keys:
   - &ipfs age10k62z44u66nw4f3y9qjjf0k36rxv5fd23p0plsrmwem55frpaevsnuwc3p
   - &muscle age10lqssx86cspef22jcwnfp029uqxmrm6mxce7yhtvf4xu4we4cfrsv9xm3m
   - &muscle_home age1gkcf3hmkxjsfhrjmj3ney6gs2jp855vt3ws9sjqdn6lekkxp9uwsmqwmjj
-  - &beefy age1yfuufkuzey2fvda2slpz3wwyz7suf6f4chha9u7a4hs8gfynr5ds7npram
-  - &pidor age1wux07azrfmdn0ugej4juaas46dg0ka7yylktyu2uexyy98nkvfzsdma6wl
-  - &pidor_home age18f7ct3gvzf37prvch8nshpudh95vk7c60pdcq8whshatgdt0ay9s42f7sq
+  - &beefy age1clm98rhj92xpll9uceutjyun8xede2np4msde000ff5tkrnf2u3s0n0q4w
 
 creation_rules:
   - path_regex: secrets.*\.(yaml|json|env|ini)$
@@ -34,5 +32,3 @@ creation_rules:
       - *ipfs
       - *timey
       - *beefy
-      - *pidor
-      - *pidor_home
