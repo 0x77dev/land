@@ -185,7 +185,7 @@ in
 
         # Darwin-only
         peekaboo.enable = isDarwin;
-        bird.enable = isDarwin;
+        # bird: disabled — v0.8.0 release binary 404s upstream
         poltergeist.enable = isDarwin;
         imsg.enable = isDarwin;
       };
