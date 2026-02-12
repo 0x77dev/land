@@ -58,16 +58,46 @@ in
         "python3"
       ];
 
-      config = {
+      exposePluginPackages = true;
+
+      bundledPlugins = {
+        # Cross-platform
+        summarize.enable = true;
+        oracle.enable = true;
+        sag.enable = true;
+        camsnap.enable = true;
+        gogcli.enable = true;
+        goplaces.enable = true;
+
+        # Darwin-only
+        peekaboo.enable = isDarwin;
+        # bird: disabled — v0.8.0 release binary 404s upstream
+        poltergeist.enable = isDarwin;
+        imsg.enable = isDarwin;
+      };
+
+      # Config goes on the instance to avoid the upstream recursiveUpdate
+      # null-override bug (inst.config nulls clobber cfg.config values).
+      instances.default.config = {
+        # Import sops-exported env vars from login shell so the gateway
+        # can resolve ${VAR} references even under launchd/systemd.
+        env.shellEnv.enabled = true;
+
         gateway = {
           mode = "local";
           bind = "loopback";
           tailscale.mode = "serve";
-          auth.token = "\${OPENCLAW_GATEWAY_TOKEN}";
+          auth = {
+            token = "\${OPENCLAW_GATEWAY_TOKEN}";
+            allowTailscale = true;
+          };
         };
 
-        plugins.entries = {
-          telegram.enabled = true;
+        channels.telegram = {
+          enabled = true;
+          botToken = "\${TELEGRAM_BOT_TOKEN}";
+          dmPolicy = "pairing";
+          groups."*".requireMention = true;
         };
 
         hooks = {
@@ -127,13 +157,6 @@ in
           ];
         };
 
-        channels.telegram = {
-          enabled = true;
-          botToken = "\${TELEGRAM_BOT_TOKEN}";
-          dmPolicy = "pairing";
-          groups."*".requireMention = true;
-        };
-
         agents.defaults = {
           model.primary = "kimi-osv/moonshotai/kimi-k2p5";
           models."kimi-osv/moonshotai/kimi-k2p5" = { };
@@ -170,24 +193,6 @@ in
             ];
           };
         };
-      };
-
-      exposePluginPackages = true;
-
-      bundledPlugins = {
-        # Cross-platform
-        summarize.enable = true;
-        oracle.enable = true;
-        sag.enable = true;
-        camsnap.enable = true;
-        gogcli.enable = true;
-        goplaces.enable = true;
-
-        # Darwin-only
-        peekaboo.enable = isDarwin;
-        # bird: disabled — v0.8.0 release binary 404s upstream
-        poltergeist.enable = isDarwin;
-        imsg.enable = isDarwin;
       };
     };
   };
