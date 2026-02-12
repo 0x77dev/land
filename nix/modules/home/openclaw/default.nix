@@ -158,7 +158,7 @@ in
         };
 
         agents.defaults = {
-          model.primary = "kimi-osv/moonshotai/kimi-k2p5";
+          model.primary = mkDefault "kimi-osv/moonshotai/kimi-k2p5";
           models."kimi-osv/moonshotai/kimi-k2p5" = { };
         };
 
