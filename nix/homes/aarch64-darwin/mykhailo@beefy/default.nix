@@ -16,6 +16,7 @@ in
         model.primary = "lmstudio/zai-org/glm-4.7-flash";
         models."lmstudio/zai-org/glm-4.7-flash" = { };
       };
+      plugins.entries.telegram.enable = true;
       models.providers."lmstudio" = {
         baseUrl = "http://localhost:1234/v1";
         apiKey = "lm-studio";
