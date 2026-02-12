@@ -12,16 +12,6 @@ in
 
     # Use local LM Studio for openclaw on beefy
     openclaw = {
-      plugins = {
-        telegram.enable = true;
-        oracle.enable = true;
-        sag.enable = true;
-        gogcli.enable = true;
-        goplaces.enable = true;
-        peekaboo.enable = true;
-        poltergeist.enable = true;
-        imsg.enable = true;
-      };
       instances.default.config = {
         agents.defaults = {
           model.primary = "lmstudio/zai-org/glm-4.7-flash";
