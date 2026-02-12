@@ -16,6 +16,7 @@ keys:
   - &muscle age10lqssx86cspef22jcwnfp029uqxmrm6mxce7yhtvf4xu4we4cfrsv9xm3m
   - &muscle_home age1gkcf3hmkxjsfhrjmj3ney6gs2jp855vt3ws9sjqdn6lekkxp9uwsmqwmjj
   - &beefy age1clm98rhj92xpll9uceutjyun8xede2np4msde000ff5tkrnf2u3s0n0q4w
+  - &beefy_home age15sa5zvq0gshmw5ta05hmaqs7kvp4zwc5ghyn67hk0rufmg0fjq9qdmgm65
 
 creation_rules:
   - path_regex: secrets.*\.(yaml|json|env|ini)$
@@ -32,3 +33,4 @@ creation_rules:
       - *ipfs
       - *timey
       - *beefy
+      - *beefy_home
