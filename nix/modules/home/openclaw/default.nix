@@ -79,9 +79,6 @@ in
       # Config goes on the instance to avoid the upstream recursiveUpdate
       # null-override bug (inst.config nulls clobber cfg.config values).
       instances.default.config = {
-        # Import sops-exported env vars from login shell so the gateway
-        # can resolve ${VAR} references even under launchd/systemd.
-        env.shellEnv.enabled = true;
 
         gateway = {
           mode = "local";
@@ -195,5 +192,6 @@ in
         };
       };
     };
+
   };
 }

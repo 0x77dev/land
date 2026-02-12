@@ -94,6 +94,15 @@ in
         '';
       };
 
+      # Render all secrets into ~/.openclaw/.env so the gateway can
+      # resolve ${VAR} config references without a login shell.
+      sops.templates."openclaw-env" = {
+        path = "${config.home.homeDirectory}/.openclaw/.env";
+        content = lib.concatStringsSep "\n" (
+          map (name: "${name}=${config.sops.placeholder.${name}}") (lib.attrNames config.sops.secrets)
+        );
+      };
+
       home.packages = with pkgs; [ sops ];
 
       # Fix sops-nix LaunchAgent PATH on Darwin
