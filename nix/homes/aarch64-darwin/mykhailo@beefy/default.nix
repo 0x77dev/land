@@ -12,28 +12,34 @@ in
 
     # Use local LM Studio for openclaw on beefy
     openclaw = {
-      instances.default.config = {
-        agents.defaults = {
-          model.primary = "lmstudio/zai-org/glm-4.7-flash";
-          models."lmstudio/zai-org/glm-4.7-flash" = { };
-        };
-        models.providers."lmstudio" = {
-          baseUrl = "http://localhost:1234/v1";
-          apiKey = "lm-studio";
-          api = "openai-completions";
-          models = [
-            {
-              id = "zai-org/glm-4.7-flash";
-              name = "GLM 4.7 Flash";
-              input = [ "text" ];
-              cost = {
-                input = 0;
-                output = 0;
-                cacheRead = 0;
-                cacheWrite = 0;
-              };
-            }
-          ];
+      instances.default = {
+        enable = true;
+        stateDir = "~/.openclaw";
+        workspaceDir = "~/.openclaw/workspace";
+        launchd.enable = true;
+        config = {
+          agents.defaults = {
+            model.primary = "lmstudio/zai-org/glm-4.7-flash";
+            models."lmstudio/zai-org/glm-4.7-flash" = { };
+          };
+          models.providers."lmstudio" = {
+            baseUrl = "http://localhost:1234/v1";
+            apiKey = "lm-studio";
+            api = "openai-completions";
+            models = [
+              {
+                id = "zai-org/glm-4.7-flash";
+                name = "GLM 4.7 Flash";
+                input = [ "text" ];
+                cost = {
+                  input = 0;
+                  output = 0;
+                  cacheRead = 0;
+                  cacheWrite = 0;
+                };
+              }
+            ];
+          };
         };
       };
     };
