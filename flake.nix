@@ -79,12 +79,6 @@
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
-
-    nix-openclaw = {
-      url = "github:openclaw/nix-openclaw";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
   };
 
   nixConfig = {
@@ -128,7 +122,6 @@
           nixos-raspberrypi.overlays.vendor-firmware
           nixos-raspberrypi.overlays.kernel-and-firmware
           nixos-raspberrypi.overlays.vendor-pkgs
-          nix-openclaw.overlays.default
         ];
 
         systems.modules.darwin = with inputs; [
@@ -146,7 +139,6 @@
 
         homes.modules = with inputs; [
           sops-nix.homeManagerModules.sops
-          nix-openclaw.homeManagerModules.openclaw
         ];
       };
 
