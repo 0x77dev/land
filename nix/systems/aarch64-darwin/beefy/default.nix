@@ -33,7 +33,6 @@ in
           mobile.enable = true;
           network.enable = true;
           nix.enable = true;
-          openclaw.enable = true;
           p2p.enable = true;
           reverse-engineering.enable = true;
           comms.enable = true;
