@@ -29,6 +29,9 @@ in
       extensions = [
         "nix"
         "vue"
+        "sql"
+        "lua"
+        "opentofu"
         "dockerfile"
         "colorizer"
         "editorconfig"
@@ -54,7 +57,7 @@ in
 
         theme = {
           mode = "system";
-          dark = "Github Dark Colorblind";
+          dark = "Github Dark";
           light = "Github Light";
         };
 

@@ -108,11 +108,11 @@ let
           baseURL = "{env:FURNACE_GLM_ENDPOINT}";
         };
         models = {
-          "moonshotai/kimi-k2p5" = {
-            name = "Kimi K2.5";
+          "zai-org/GLM-5" = {
+            name = "GLM 5";
             limit = {
               context = 262000;
-              output = 128000;
+              output = 64000;
             };
             # Thinking is enabled by default
             # Use chat_template_kwargs to control per-request
@@ -133,14 +133,14 @@ let
       };
     };
 
-    model = "furnace-exp-k25/moonshotai/kimi-k2p5:instant";
+    model = "furnace-exp-k25/zai-org/GLM-5:instant";
 
     agent = {
       # Plan mode uses reasoning for deeper analysis (default behavior)
-      plan.model = "furnace-exp-k25/moonshotai/kimi-k2p5";
+      plan.model = "furnace-exp-k25/zai-org/GLM-5";
       # Build mode uses instant - reasoning disabled for faster responses
       build = {
-        model = "furnace-exp-k25/moonshotai/kimi-k2p5";
+        model = "furnace-exp-k25/zai-org/GLM-5";
         chat_template_kwargs = {
           thinking = false;
         };

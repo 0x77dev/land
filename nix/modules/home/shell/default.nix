@@ -24,6 +24,7 @@ let
       "$HOME/go/bin"
       "$HOME/.bun/bin"
       "$HOME/.local/bin"
+      "${config.home.homeDirectory}/.local/share/pnpm"
       "/run/current-system/sw/bin"
       "/run/wrappers/bin"
     ]
@@ -61,8 +62,10 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.sessionVariables.KEYID =
-      config.programs.gpg.settings.default-key or "C33BFD3230B660CF147762D2BF5C81B531164955";
+    home.sessionVariables = {
+      KEYID = config.programs.gpg.settings.default-key or "C33BFD3230B660CF147762D2BF5C81B531164955";
+      PNPM_HOME = "${config.home.homeDirectory}/.local/share/pnpm";
+    };
 
     home.packages = with pkgs; [
       bat
@@ -84,6 +87,7 @@ in
       curl
       bun
       nodejs_24
+      pnpm
       fastfetch
     ];
 
