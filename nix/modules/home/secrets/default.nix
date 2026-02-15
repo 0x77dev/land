@@ -65,13 +65,6 @@ in
           FURNACE_GLM_ENDPOINT = { };
           FURNACE_EMBEDDINGS_ENDPOINT = { };
           EXA_MCP_ENDPOINT = { };
-          TELEGRAM_BOT_TOKEN = { };
-          OPENCLAW_GATEWAY_TOKEN = { };
-          OPENCLAW_HOOK_TOKEN = { };
-          OPENCLAW_GMAIL_ACCOUNT = { };
-          OPENCLAW_GMAIL_ACCOUNTS = { };
-          OPENCLAW_GCP_TOPIC = { };
-          GOG_KEYRING_PASSWORD = { };
           HOME_ASSISTANT_URL = { };
           HOME_ASSISTANT_TOKEN = { };
         };
