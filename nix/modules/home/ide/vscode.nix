@@ -34,27 +34,17 @@ in
           "terminal.integrated.fontWeight" = "400";
           "terminal.integrated.lineHeight" = 1.2;
           "terminal.integrated.letterSpacing" = 0;
-          "[javascript]" = {
-            "editor.fontLigatures" = "'calt', 'liga', 'ss01'";
-          };
-          "[python]" = {
-            "editor.fontLigatures" = "'calt', 'liga', 'dlig'";
-          };
-          "[rust]" = {
-            "editor.fontLigatures" = true;
-          };
+          "[javascript]"."editor.fontLigatures" = "'calt', 'liga', 'ss01'";
+          "[python]"."editor.fontLigatures" = "'calt', 'liga', 'dlig'";
+          "[rust]"."editor.fontLigatures" = true;
           "editor.tabSize" = 2;
           "workbench.colorTheme" = "GitHub Dark Default";
           "git.autofetch" = true;
           "git.confirmSync" = false;
           "editor.accessibilitySupport" = "off";
           "files.autoSave" = "afterDelay";
-          "[nix]" = {
-            "editor.defaultFormatter" = "jnoortheen.nix-ide";
-          };
-          "editor.codeActionsOnSave" = {
-            "source.fixAll" = "always";
-          };
+          "[nix]"."editor.defaultFormatter" = "jnoortheen.nix-ide";
+          "editor.codeActionsOnSave"."source.fixAll" = "always";
           "workbench.colorCustomizations" = { };
           "workbench.list.smoothScrolling" = true;
           "editor.smoothScrolling" = true;
@@ -77,9 +67,7 @@ in
             "editor.autoIndent" = "advanced";
             "editor.defaultFormatter" = "redhat.vscode-yaml";
           };
-          "[github-actions-workflow]" = {
-            "editor.defaultFormatter" = "redhat.vscode-yaml";
-          };
+          "[github-actions-workflow]"."editor.defaultFormatter" = "redhat.vscode-yaml";
           "javascript.updateImportsOnFileMove.enabled" = "always";
           "files.associations" = {
             "*.md" = "markdown";

@@ -5,7 +5,7 @@ _:
     stateVersion = lib.mkDefault "25.05";
     packages = lib.mkDefault [ ];
     sessionVariables = {
-      EDITOR = lib.mkDefault "nvim";
+      EDITOR = lib.mkDefault "cursor --wait";
       VISUAL = lib.mkDefault "cursor --wait";
     };
   };

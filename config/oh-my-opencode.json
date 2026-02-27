@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  "agents": {
+    "Sisyphus": { "model": "vercel/anthropic/claude-opus-4.6" },
+    "oracle": { "model": "vercel/google/gemini-3.1-pro-preview" },
+    "librarian": { "model": "furnace/zai-org/GLM-5" },
+    "explore": { "model": "vercel/google/gemini-3-flash" },
+    "Prometheus (Planner)": { "model": "vercel/anthropic/claude-opus-4.6" },
+    "Metis (Plan Consultant)": { "model": "vercel/anthropic/claude-sonnet-4.6" }
+  },
+  "categories": {
+    "quick": { "model": "vercel/google/gemini-3-flash" },
+    "visual-engineering": { "model": "vercel/google/gemini-3.1-pro-preview" },
+    "ultrabrain": { "model": "vercel/google/gemini-3.1-pro-preview" }
+  },
+  "disabled_mcps": ["websearch", "context7", "grep_app"],
+  "disabled_hooks": ["empty-task-response-detector"]
+}

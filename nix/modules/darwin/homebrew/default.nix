@@ -24,11 +24,15 @@ in
 
   homebrew = {
     enable = lib.mkDefault true;
-    taps = lib.mkDefault (builtins.attrNames config.nix-homebrew.taps);
+    taps = lib.mkDefault (builtins.attrNames config.nix-homebrew.taps ++ [ "steipete/tap" ]);
 
     global.autoUpdate = lib.mkDefault false;
     onActivation.autoUpdate = lib.mkDefault false;
     onActivation.upgrade = lib.mkDefault false;
+
+    brews = lib.mkDefault [
+      "steipete/tap/gogcli"
+    ];
 
     casks = lib.mkDefault [
       "arc"
@@ -52,11 +56,13 @@ in
       "linear-linear"
       "zoom"
       "steam"
+      "superhuman"
       "notion"
       "homebrew/cask/betterdisplay"
     ];
 
     masApps = lib.mkDefault {
+      "Things" = 904280696;
       "WireGuard" = 1451685025;
       # TODO: Xcode automatic install fails
       "Xcode" = 497799835;

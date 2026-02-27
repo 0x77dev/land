@@ -1,0 +1,76 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "system",
+  "disabled_providers": ["opencode"],
+  "plugin": [
+    "@simonwjackson/opencode-direnv",
+    "opencode-pty",
+    "oh-my-opencode"
+  ],
+  "provider": {
+    "vercel": {
+      "models": {
+        "anthropic/claude-opus-4.6": {
+          "limit": { "context": 1000000, "output": 128000 },
+          "options": {
+            "order": ["anthropic", "vertex", "bedrock"],
+            "zeroDataRetention": true,
+            "caching": "auto"
+          }
+        },
+        "anthropic/claude-sonnet-4.6": {
+          "limit": { "context": 1000000, "output": 128000 },
+          "options": {
+            "order": ["anthropic", "vertex", "bedrock"],
+            "zeroDataRetention": true,
+            "caching": "auto"
+          }
+        },
+        "anthropic/claude-haiku-4.5": {
+          "limit": { "context": 200000, "output": 64000 },
+          "options": {
+            "order": ["anthropic", "vertex"],
+            "zeroDataRetention": true
+          }
+        },
+        "google/gemini-3.1-pro-preview": {
+          "limit": { "context": 1000000, "output": 64000 },
+          "options": {
+            "order": ["vertex", "google"],
+            "zeroDataRetention": true
+          }
+        },
+        "google/gemini-3-flash": {
+          "limit": { "context": 1000000, "output": 65000 },
+          "options": {
+            "order": ["vertex", "google"],
+            "zeroDataRetention": true
+          }
+        }
+      }
+    },
+    "furnace": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Furnace Cluster",
+      "options": {
+        "apiKey": "{env:FURNACE_GLM_API_KEY}",
+        "baseURL": "{env:FURNACE_GLM_ENDPOINT}"
+      },
+      "models": {
+        "zai-org/GLM-5": {
+          "name": "GLM 5",
+          "limit": { "context": 262000, "output": 64000 },
+          "variants": {
+            "instant": {
+              "chat_template_kwargs": { "thinking": false }
+            },
+            "thinking": {
+              "include": ["reasoning"]
+            }
+          }
+        }
+      }
+    }
+  },
+  "model": "anthropic/claude-opus-4.6:high"
+}

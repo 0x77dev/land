@@ -99,8 +99,8 @@ in
     };
 
     home.sessionVariables = {
-      GPG_TTY = ''$(tty)'';
-      SSH_AUTH_SOCK = ''$(gpgconf --list-dirs agent-ssh-socket)'';
+      GPG_TTY = "$(tty)";
+      SSH_AUTH_SOCK = "$(gpgconf --list-dirs agent-ssh-socket)";
     };
   };
 }

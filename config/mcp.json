@@ -1,0 +1,11 @@
+{
+  "context7": {
+    "url": "https://mcp.context7.com/mcp"
+  },
+  "gh_grep": {
+    "url": "https://mcp.grep.app"
+  },
+  "exa": {
+    "url": "{env:EXA_MCP_ENDPOINT}"
+  }
+}

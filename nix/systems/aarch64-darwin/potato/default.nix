@@ -35,6 +35,8 @@ in
     knownUsers = [ userName ];
   };
 
+  modules.darwin.dock.enable = true;
+
   programs.fish.enable = true;
 
   environment.systemPackages = with pkgs; [

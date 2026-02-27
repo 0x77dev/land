@@ -52,8 +52,6 @@ let
     gps = "git push";
     tf = "terraform";
     of = "tofu";
-    ai = "aichat";
-    aie = "aichat -e";
   };
 in
 {

@@ -13,7 +13,6 @@ _final: _prev: {
     oha
     prek
     ssh-to-age
-    aichat
     zed-editor
     nixd
     talosctl
