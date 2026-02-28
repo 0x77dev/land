@@ -28,7 +28,12 @@
       "nvidia_uvm"
       "nvidia_drm"
     ];
-    kernelModules = [ "kvm-amd" ];
+    # CachyOS kernel optimized for AMD Zen 4 (Threadripper 7985WX)
+    # - LTO: Link-time optimization for better performance
+    # - Zen 4: Architecture-specific optimizations for Threadripper
+    # - EEVDF: Balanced scheduler for both AI and gaming workloads
+    # https://github.com/xddxdd/nix-cachyos-kernel
+    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-lto-zen4;
     kernelParams = [
       "video=DP-4:5120x1440@240"
       "quiet"
@@ -37,6 +42,7 @@
       "rd.udev.log_level=3"
       # Some games need split lock detection disabled
       "split_lock_detect=off"
+      "amd-pstate=active"
     ];
     consoleLogLevel = 3;
     loader = {
@@ -44,10 +50,19 @@
       efi.canTouchEfiVariables = true;
     };
     kernel.sysctl = {
+      # Memory management
       "vm.swappiness" = 10;
       "vm.overcommit_memory" = 1;
       "vm.overcommit_ratio" = 100;
       "vm.max_map_count" = 2147483642;
+      # le9uo: prevent page thrashing under memory pressure
+      "vm.anon_min_ratio" = 15;
+      "vm.clean_min_ratio" = 15;
+      # NUMA balancing for 32-core Threadripper
+      "kernel.numa_balancing" = 1;
+      # Network: BBR congestion control
+      "net.core.default_qdisc" = "fq";
+      "net.ipv4.tcp_congestion_control" = "bbr";
     };
     binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
@@ -110,6 +125,7 @@
 
   programs = {
     dconf.enable = true;
+    nix-ld.enable = true;
 
     appimage = {
       enable = true;
@@ -197,6 +213,10 @@
       xkb.layout = "us";
       videoDrivers = [ "nvidia" ];
     };
+    # I/O scheduler for NVMe (none is best for high-performance NVMe)
+    udev.extraRules = ''
+      ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
+    '';
 
     # KDE Plasma 6 with Wayland
     desktopManager.plasma6.enable = true;
@@ -314,9 +334,10 @@
       # Gaming - Non-Steam launchers
       heroic # Epic/GOG games
       lutris # General game launcher
+      (prismlauncher.override { additionalPrograms = [ ffmpeg ]; }) # Minecraft launcher
 
       # Desktop apps
-      google-chrome
+      chromium
       pkgs.${namespace}.tx-02-variable
       gitFull
       vim
@@ -349,6 +370,15 @@
   };
 
   networking.firewall.enable = false;
+
+  # Set Chromium as default browser (system-wide)
+  xdg.mime.defaultApplications = {
+    "text/html" = "chromium-browser.desktop";
+    "x-scheme-handler/http" = "chromium-browser.desktop";
+    "x-scheme-handler/https" = "chromium-browser.desktop";
+    "x-scheme-handler/about" = "chromium-browser.desktop";
+    "x-scheme-handler/unknown" = "chromium-browser.desktop";
+  };
 
   nix = {
     buildMachines = lib.mkForce [ ];

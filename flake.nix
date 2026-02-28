@@ -79,6 +79,8 @@
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
+    # CachyOS kernel with BORE scheduler
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
   };
 
   nixConfig = {
@@ -122,6 +124,7 @@
           nixos-raspberrypi.overlays.vendor-firmware
           nixos-raspberrypi.overlays.kernel-and-firmware
           nixos-raspberrypi.overlays.vendor-pkgs
+          nix-cachyos-kernel.overlays.pinned
         ];
 
         systems.modules.darwin = with inputs; [
