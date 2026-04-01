@@ -12,7 +12,7 @@ in
   imports = [
     ./vscode.nix
     ./zed.nix
-    # ./neovim.nix
+    ./neovim.nix
   ];
 
   options.modules.home.ide = {
@@ -21,8 +21,11 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
+      opencode
       nixd
       nixfmt
+      oxlint
+      oxfmt
     ];
   };
 }

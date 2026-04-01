@@ -8,6 +8,10 @@ let
 in
 {
   imports = [
+    ./claude-code.nix
+    ./codex.nix
+    ./amp.nix
+    ./augmentcode.nix
     ./mcp.nix
     ./opencode.nix
     ./shell

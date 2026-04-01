@@ -241,6 +241,37 @@ git add .
 nix flake check
 ```
 
+## Automation and Updates
+
+### GitHub Actions
+
+GitHub Actions provides two workflows:
+
+- `ci.yml` derives its native build matrix and output evaluation targets
+  from `flake.nix` via `automation.githubActions`, then builds the
+  declared check and dev shell closures plus evaluates every declared
+  system and home output.
+- `security.yml` runs weekly security automation with OpenSSF Scorecard
+  plus `vulnix` scanning against the native flake closures inferred from
+  declared outputs.
+
+Both workflows pin actions to immutable commit SHAs and use minimal
+permissions by default.
+
+### Renovate
+
+Dependency updates are managed by `renovate.json5`.
+
+- Schedule: weekly (`before 5am on Monday`)
+- Scope: Nix flake inputs, GitHub Actions, and comment-annotated custom
+  pinned versions matched by regex managers
+- Automerge: enabled for non-major updates after required checks pass
+- Major updates: require manual review via the dependency dashboard
+
+Repository settings should also enable GitHub auto-merge and protect the
+default branch with the CI/security status checks emitted by the
+workflows.
+
 ## Adding Packages
 
 1. For custom packages, create a directory in `nix/packages/<name>/default.nix`

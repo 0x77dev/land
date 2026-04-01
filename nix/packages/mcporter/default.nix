@@ -5,6 +5,7 @@
 }:
 
 writeShellScriptBin "mcporter" ''
+  # renovate: datasource=npm depName=mcporter versioning=npm
   exec ${bun}/bin/bunx --bun mcporter@0.7.3 "$@"
 ''
 // {

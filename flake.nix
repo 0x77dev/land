@@ -118,6 +118,10 @@
       outputs = lib.mkFlake {
         channels-config.allowUnfree = true;
 
+        outputs-builder = channels: {
+          formatter = channels.nixpkgs.nixfmt;
+        };
+
         overlays = with inputs; [
           nixos-raspberrypi.overlays.bootloader
           nixos-raspberrypi.overlays.vendor-kernel
@@ -149,9 +153,12 @@
       deployNodes = outputs.lib.deployment.mkDeployNodes {
         inherit (outputs) darwinConfigurations nixosConfigurations;
       };
+
+      automation = outputs.lib.automation.mkOutputs { inherit outputs; };
     in
     outputs
     // {
+      inherit automation;
       deploy.nodes = deployNodes;
     };
 }

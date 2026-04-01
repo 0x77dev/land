@@ -117,26 +117,6 @@ in
                 "path"
                 "buffer"
               ];
-              providers = {
-                avante_commands = {
-                  name = "avante_commands";
-                  module = "blink.compat.source";
-                  score_offset = 15;
-                  async = true;
-                };
-                avante_mentions = {
-                  name = "avante_mentions";
-                  module = "blink.compat.source";
-                  score_offset = 10;
-                  async = true;
-                };
-                avante_files = {
-                  name = "avante_files";
-                  module = "blink.compat.source";
-                  score_offset = 5;
-                  async = true;
-                };
-              };
             };
             signature.enabled = true;
             completion = {
@@ -149,13 +129,15 @@ in
           };
         };
 
-        # blink.cmp compatibility layer for nvim-cmp sources
-        blink-compat = {
-          enable = true;
-        };
-
         # Snippets
         luasnip.enable = true;
+
+        snacks = {
+          enable = true;
+          settings = {
+            input.enabled = true;
+          };
+        };
 
         # Fuzzy finder
         telescope = {
@@ -281,7 +263,7 @@ in
               }
               {
                 __unkeyed-1 = "<leader>a";
-                group = "AI (Avante)";
+                group = "AI (OpenCode)";
               }
             ];
           };
@@ -327,17 +309,27 @@ in
               lua = [ "stylua" ];
               python = [ "ruff_format" ];
               javascript = [
-                "prettierd"
-                "prettier"
+                "oxfmt"
+                "oxlint"
+              ];
+              javascriptreact = [
+                "oxfmt"
+                "oxlint"
               ];
               typescript = [
-                "prettierd"
-                "prettier"
+                "oxfmt"
+                "oxlint"
               ];
-              json = [ "prettier" ];
+              typescriptreact = [
+                "oxfmt"
+                "oxlint"
+              ];
+              json = [ "oxfmt" ];
+              jsonc = [ "oxfmt" ];
               yaml = [ "prettier" ];
               markdown = [ "prettier" ];
               rust = [ "rustfmt" ];
+              vue = [ "oxfmt" ];
               "_" = [ "trim_whitespace" ];
             };
           };
@@ -364,41 +356,13 @@ in
         # Highlight todo comments
         todo-comments.enable = true;
 
-        # AI Assistant (Avante)
-        avante = {
+        opencode = {
           enable = true;
+          autoLoad = true;
           settings = {
-            provider = "openai";
-            auto_suggestions_provider = "openai";
-            providers = {
-              openai = {
-                endpoint = "https://developer.osv.engineering/inference/v1";
-                model = "anthropic/claude-sonnet-4-5";
-                api_key_name = "OSV_API_KEY";
-                max_tokens = 8192;
-              };
-            };
-            behaviour = {
-              auto_suggestions = false;
-              auto_set_highlight_group = true;
-              auto_set_keymaps = true;
-              auto_apply_diff_after_generation = false;
-              support_paste_from_clipboard = true;
-            };
-            windows = {
-              position = "right";
-              wrap = true;
-              width = 30;
-              sidebar_header = {
-                align = "center";
-                rounded = true;
-              };
-            };
-            highlights = {
-              diff = {
-                current = "DiffText";
-                incoming = "DiffAdd";
-              };
+            auto_reload = true;
+            lsp = {
+              enabled = true;
             };
           };
         };
@@ -410,6 +374,8 @@ in
         servers = {
           nixd.enable = true;
           lua_ls.enable = true;
+          oxlint.enable = true;
+          oxfmt.enable = true;
           docker_language_server.enable = true;
           docker_compose_language_server.enable = true;
           jsonls.enable = true;
@@ -419,7 +385,11 @@ in
           ts_ls.enable = true;
           tailwindcss.enable = true;
           ruff.enable = true;
-          rust_analyzer.enable = true;
+          rust_analyzer = {
+            enable = true;
+            installCargo = false;
+            installRustc = false;
+          };
         };
       };
 
@@ -629,48 +599,48 @@ in
           options.desc = "Move selection up";
         }
 
-        # Avante AI
+        # OpenCode AI
         {
           mode = "n";
           key = "<leader>aa";
-          action = "<cmd>AvanteAsk<cr>";
-          options.desc = "Ask Avante";
+          action.__raw = ''function() require("opencode").ask("@this: ", { submit = true }) end'';
+          options.desc = "Ask OpenCode";
         }
         {
           mode = "v";
           key = "<leader>aa";
-          action = "<cmd>AvanteAsk<cr>";
-          options.desc = "Ask Avante (selection)";
+          action.__raw = ''function() require("opencode").ask("@this: ", { submit = true }) end'';
+          options.desc = "Ask OpenCode (selection)";
+        }
+        {
+          mode = "n";
+          key = "<leader>as";
+          action.__raw = ''function() require("opencode").select() end'';
+          options.desc = "Select OpenCode action";
         }
         {
           mode = "n";
           key = "<leader>at";
-          action = "<cmd>AvanteToggle<cr>";
-          options.desc = "Toggle Avante";
-        }
-        {
-          mode = "n";
-          key = "<leader>ac";
-          action = "<cmd>AvanteChat<cr>";
-          options.desc = "Avante Chat";
+          action.__raw = ''function() require("opencode").toggle() end'';
+          options.desc = "Toggle OpenCode";
         }
         {
           mode = "n";
           key = "<leader>ae";
-          action = "<cmd>AvanteEdit<cr>";
-          options.desc = "Edit with Avante";
+          action.__raw = ''function() require("opencode").prompt("explain") end'';
+          options.desc = "Explain with OpenCode";
         }
         {
           mode = "v";
           key = "<leader>ae";
-          action = "<cmd>AvanteEdit<cr>";
-          options.desc = "Edit with Avante (selection)";
+          action.__raw = ''function() require("opencode").prompt("explain") end'';
+          options.desc = "Explain with OpenCode (selection)";
         }
         {
           mode = "n";
           key = "<leader>ar";
-          action = "<cmd>AvanteRefresh<cr>";
-          options.desc = "Refresh Avante";
+          action.__raw = ''function() require("opencode").prompt("review") end'';
+          options.desc = "Review with OpenCode";
         }
       ];
     };

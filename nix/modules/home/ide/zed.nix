@@ -17,8 +17,10 @@ in
       extraPackages = [
         pkgs.opencode
         pkgs.nixd
+        pkgs.oxlint
+        pkgs.oxfmt
         pkgs.${namespace}.tx-02-variable
-        pkgs.nodePackages_latest.cspell
+        pkgs.cspell
       ];
 
       mutableUserSettings = true;
@@ -35,6 +37,7 @@ in
         "dockerfile"
         "colorizer"
         "editorconfig"
+        "oxc"
         "opencode"
         "github-theme"
         "cspell"
@@ -55,10 +58,10 @@ in
           };
         };
 
-        theme = {
-          mode = "system";
-          dark = "Github Dark";
-          light = "Github Light";
+        "theme" = {
+          "dark" = "GitHub Dark";
+          "light" = "Github Light";
+          "mode" = "system";
         };
 
         buffer_font_family = "TX-02-Variable";
@@ -68,11 +71,82 @@ in
         };
 
         languages = {
-          Nix = {
-            language_servers = [
-              "nixd"
-              "!nil"
+          JavaScript = {
+            format_on_save = "on";
+            prettier.allowed = false;
+            formatter = [
+              {
+                language_server.name = "oxfmt";
+              }
+              {
+                code_action = "source.fixAll.oxc";
+              }
             ];
+          };
+          TypeScript = {
+            format_on_save = "on";
+            prettier.allowed = false;
+            formatter = [
+              {
+                language_server.name = "oxfmt";
+              }
+              {
+                code_action = "source.fixAll.oxc";
+              }
+            ];
+          };
+          TSX = {
+            format_on_save = "on";
+            prettier.allowed = false;
+            formatter = [
+              {
+                language_server.name = "oxfmt";
+              }
+              {
+                code_action = "source.fixAll.oxc";
+              }
+            ];
+          };
+          JSON = {
+            format_on_save = "on";
+            prettier.allowed = false;
+            formatter = [
+              {
+                language_server.name = "oxfmt";
+              }
+            ];
+          };
+          Nix = {
+            language_servers = [ "nixd" ];
+          };
+        };
+
+        lsp = {
+          oxlint = {
+            binary = {
+              path = "${pkgs.oxlint}/bin/oxlint";
+            };
+            initialization_options = {
+              settings = {
+                configPath = null;
+                run = "onType";
+                disableNestedConfig = false;
+                fixKind = "safe_fix";
+                unusedDisableDirectives = "deny";
+              };
+            };
+          };
+
+          oxfmt = {
+            binary = {
+              path = "${pkgs.oxfmt}/bin/oxfmt";
+            };
+            initialization_options = {
+              settings = {
+                "fmt.configPath" = null;
+                run = "onSave";
+              };
+            };
           };
         };
       };

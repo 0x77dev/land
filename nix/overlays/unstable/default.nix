@@ -11,6 +11,9 @@ _final: _prev: {
     httpie
     nodejs_24
     oha
+    oxfmt
+    oxlint
+    tsgolint
     prek
     ssh-to-age
     zed-editor

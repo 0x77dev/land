@@ -1,0 +1,5 @@
+{
+  "enableChatInputCompletions": true,
+  "autoUpdate": false,
+  "notificationMode": "desktop_notification"
+}

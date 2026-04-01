@@ -11,6 +11,7 @@ let
   inherit (lib)
     concatMapStringsSep
     concatStringsSep
+    getExe
     optional
     unique
     ;
@@ -72,6 +73,8 @@ in
       devenv
       direnv
       fd
+      ripgrep
+      ast-grep
       figlet
       fzf
       glow
@@ -102,6 +105,11 @@ in
       zsh = {
         enable = true;
         shellAliases = commonAliases // commonAbbreviations;
+        # Cursor executes zsh non-interactively, which reads .zshenv but not .zshrc.
+        # Keep the direnv hook here so directory-local environments still load.
+        envExtra = ''
+          eval "$(${getExe pkgs.direnv} hook zsh)"
+        '';
         initContent = ''
           export PATH="${exportedPath}:$PATH"
           eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
@@ -144,6 +152,7 @@ in
       direnv = {
         enable = true;
         nix-direnv.enable = true;
+        enableZshIntegration = false;
       };
 
       zoxide = {

@@ -1,0 +1,81 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      ci-matrix: ${{ steps.targets.outputs.ci-matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Export flake-driven CI targets
+        id: targets
+        run: |
+          {
+            echo 'ci-matrix<<EOF'
+            nix eval --json .#automation.githubActions.ci.matrix
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+  checks:
+    needs: prepare
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.ci-matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Configure Cachix
+        if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
+        with:
+          name: land
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build native checks and shell
+        run: nix build ${{ join(matrix.buildTargets, ' ') }}
+
+      - name: Evaluate native declared system and home outputs
+        run: |
+          for target in ${{ join(matrix.evalTargets, ' ') }}; do
+            nix eval --raw "$target" >/dev/null
+          done

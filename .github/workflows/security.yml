@@ -1,0 +1,117 @@
+name: security
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  pull_request:
+    paths:
+      - flake.nix
+      - flake.lock
+      - renovate.json5
+      - .github/workflows/**
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      security-matrix: ${{ steps.targets.outputs.security-matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Export flake-driven security targets
+        id: targets
+        run: |
+          {
+            echo 'security-matrix<<EOF'
+            nix eval --json .#automation.githubActions.security.matrix
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+  scorecard:
+    name: scorecard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Run OpenSSF Scorecard
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a
+        with:
+          results_file: scorecard-results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload Scorecard SARIF
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13
+        with:
+          sarif_file: scorecard-results.sarif
+
+  vulnix:
+    name: vulnix
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.security-matrix) }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Configure Cachix
+        if: github.event_name == 'merge_group' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
+        with:
+          name: land
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build native flake closures for scanning
+        run: nix build --no-link ${{ join(matrix.scanTargets, ' ') }}
+
+      - name: Scan native closures with vulnix
+        run: |
+          printf '[]' > vulnix-report.json
+          for target in ${{ join(matrix.scanTargets, ' ') }}; do
+            target_path="$(nix path-info "$target")"
+            nix run nixpkgs#vulnix -- --json -C "$target_path" > vulnix-target.json
+            jq --slurp 'add' vulnix-report.json vulnix-target.json > vulnix-report.next.json
+            mv vulnix-report.next.json vulnix-report.json
+          done
+          jq 'if length == 0 then . else error("vulnerabilities detected") end' vulnix-report.json

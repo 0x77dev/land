@@ -53,5 +53,5 @@ in
 
   optimise.automatic = true;
 
-  distributedBuilds = lib.mkDefault true;
+  distributedBuilds = lib.mkDefault false;
 }

@@ -1,17 +1,23 @@
 {
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
   "agents": {
-    "Sisyphus": { "model": "vercel/anthropic/claude-opus-4.6" },
-    "oracle": { "model": "vercel/google/gemini-3.1-pro-preview" },
+    "sisyphus": { "model": "vercel/anthropic/claude-sonnet-4.6" },
+    "oracle": { "model": "vercel/anthropic/claude-opus-4.6" },
     "librarian": { "model": "furnace/zai-org/GLM-5" },
     "explore": { "model": "vercel/google/gemini-3-flash" },
-    "Prometheus (Planner)": { "model": "vercel/anthropic/claude-opus-4.6" },
-    "Metis (Plan Consultant)": { "model": "vercel/anthropic/claude-sonnet-4.6" }
+    "prometheus": { "model": "vercel/openai/gpt-5.4" },
+    "metis": { "model": "vercel/anthropic/claude-sonnet-4.6" },
+    "momus": { "model": "vercel/anthropic/claude-sonnet-4.6" }
   },
   "categories": {
-    "quick": { "model": "vercel/google/gemini-3-flash" },
+    "quick": { "model": "vercel/openai/gpt-5.4-mini" },
     "visual-engineering": { "model": "vercel/google/gemini-3.1-pro-preview" },
-    "ultrabrain": { "model": "vercel/google/gemini-3.1-pro-preview" }
+    "ultrabrain": { "model": "vercel/openai/gpt-5.4" },
+    "deep": { "model": "vercel/openai/gpt-5.4", "variant": "xhigh" },
+    "artistry": { "model": "vercel/google/gemini-3.1-pro-preview" },
+    "unspecified-low": { "model": "vercel/anthropic/claude-sonnet-4.6" },
+    "unspecified-high": { "model": "vercel/openai/gpt-5.4", "variant": "high" },
+    "writing": { "model": "vercel/anthropic/claude-sonnet-4.6" }
   },
   "disabled_mcps": ["websearch", "context7", "grep_app"],
   "disabled_hooks": ["empty-task-response-detector"]

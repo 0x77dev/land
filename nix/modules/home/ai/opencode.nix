@@ -8,10 +8,7 @@ let
   configDir = lib.snowfall.fs.get-file "config";
 
   rawSettings = builtins.fromJSON (builtins.readFile (configDir + "/opencode.json"));
-  settings = builtins.removeAttrs rawSettings [
-    "$schema"
-    "instructions"
-  ];
+  settings = removeAttrs rawSettings [ "$schema" ];
 in
 {
   config = lib.mkIf cfg.enable {
