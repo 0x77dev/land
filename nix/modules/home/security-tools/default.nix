@@ -15,6 +15,7 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
+      pdf-sign
       yubikey-personalization
       yubikey-manager
       sops

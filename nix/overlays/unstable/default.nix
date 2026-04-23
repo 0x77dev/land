@@ -25,6 +25,8 @@ _final: _prev: {
     monado
     cudatoolkit
     cudaPackages
+    direnv
+    fish
     opencode
     netdata
     ;

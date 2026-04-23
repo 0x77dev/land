@@ -96,7 +96,7 @@ jobs:
             experimental-features = nix-command flakes
 
       - name: Configure Cachix
-        if: github.event_name == 'merge_group' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event_name == 'merge_group' || github.event_name == 'schedule' || github.event.pull_request.head.repo.full_name == github.repository
         uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
         with:
           name: land

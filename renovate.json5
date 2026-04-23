@@ -3,7 +3,6 @@
   extends: [
     "config:best-practices",
     ":dependencyDashboard",
-    ":pinGitHubActionDigests",
     ":disableRateLimiting",
   ],
   timezone: "America/New_York",

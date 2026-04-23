@@ -19,7 +19,6 @@ in
       [
         irssi # IRC
         tg # Telegram
-        discordo # Discord
         iamb # Matrix
       ]
       ++

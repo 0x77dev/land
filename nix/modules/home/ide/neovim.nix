@@ -2,6 +2,7 @@
   inputs,
   config,
   lib,
+  pkgs,
   ...
 }:
 with lib;
@@ -136,6 +137,23 @@ in
           enable = true;
           settings = {
             input.enabled = true;
+            picker.enabled = true;
+            explorer = {
+              enabled = true;
+              replace_netrw = true;
+            };
+            picker.sources.explorer = {
+              layout = {
+                preset = "sidebar";
+                preview = true;
+              };
+              auto_close = false;
+              hidden = true;
+              ignored = true;
+              follow_file = true;
+              supports_live = true;
+              watch = true;
+            };
           };
         };
 
@@ -143,14 +161,6 @@ in
         telescope = {
           enable = true;
           keymaps = {
-            "<leader>ff" = {
-              action = "find_files";
-              options.desc = "Find files";
-            };
-            "<leader>fg" = {
-              action = "live_grep";
-              options.desc = "Live grep";
-            };
             "<leader>fb" = {
               action = "buffers";
               options.desc = "Buffers";
@@ -183,36 +193,6 @@ in
           extensions = {
             fzf-native.enable = true;
             ui-select.enable = true;
-          };
-        };
-
-        # File browser
-        oil = {
-          enable = true;
-          settings = {
-            default_file_explorer = true;
-            delete_to_trash = true;
-            skip_confirm_for_simple_edits = true;
-            view_options = {
-              show_hidden = true;
-            };
-            keymaps = {
-              "g?" = "actions.show_help";
-              "<CR>" = "actions.select";
-              "<C-v>" = "actions.select_vsplit";
-              "<C-s>" = "actions.select_split";
-              "<C-t>" = "actions.select_tab";
-              "<C-p>" = "actions.preview";
-              "<C-c>" = "actions.close";
-              "<C-r>" = "actions.refresh";
-              "-" = "actions.parent";
-              "_" = "actions.open_cwd";
-              "`" = "actions.cd";
-              "~" = "actions.tcd";
-              "gs" = "actions.change_sort";
-              "gx" = "actions.open_external";
-              "g." = "actions.toggle_hidden";
-            };
           };
         };
 
@@ -368,6 +348,98 @@ in
         };
       };
 
+      extraPlugins = with pkgs.vimPlugins; [
+        fff-nvim
+      ];
+
+      extraConfigLua = ''
+        require("fff").setup({
+          prompt = "  ",
+          title = "Files",
+          max_results = 200,
+          layout = {
+            width = 0.92,
+            height = 0.88,
+            prompt_position = "top",
+            preview_position = "right",
+            preview_size = 0.6,
+            flex = {
+              size = 140,
+              wrap = "top",
+            },
+          },
+          preview = {
+            enabled = true,
+            line_numbers = true,
+            wrap_lines = false,
+          },
+          git = {
+            status_text_color = true,
+          },
+          grep = {
+            modes = { "plain", "fuzzy", "regex" },
+          },
+        })
+
+        local wk = require("which-key")
+
+        wk.add({
+          { "<leader>a", group = "AI" },
+          { "<leader>c", group = "Code" },
+          { "<leader>e", desc = "Explorer" },
+          { "<leader>f", group = "Find" },
+          { "<leader>g", group = "Git" },
+          { "<leader>x", group = "Diagnostics" },
+        })
+
+        vim.api.nvim_create_autocmd("LspAttach", {
+          callback = function(event)
+            wk.add({
+              { "gd", desc = "Go to definition", buffer = event.buf },
+              { "gD", desc = "Go to declaration", buffer = event.buf },
+              { "gi", desc = "Go to implementation", buffer = event.buf },
+              { "gr", desc = "Go to references", buffer = event.buf },
+              { "K", desc = "Hover documentation", buffer = event.buf },
+              { "<leader>c", group = "Code", buffer = event.buf },
+              { "<leader>ca", desc = "Code action", buffer = event.buf },
+              { "<leader>cr", desc = "Rename symbol", buffer = event.buf },
+              { "<leader>fs", desc = "Document symbols", buffer = event.buf },
+              { "<leader>fS", desc = "Workspace symbols", buffer = event.buf },
+            })
+          end,
+        })
+
+        vim.api.nvim_create_autocmd("FileType", {
+          pattern = "snacks_picker_input",
+          callback = function(event)
+            local ok, picker = pcall(function()
+              return Snacks.picker.get({ buf = event.buf })
+            end)
+
+            if not ok or not picker or picker.opts.source ~= "explorer" then
+              return
+            end
+
+            wk.add({
+              { "<CR>", desc = "Open / toggle", buffer = event.buf },
+              { "<BS>", desc = "Up directory", buffer = event.buf },
+              { ".", desc = "Focus cwd", buffer = event.buf },
+              { "H", desc = "Toggle hidden", buffer = event.buf },
+              { "I", desc = "Toggle ignored", buffer = event.buf },
+              { "P", desc = "Toggle preview", buffer = event.buf },
+              { "a", desc = "Add file", buffer = event.buf },
+              { "c", desc = "Copy", buffer = event.buf },
+              { "d", desc = "Delete", buffer = event.buf },
+              { "m", desc = "Move / rename", buffer = event.buf },
+              { "o", desc = "Open externally", buffer = event.buf },
+              { "r", desc = "Rename", buffer = event.buf },
+              { "u", desc = "Refresh", buffer = event.buf },
+              { "y", desc = "Yank paths", buffer = event.buf },
+            })
+          end,
+        })
+      '';
+
       # ── LSP ──────────────────────────────────────────────────────────
       plugins.lsp = {
         enable = true;
@@ -395,12 +467,38 @@ in
 
       # ── Keymaps ──────────────────────────────────────────────────────
       keymaps = [
-        # Oil
+        # Explorer
         {
           mode = "n";
           key = "-";
-          action = "<cmd>Oil<cr>";
-          options.desc = "Open file browser";
+          action.__raw = "function() Snacks.explorer() end";
+          options.desc = "Open explorer";
+        }
+        {
+          mode = "n";
+          key = "<leader>e";
+          action.__raw = "function() Snacks.explorer() end";
+          options.desc = "Toggle explorer";
+        }
+
+        # FFF
+        {
+          mode = "n";
+          key = "<leader>ff";
+          action.__raw = ''function() require("fff").find_files() end'';
+          options.desc = "Find files";
+        }
+        {
+          mode = "n";
+          key = "<leader>fg";
+          action.__raw = ''function() require("fff").live_grep() end'';
+          options.desc = "Live grep";
+        }
+        {
+          mode = "n";
+          key = "<leader>f/";
+          action.__raw = ''function() require("fff").live_grep({ query = vim.fn.expand("<cword>") }) end'';
+          options.desc = "Grep current word";
         }
 
         # Format

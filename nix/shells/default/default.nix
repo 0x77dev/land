@@ -21,6 +21,7 @@ mkShell {
     [
       gitFull
       git-crypt
+      jq
       sops
       age
       ssh-to-age

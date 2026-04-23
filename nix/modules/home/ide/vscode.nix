@@ -137,99 +137,144 @@ let
     ++ marketplaceExtensions;
 in
 {
-  config = mkIf cfg.enable {
-    programs.vscode = {
-      enable = true;
-      package = vscodePackage;
+  config = mkIf cfg.enable (
+    let
+      userDir =
+        if pkgs.stdenv.hostPlatform.isDarwin then
+          "${config.home.homeDirectory}/Library/Application Support/${config.programs.vscode.nameShort}/User"
+        else
+          "${config.xdg.configHome}/${config.programs.vscode.nameShort}/User";
+      mutableConfigTargets = [
+        "${userDir}/settings.json"
+        "${userDir}/mcp.json"
+        "${userDir}/keybindings.json"
+        "${userDir}/tasks.json"
+      ];
+    in
+    {
+      home.activation.materializeVscodeConfigs = {
+        after = [ "linkGeneration" ];
+        before = [ ];
+        data = ''
+          materialize_file() {
+            local target="$1"
+            local backup_path="$1.backup"
+            local temp_file
 
-      # Keep this mutable until Cursor-only/vendor extensions are packaged
-      # declaratively as well:
-      # - anysphere.cursorpyright
-      # - anysphere.remote-ssh
-      # - TypeScriptTeam.native-preview
-      mutableExtensionsDir = true;
+            if [[ ! -L "$target" ]]; then
+              return 0
+            fi
 
-      profiles.default = {
-        enableMcpIntegration = true;
-        enableUpdateCheck = false;
-        enableExtensionUpdateCheck = false;
-        extensions = managedExtensions;
-        userSettings = {
-          "editor.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
-          "terminal.integrated.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
-          "editor.fontSize" = 16;
-          "editor.lineHeight" = 1.5;
-          "terminal.integrated.fontSize" = 12;
-          "editor.fontWeight" = "400";
-          "editor.fontVariations" = true;
-          "editor.renderWhitespace" = "boundary";
-          "editor.renderControlCharacters" = true;
-          "editor.fontLigatures" = "'calt', 'liga', 'dlig', 'ss01', 'ss02'";
-          "terminal.integrated.fontWeight" = "400";
-          "terminal.integrated.lineHeight" = 1.2;
-          "terminal.integrated.letterSpacing" = 0;
-          "[javascript]"."editor.fontLigatures" = "'calt', 'liga', 'ss01'";
-          "[python]"."editor.fontLigatures" = "'calt', 'liga', 'dlig'";
-          "[rust]"."editor.fontLigatures" = true;
-          "[javascript]"."editor.defaultFormatter" = "oxc.oxc-vscode";
-          "[javascriptreact]"."editor.defaultFormatter" = "oxc.oxc-vscode";
-          "[typescript]"."editor.defaultFormatter" = "oxc.oxc-vscode";
-          "[typescriptreact]"."editor.defaultFormatter" = "oxc.oxc-vscode";
-          "[json]"."editor.defaultFormatter" = "oxc.oxc-vscode";
-          "[jsonc]"."editor.defaultFormatter" = "oxc.oxc-vscode";
-          "[vue]"."editor.defaultFormatter" = "oxc.oxc-vscode";
-          "editor.tabSize" = 2;
-          "workbench.colorTheme" = "GitHub Dark Default";
-          "git.autofetch" = true;
-          "git.confirmSync" = false;
-          "editor.accessibilitySupport" = "off";
-          "files.autoSave" = "afterDelay";
-          "[nix]"."editor.defaultFormatter" = "jnoortheen.nix-ide";
-          "nix.enableLanguageServer" = true;
-          "nix.serverPath" = "nixd";
-          "nix.serverSettings" = {
-            nixd = {
-              formatting.command = [ "nixfmt" ];
-            };
-          };
-          "editor.codeActionsOnSave"."source.fixAll" = "always";
-          "workbench.colorCustomizations" = { };
-          "workbench.list.smoothScrolling" = true;
-          "editor.smoothScrolling" = true;
-          "terminal.integrated.smoothScrolling" = true;
-          "editor.cursorSmoothCaretAnimation" = "on";
-          "remote.SSH.remotePlatform" = {
-            "muscle.0x77.computer" = "linux";
-            "*.coder" = "linux";
-            "coder.*" = "linux";
-          };
-          "workbench.preferredLightColorTheme" = "GitHub Light Default";
-          "workbench.preferredDarkColorTheme" = "GitHub Dark Default";
-          "window.autoDetectColorScheme" = true;
-          "docker.extension.enableComposeLanguageServer" = false;
-          "typescript.updateImportsOnFileMove.enabled" = "always";
-          "githubPullRequests.pullBranch" = "never";
-          "[dockercompose]" = {
-            "editor.insertSpaces" = true;
+            if [[ -v DRY_RUN ]]; then
+              verboseEcho "Would materialize $target"
+              return 0
+            fi
+
+            temp_file="$(mktemp "$HOME/.hm-vscode-config.XXXXXX")"
+            cat "$target" > "$temp_file"
+            chmod 0644 "$temp_file"
+            mv "$temp_file" "$target"
+            rm -f "$backup_path"
+          }
+        ''
+        + lib.concatMapStringsSep "\n" (target: ''
+          materialize_file ${lib.escapeShellArg target}
+        '') mutableConfigTargets;
+      };
+
+      programs.vscode = {
+        enable = true;
+        package = vscodePackage;
+
+        # Keep this mutable until Cursor-only/vendor extensions are packaged
+        # declaratively as well:
+        # - anysphere.cursorpyright
+        # - anysphere.remote-ssh
+        # - TypeScriptTeam.native-preview
+        mutableExtensionsDir = true;
+
+        profiles.default = {
+          enableMcpIntegration = true;
+          enableUpdateCheck = false;
+          enableExtensionUpdateCheck = false;
+          extensions = managedExtensions;
+          userSettings = {
+            "editor.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
+            "terminal.integrated.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
+            "editor.fontSize" = 16;
+            "editor.lineHeight" = 1.5;
+            "terminal.integrated.fontSize" = 12;
+            "editor.fontWeight" = "400";
+            "editor.fontVariations" = true;
+            "editor.renderWhitespace" = "boundary";
+            "editor.renderControlCharacters" = true;
+            "editor.fontLigatures" = "'calt', 'liga', 'dlig', 'ss01', 'ss02'";
+            "terminal.integrated.fontWeight" = "400";
+            "terminal.integrated.lineHeight" = 1.2;
+            "terminal.integrated.letterSpacing" = 0;
+            "[javascript]"."editor.fontLigatures" = "'calt', 'liga', 'ss01'";
+            "[python]"."editor.fontLigatures" = "'calt', 'liga', 'dlig'";
+            "[rust]"."editor.fontLigatures" = true;
+            "[javascript]"."editor.defaultFormatter" = "oxc.oxc-vscode";
+            "[javascriptreact]"."editor.defaultFormatter" = "oxc.oxc-vscode";
+            "[typescript]"."editor.defaultFormatter" = "oxc.oxc-vscode";
+            "[typescriptreact]"."editor.defaultFormatter" = "oxc.oxc-vscode";
+            "[json]"."editor.defaultFormatter" = "oxc.oxc-vscode";
+            "[jsonc]"."editor.defaultFormatter" = "oxc.oxc-vscode";
+            "[vue]"."editor.defaultFormatter" = "oxc.oxc-vscode";
             "editor.tabSize" = 2;
-            "editor.autoIndent" = "advanced";
-            "editor.defaultFormatter" = "redhat.vscode-yaml";
+            "workbench.colorTheme" = "GitHub Dark Default";
+            "git.autofetch" = true;
+            "git.confirmSync" = false;
+            "editor.accessibilitySupport" = "off";
+            "files.autoSave" = "afterDelay";
+            "[nix]"."editor.defaultFormatter" = "jnoortheen.nix-ide";
+            "nix.enableLanguageServer" = true;
+            "nix.serverPath" = "nixd";
+            "nix.serverSettings" = {
+              nixd = {
+                formatting.command = [ "nixfmt" ];
+              };
+            };
+            "editor.codeActionsOnSave"."source.fixAll" = "always";
+            "workbench.colorCustomizations" = { };
+            "workbench.list.smoothScrolling" = true;
+            "editor.smoothScrolling" = true;
+            "terminal.integrated.smoothScrolling" = true;
+            "editor.cursorSmoothCaretAnimation" = "on";
+            "remote.SSH.remotePlatform" = {
+              "muscle.0x77.computer" = "linux";
+              "*.coder" = "linux";
+              "coder.*" = "linux";
+            };
+            "workbench.preferredLightColorTheme" = "GitHub Light Default";
+            "workbench.preferredDarkColorTheme" = "GitHub Dark Default";
+            "window.autoDetectColorScheme" = true;
+            "docker.extension.enableComposeLanguageServer" = false;
+            "typescript.updateImportsOnFileMove.enabled" = "always";
+            "githubPullRequests.pullBranch" = "never";
+            "[dockercompose]" = {
+              "editor.insertSpaces" = true;
+              "editor.tabSize" = 2;
+              "editor.autoIndent" = "advanced";
+              "editor.defaultFormatter" = "redhat.vscode-yaml";
+            };
+            "[github-actions-workflow]"."editor.defaultFormatter" = "redhat.vscode-yaml";
+            "javascript.updateImportsOnFileMove.enabled" = "always";
+            "files.associations" = {
+              "*.md" = "markdown";
+              "*.json5" = "jsonc";
+              "*.ndjson" = "jsonc";
+            };
+            "cursor.composer.queueMessageDefaultBehavior" = "queue";
+            "remote.autoForwardPortsSource" = "hybrid";
+            "claudeCode.preferredLocation" = "panel";
+            "cursor.composer.usageSummaryDisplay" = "always";
+            "security.promptForRemoteFileProtocolHandling" = false;
+            "redhat.telemetry.enabled" = false;
           };
-          "[github-actions-workflow]"."editor.defaultFormatter" = "redhat.vscode-yaml";
-          "javascript.updateImportsOnFileMove.enabled" = "always";
-          "files.associations" = {
-            "*.md" = "markdown";
-            "*.json5" = "jsonc";
-            "*.ndjson" = "jsonc";
-          };
-          "cursor.composer.queueMessageDefaultBehavior" = "queue";
-          "remote.autoForwardPortsSource" = "hybrid";
-          "claudeCode.preferredLocation" = "panel";
-          "cursor.composer.usageSummaryDisplay" = "always";
-          "security.promptForRemoteFileProtocolHandling" = false;
-          "redhat.telemetry.enabled" = false;
         };
       };
-    };
-  };
+    }
+  );
 }

@@ -2,11 +2,8 @@
   "$schema": "https://opencode.ai/config.json",
   "instructions": [".cursor/rules/*.mdc", "*.md", "*.nix", "nix/**/*.nix"],
   "disabled_providers": ["opencode"],
-  "plugin": [
-    "@simonwjackson/opencode-direnv",
-    "opencode-pty",
-    "oh-my-opencode"
-  ],
+  "plugin": ["@simonwjackson/opencode-direnv", "oh-my-opencode"],
+  "snapshot": false,
   "provider": {
     "vercel": {
       "models": {

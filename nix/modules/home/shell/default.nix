@@ -95,6 +95,15 @@ in
     programs = {
       bash = {
         enable = true;
+        # macOS still routes some terminal startup paths through Apple's Bash 3.2,
+        # so keep Home Manager's generated Bash config compatible there.
+        enableCompletion = !isDarwin;
+        shellOptions = [
+          "histappend"
+          "extglob"
+        ]
+        ++ optional (!isDarwin) "globstar"
+        ++ optional (!isDarwin) "checkjobs";
         shellAliases = commonAliases // commonAbbreviations;
         initExtra = ''
           export PATH="${exportedPath}:$PATH"

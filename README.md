@@ -95,6 +95,9 @@ sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
   switch -L --flake sourcehut:~dev0x77/land --option sandbox false
 ```
 
+Darwin activations refresh Homebrew taps with `brew update` and apply
+upgrades with `brew upgrade` by default.
+
 ## Systems
 
 | Host | Platform | Role | Specs |
@@ -116,6 +119,10 @@ nix develop
 nix flake check
 nix flake update
 ```
+
+Darwin hosts offload `x86_64-linux` and `aarch64-linux` builds to
+`muscle` via system-level Nix distributed builds. Use `nix build -j0`
+when you want to force a Linux-target build onto the remote builder.
 
 ## Automation
 
