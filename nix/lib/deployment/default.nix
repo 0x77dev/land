@@ -13,8 +13,6 @@
       # Default SSH user per platform
       defaultDarwinSshUser ? "0x77",
       defaultNixosSshUser ? "mykhailo",
-      # Hostname suffix for NixOS systems
-      hostnameSuffix ? ".0x77.computer",
     }:
     let
       # Helper to determine system architecture from configuration
@@ -47,7 +45,7 @@
         let
           system = getSystem config;
           # Use hostname as-is if it contains a dot (FQDN), otherwise add suffix
-          hostname = if lib.hasInfix "." name then name else "${name}${hostnameSuffix}";
+          hostname = name;
         in
         {
           inherit hostname;

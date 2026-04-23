@@ -12,7 +12,7 @@
 
   networking = {
     hostName = "muscle";
-    domain = "0x77.computer";
+    domain = "clubhouse.osv.computer";
     useDHCP = lib.mkForce true;
   };
 
