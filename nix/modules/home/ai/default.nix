@@ -1,6 +1,8 @@
 {
   config,
   lib,
+  pkgs,
+  namespace,
   ...
 }:
 let
@@ -41,6 +43,13 @@ in
 
   config = lib.mkIf cfg.enable {
     services.ollama.enable = true;
+
+    home.packages = with pkgs.${namespace}; [
+      unifi-network-mcp
+      unifi-access-mcp
+      unifi-protect-mcp
+      unifi-mcp-relay
+    ];
 
     # The Home Manager program modules generate store-backed config files.
     # Materialize them after activation so the CLIs can update their own state.
