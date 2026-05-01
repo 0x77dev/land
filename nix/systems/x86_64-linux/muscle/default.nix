@@ -12,7 +12,7 @@
 
   networking = {
     hostName = "muscle";
-    domain = "clubhouse.osv.computer";
+    domain = "osv.computer";
     useDHCP = lib.mkForce true;
   };
 
@@ -77,6 +77,7 @@
 
   hardware = {
     enableRedistributableFirmware = true;
+    infiniband.enable = true;
     cpu.amd.updateMicrocode = true;
     nvidia = {
       open = true;

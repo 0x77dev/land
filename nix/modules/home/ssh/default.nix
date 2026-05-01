@@ -62,7 +62,7 @@ in
       }
       // optionalAttrs gpgEnabled {
         # Only forward to specific trusted servers
-        "pickle pickle.0x77.computer tomato tomato.0x77.computer muscle muscle.0x77.computer beefy beefy.0x77.computer" =
+        "pickle pickle.0x77.computer tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer beefy beefy.0x77.computer" =
           {
             forwardAgent = true;
             # Forward the GPG agent's extra socket to the remote system

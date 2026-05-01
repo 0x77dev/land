@@ -35,6 +35,5 @@ in
 
   programs = {
     home-manager.enable = true;
-    zed-editor.userSettings.buffer_font_size = 18;
   };
 }

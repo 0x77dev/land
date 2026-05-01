@@ -2,80 +2,19 @@
   "$schema": "https://opencode.ai/config.json",
   "instructions": [".cursor/rules/*.mdc", "*.md", "*.nix", "nix/**/*.nix"],
   "disabled_providers": ["opencode"],
-  "plugin": ["@simonwjackson/opencode-direnv", "oh-my-opencode"],
+  "plugin": ["@simonwjackson/opencode-direnv", "oh-my-openagent"],
+  "default_agent": "hephaestus",
   "snapshot": false,
+  "share": "disabled",
+  "experimental": {
+    "openTelemetry": false
+  },
+  "permission": {
+    "skill": {
+      "*": "allow"
+    }
+  },
   "provider": {
-    "vercel": {
-      "models": {
-        "anthropic/claude-opus-4.6": {
-          "limit": { "context": 1000000, "output": 128000 },
-          "options": {
-            "order": ["anthropic", "vertex", "bedrock"],
-            "zeroDataRetention": true,
-            "caching": "auto"
-          }
-        },
-        "anthropic/claude-sonnet-4.6": {
-          "limit": { "context": 1000000, "output": 128000 },
-          "options": {
-            "order": ["anthropic", "vertex", "bedrock"],
-            "zeroDataRetention": true,
-            "caching": "auto"
-          }
-        },
-        "anthropic/claude-haiku-4.5": {
-          "limit": { "context": 200000, "output": 64000 },
-          "options": {
-            "order": ["anthropic", "vertex"],
-            "zeroDataRetention": true
-          }
-        },
-        "google/gemini-3.1-pro-preview": {
-          "limit": { "context": 1000000, "output": 64000 },
-          "options": {
-            "order": ["vertex", "google"],
-            "zeroDataRetention": true
-          }
-        },
-        "google/gemini-3-flash": {
-          "limit": { "context": 1000000, "output": 65000 },
-          "options": {
-            "order": ["vertex", "google"],
-            "zeroDataRetention": true
-          }
-        },
-        "openai/gpt-5.4": {
-          "options": {
-            "order": ["openai"],
-            "zeroDataRetention": true,
-            "reasoningEffort": "high",
-            "reasoningSummary": "auto",
-            "textVerbosity": "low",
-            "include": ["reasoning.encrypted_content"]
-          }
-        },
-        "openai/gpt-5.4-mini": {
-          "options": {
-            "order": ["openai"],
-            "zeroDataRetention": true,
-            "reasoningEffort": "low",
-            "reasoningSummary": "auto",
-            "textVerbosity": "low",
-            "include": ["reasoning.encrypted_content"]
-          }
-        },
-        "openai/gpt-5.3-codex": {
-          "options": {
-            "order": ["openai"],
-            "zeroDataRetention": true,
-            "reasoningEffort": "medium",
-            "reasoningSummary": "auto",
-            "textVerbosity": "medium",
-            "include": ["reasoning.encrypted_content"]
-          }
-        }
-      }
-    },
     "furnace": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Furnace Cluster",
@@ -99,6 +38,6 @@
       }
     }
   },
-  "model": "openai/gpt-5.4",
-  "small_model": "openai/gpt-5.4-mini"
+  "model": "openai/gpt-5.5",
+  "small_model": "furnace/zai-org/GLM-5"
 }

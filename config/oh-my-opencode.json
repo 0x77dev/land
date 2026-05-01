@@ -1,24 +1,27 @@
 {
-  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json",
+  "default_run_agent": "hephaestus",
+  "new_task_system_enabled": true,
   "agents": {
-    "sisyphus": { "model": "vercel/anthropic/claude-sonnet-4.6" },
-    "oracle": { "model": "vercel/anthropic/claude-opus-4.6" },
-    "librarian": { "model": "furnace/zai-org/GLM-5" },
-    "explore": { "model": "vercel/google/gemini-3-flash" },
-    "prometheus": { "model": "openai/gpt-5.4" },
-    "metis": { "model": "vercel/anthropic/claude-sonnet-4.6" },
-    "momus": { "model": "vercel/anthropic/claude-sonnet-4.6" }
+    "hephaestus": {
+      "prompt_append": "Default to strategic planning before action: identify the objective, freedom of approach, available tools, and cheapest sufficient delegation path. Prefer category defaults over per-agent model overrides, and escalate only when the task genuinely needs it."
+    }
   },
   "categories": {
-    "quick": { "model": "openai/gpt-5.4-mini" },
-    "visual-engineering": { "model": "vercel/google/gemini-3.1-pro-preview" },
-    "ultrabrain": { "model": "openai/gpt-5.4" },
-    "deep": { "model": "openai/gpt-5.4", "variant": "xhigh" },
-    "artistry": { "model": "vercel/google/gemini-3.1-pro-preview" },
-    "unspecified-low": { "model": "vercel/anthropic/claude-sonnet-4.6" },
-    "unspecified-high": { "model": "openai/gpt-5.4", "variant": "high" },
-    "writing": { "model": "vercel/anthropic/claude-sonnet-4.6" }
+    "quick": { "model": "furnace/zai-org/GLM-5", "variant": "instant" },
+    "unspecified-low": { "model": "furnace/zai-org/GLM-5", "variant": "instant" },
+    "unspecified-medium": { "model": "furnace/zai-org/GLM-5", "variant": "thinking" },
+    "unspecified-high": { "model": "openai/gpt-5.5", "variant": "xhigh" },
+    "visual-engineering": { "model": "openai/gpt-5.5", "variant": "xhigh" },
+    "ultrabrain": { "model": "openai/gpt-5.5", "variant": "xhigh" },
+    "deep": {
+      "model": "openai/gpt-5.5",
+      "variant": "xhigh",
+      "fallback_models": [{ "model": "furnace/zai-org/GLM-5", "variant": "thinking" }]
+    },
+    "artistry": { "model": "openai/gpt-5.5", "variant": "xhigh" },
+    "writing": { "model": "furnace/zai-org/GLM-5", "variant": "instant" }
   },
   "disabled_mcps": ["websearch", "context7", "grep_app"],
-  "disabled_hooks": ["empty-task-response-detector"]
+  "disabled_hooks": []
 }

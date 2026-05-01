@@ -10,6 +10,17 @@ let
   cfg = config.modules.home.ghostty;
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
   ghosttyPackage = if isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
+  cmuxSettings = {
+    "$schema" =
+      "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux-settings.schema.json";
+    schemaVersion = 1;
+    shortcuts.bindings = {
+      splitRight = "cmd+shift+d";
+      splitDown = "cmd+d";
+      splitBrowserRight = "opt+cmd+shift+d";
+      splitBrowserDown = "opt+cmd+d";
+    };
+  };
 in
 {
   options.modules.home.ghostty = {
@@ -83,8 +94,16 @@ in
         font-variation = "wght=600";
         font-size = 16;
         font-feature = "+calt,+liga";
+        keybind = lib.optionals isDarwin [
+          "super+d=new_split:down"
+          "super+shift+d=new_split:right"
+        ];
         theme = "dark:gdd,light:gld";
       };
+    };
+
+    xdg.configFile."cmux/settings.json" = lib.mkIf isDarwin {
+      text = builtins.toJSON cmuxSettings;
     };
 
     # Ensure TX-02 font is available

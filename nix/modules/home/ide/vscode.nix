@@ -244,6 +244,7 @@ in
             "editor.cursorSmoothCaretAnimation" = "on";
             "remote.SSH.remotePlatform" = {
               "muscle.0x77.computer" = "linux";
+              "muscle.osv.computer" = "linux";
               "*.coder" = "linux";
               "coder.*" = "linux";
             };
@@ -268,7 +269,6 @@ in
             };
             "cursor.composer.queueMessageDefaultBehavior" = "queue";
             "remote.autoForwardPortsSource" = "hybrid";
-            "claudeCode.preferredLocation" = "panel";
             "cursor.composer.usageSummaryDisplay" = "always";
             "security.promptForRemoteFileProtocolHandling" = false;
             "redhat.telemetry.enabled" = false;

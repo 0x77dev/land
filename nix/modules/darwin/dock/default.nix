@@ -33,10 +33,6 @@ let
       available = has "cursor";
     }
     {
-      path = "${hmApps}/Zed.app";
-      available = has "zed-editor";
-    }
-    {
       path = "${hmApps}/Ghostty.app";
       available = has "ghostty-bin";
     }

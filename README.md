@@ -136,9 +136,10 @@ Actions and flake lock maintenance updates are configured for automerge
 after CI/security checks pass, while comment-annotated custom pinned
 versions can be tracked through regex managers in [`renovate.json5`].
 
-AI-enabled Home Manager profiles also configure the terminal agent stack managed
-in [`nix/modules/home/ai/`], including OpenCode plus shared Claude Code, Codex,
-Amp, and Augment home-state defaults.
+AI-enabled Home Manager profiles configure the terminal agent stack managed in
+[`nix/modules/home/ai/`]. OpenCode is the primary agent runtime, with Oh My
+OpenAgent defaults, global skills, shared MCP servers, and Cursor/Neovim
+integrations managed declaratively.
 
 See [CONTRIBUTING.md][contributing] for conventions.
 

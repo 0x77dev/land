@@ -34,6 +34,4 @@ in
       pinentryPackage = pkgs.pinentry-curses; # Cinnamon doesn't use GNOME keyring
     };
   };
-
-  programs.zed-editor.userSettings.buffer_font_size = 14; # Laptop screen - smaller font
 }
