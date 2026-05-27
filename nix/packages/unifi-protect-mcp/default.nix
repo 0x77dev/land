@@ -16,7 +16,7 @@ in
 py.buildPythonApplication rec {
   pname = "unifi-protect-mcp";
   # renovate: datasource=pypi depName=unifi-protect-mcp versioning=pep440
-  version = "0.3.2";
+  version = "0.4.2";
   pyproject = true;
 
   src = fetchPypi {
