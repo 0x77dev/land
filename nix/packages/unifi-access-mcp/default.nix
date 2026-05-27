@@ -12,7 +12,7 @@ in
 py.buildPythonApplication rec {
   pname = "unifi-access-mcp";
   # renovate: datasource=pypi depName=unifi-access-mcp versioning=pep440
-  version = "0.2.1";
+  version = "0.3.1";
   pyproject = true;
 
   src = fetchPypi {
