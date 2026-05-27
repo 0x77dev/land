@@ -11,7 +11,7 @@ in
 py.buildPythonPackage rec {
   pname = "unifi-core";
   # renovate: datasource=pypi depName=unifi-core versioning=pep440
-  version = "0.1.2";
+  version = "0.3.5";
   pyproject = true;
 
   src = fetchPypi {
