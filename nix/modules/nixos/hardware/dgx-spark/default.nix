@@ -60,21 +60,21 @@ in
       # system crashes / CUDA libraries fail to load.
       kernelParams = [ "arm64.nobti" ];
 
+      # `hardware.nvidia` blacklists nouveau but does NOT add the nvidia modules
+      # to `boot.kernelModules`, so load them here for early KMS/Wayland. Plus
+      # the Mellanox ConnectX-7 (QSFP fabric) RDMA/RoCE modules.
       kernelModules = [
         "nvidia"
         "nvidia_modeset"
         "nvidia_uvm"
         "nvidia_drm"
-        # Mellanox ConnectX-7 (the QSFP fabric) + RDMA/RoCE.
         "mlx5_core"
         "mlx5_ib"
       ];
 
-      blacklistedKernelModules = [ "nouveau" ];
-
       # There's no generated hardware-configuration.nix, so the initrd must be
-      # told how to reach the NVMe root: `nvme` for the disk, plus the Spark's
-      # platform (ARM64 device-tree) xHCI for USB keyboards in early boot.
+      # told how to reach the NVMe root (`nvme`), plus the Spark's platform
+      # (ARM64 device-tree) xHCI + HID for a keyboard at the emergency shell.
       # Without `nvme` here stage-1 can't mount root and init panics.
       initrd = {
         systemd.enable = true;
@@ -82,9 +82,6 @@ in
           "nvme"
           "xhci_plat_hcd"
           "usbhid"
-          "uas"
-          "sd_mod"
-          "usb_storage"
         ];
       };
     };

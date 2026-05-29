@@ -1,8 +1,12 @@
 {
   pkgs,
+  lib,
   namespace,
   ...
 }:
+let
+  muscle = lib.${namespace}.shared.builders.muscle;
+in
 {
   networking = {
     hostName = "spark";
@@ -101,6 +105,20 @@
     observability.enable = true;
     security-tools.enable = true;
   };
+
+  # Offload large/parallel builds to muscle (Threadripper 7985WX) — it
+  # out-compiles the Grace cores even on aarch64 via binfmt, and frees the
+  # Spark for inference.
+  nix = {
+    distributedBuilds = true;
+    buildMachines = muscle.mkMachines { sshUser = "mykhailo"; };
+  };
+  programs.ssh.knownHosts.muscle = muscle.knownHost;
+
+  # The nix-daemon authenticates to muscle via the YubiKey, exposed through
+  # mykhailo's gpg-agent ssh socket (same as the Darwin hosts' launchd setup).
+  # uid 1000 = first normal user (uids are auto-allocated, so not in eval).
+  systemd.services.nix-daemon.environment.SSH_AUTH_SOCK = "/run/user/1000/gnupg/S.gpg-agent.ssh";
 
   snowfallorg.users.mykhailo = {
     create = true;

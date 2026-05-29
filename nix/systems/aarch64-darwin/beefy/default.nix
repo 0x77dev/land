@@ -1,9 +1,12 @@
 {
   pkgs,
+  lib,
+  namespace,
   ...
 }:
 let
   userName = "mykhailo";
+  muscle = lib.${namespace}.shared.builders.muscle;
 in
 {
   system.stateVersion = 6;
@@ -75,33 +78,8 @@ in
 
   nix = {
     distributedBuilds = true;
-    buildMachines = [
-      {
-        hostName = "muscle";
-        protocol = "ssh-ng";
-        sshUser = userName;
-        publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1BM3dYNWtSSm9OdHhZK3ByMmNjTjdZZXJTRVB2Si81Y0s3emRRMldwcHYK";
-        systems = [
-          "x86_64-linux"
-          "aarch64-linux"
-        ];
-        maxJobs = 1;
-        speedFactor = 2;
-        supportedFeatures = [
-          "benchmark"
-          "big-parallel"
-          "kvm"
-          "nixos-test"
-        ];
-      }
-    ];
+    buildMachines = muscle.mkMachines { sshUser = userName; };
   };
 
-  programs.ssh.knownHosts.muscle = {
-    publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMA3wX5kRJoNtxY+pr2ccN7YerSEPvJ/5cK7zdQ2Wppv";
-    extraHostNames = [
-      "muscle.0x77.computer"
-      "muscle.osv.computer"
-    ];
-  };
+  programs.ssh.knownHosts.muscle = muscle.knownHost;
 }

@@ -12,4 +12,5 @@
   home-manager-config = import ./home-manager-config { inherit lib inputs namespace; };
   user-config = import ./user-config { inherit lib inputs namespace; };
   grafana-dashboards = import ./grafana-dashboards { inherit lib inputs namespace; };
+  builders = import ./builders { inherit lib inputs namespace; };
 }
