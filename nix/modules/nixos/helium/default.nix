@@ -8,19 +8,25 @@
 with lib;
 let
   cfg = config.programs.helium;
-  inherit (config.programs) chromium;
+  onePasswordOrigins = [
+    # cspell:disable-next-line
+    "hjlinigoblmkhjejkmbegnoaljkphmgo"
+    # cspell:disable-next-line
+    "gejiddohjgogedgjnonbofjigllpkmbf"
+    # cspell:disable-next-line
+    "khgocmkkpikpnmmkgmdnfckapcdkgfaf"
+    # cspell:disable-next-line
+    "aeblfdkhhhdcdjpifhhbdiojplfjncoa"
+    # cspell:disable-next-line
+    "dppgmdbiimibapkepcbdbmkaabgiofem"
+  ];
 
-  pair = cfg.pairChromium && chromium.enable;
-
-  # Recreated from the upstream `programs.chromium` policy module so the same
-  # managed-policy declaration applies to Helium. Helium is a Chromium fork and
-  # reads enterprise policies from /etc/helium/policies/managed.
-  defaultProfile = filterAttrs (_: v: v != null) {
-    HomepageLocation = chromium.homepageLocation;
-    DefaultSearchProviderEnabled = chromium.defaultSearchProviderEnabled;
-    DefaultSearchProviderSearchURL = chromium.defaultSearchProviderSearchURL;
-    DefaultSearchProviderSuggestURL = chromium.defaultSearchProviderSuggestURL;
-    ExtensionInstallForcelist = chromium.extensions;
+  onePasswordNativeMessagingHost = {
+    name = "com.1password.1password";
+    description = "1Password BrowserSupport";
+    path = "/run/wrappers/bin/1Password-BrowserSupport";
+    type = "stdio";
+    allowed_origins = map (id: "chrome-extension://${id}/") onePasswordOrigins;
   };
 in
 {
@@ -38,26 +44,38 @@ in
       type = types.bool;
       default = true;
       description = ''
-        Mirror the managed policies declared via `programs.chromium`
-        (extensions force-list, search provider, `extraOpts`, `initialPrefs`)
-        into Helium's policy directory, so one declaration configures both.
+        Enable Chromium's system policy plumbing for Helium. Helium reads the
+        same `/etc/chromium` policy and native-messaging paths as Chromium, so
+        this lets `programs.chromium` remain the single declaration point.
+      '';
+    };
+
+    enable1PasswordIntegration = mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Register 1Password's Chromium native-messaging host for Helium and add
+        Helium to 1Password's custom browser allowlist when 1Password GUI is
+        enabled.
       '';
     };
   };
 
   config = mkIf cfg.enable (mkMerge [
-    { environment.systemPackages = [ cfg.package ]; }
+    {
+      environment.systemPackages = [ cfg.package ];
+      programs.chromium.enable = mkIf cfg.pairChromium (mkDefault true);
+    }
 
-    (mkIf pair {
+    (mkIf (cfg.enable1PasswordIntegration && config.programs._1password-gui.enable) {
       environment.etc = {
-        "helium/policies/managed/default.json" = mkIf (defaultProfile != { }) {
-          text = builtins.toJSON defaultProfile;
+        "chromium/native-messaging-hosts/com.1password.1password.json" = {
+          text = builtins.toJSON onePasswordNativeMessagingHost;
         };
-        "helium/policies/managed/extra.json" = mkIf (chromium.extraOpts != { }) {
-          text = builtins.toJSON chromium.extraOpts;
-        };
-        "helium/initial_preferences" = mkIf (chromium.initialPrefs != { }) {
-          text = builtins.toJSON chromium.initialPrefs;
+
+        "1password/custom_allowed_browsers" = {
+          text = mkAfter "helium\n";
+          mode = "0755";
         };
       };
     })

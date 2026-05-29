@@ -15,9 +15,10 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Enable 1Password GUI and configure polkit policy owners
+    # Enable 1Password GUI only on systems with a display manager + graphics,
+    # and configure polkit policy owners when present.
     programs._1password-gui = {
-      enable = true;
+      enable = mkDefault config.modules.graphical.enable;
       polkitPolicyOwners = snowfallUsers;
     };
 

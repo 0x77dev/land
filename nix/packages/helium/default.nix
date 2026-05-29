@@ -23,7 +23,7 @@ let
   macosBase = "https://github.com/imputnet/helium-macos/releases/download/${version}";
 
   # Per-system release artifacts. `passthru.sources` re-exports this so the
-  # `nix-rehash` script (driven by Renovate's postUpgradeTasks) can refresh
+  # `nix-rehash` script (driven by the Renovate digest workflow) can refresh
   # every platform digest after a version bump, without a build.
   sources = {
     x86_64-linux = {

@@ -17,7 +17,7 @@ _:
 
   modules.home = {
     ai.enable = lib.mkDefault false;
-    browser.enable = lib.mkDefault true;
+    browser.enable = lib.mkDefault false;
     cloud.enable = lib.mkDefault false;
     fonts.enable = lib.mkDefault false;
     ghostty.enable = lib.mkDefault false;

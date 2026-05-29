@@ -1,19 +1,22 @@
 {
+  config,
   pkgs,
   lib,
   system,
   ...
 }:
+with lib;
 {
   # Common System Configuration
-  time.timeZone = lib.mkDefault "America/Los_Angeles";
-  i18n.defaultLocale = lib.mkDefault "en_US.UTF-8";
+  time.timeZone = mkDefault "America/New_York";
+  i18n.defaultLocale = mkDefault "en_US.UTF-8";
 
   # Shell
   programs.fish.enable = true;
+  programs.helium.enable = mkDefault config.modules.graphical.enable;
 
   # Nixpkgs
-  nixpkgs.hostPlatform = lib.mkDefault system;
+  nixpkgs.hostPlatform = mkDefault system;
   nixpkgs.config.allowUnfree = true;
 
   # Latest mainline kernel by default. Hardware/ZFS constraints override this
@@ -21,7 +24,7 @@
   # ghost/tomato → latest ZFS-compatible). CPU vulnerability mitigations are
   # deliberately left at the kernel's per-CPU defaults: enabled and correct,
   # with no global `mitigations=off` (which would trade security for perf).
-  boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
+  boot.kernelPackages = mkDefault pkgs.linuxPackages_latest;
 
   # Common Packages
   environment.systemPackages = with pkgs; [

@@ -33,9 +33,9 @@ let
     else
       cfg.package;
 
-  # Force-installed extensions land in Helium's per-user config dir. The
-  # External Extensions mechanism is Linux-only (upstream Chromium limitation),
-  # so darwin just gets the package + flags.
+  # Force-installed extensions land in Helium's per-user config dir. System-wide
+  # Chromium conventions (policies + native messaging) are handled by the NixOS
+  # `programs.helium` module.
   extensionFile = ext: {
     name = "${config.xdg.configHome}/helium/External Extensions/${ext.id}.json";
     value.text = builtins.toJSON (
@@ -85,8 +85,16 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ finalPackage ];
+    home = {
+      packages = [ finalPackage ];
 
-    home.file = mkIf pkgs.stdenv.isLinux (listToAttrs (map extensionFile extensions));
+      # Match nixpkgs' Chromium wrapper convention: Ozone/Wayland is enabled
+      # only when this variable is present and a Wayland session exists.
+      sessionVariables = mkIf pkgs.stdenv.isLinux {
+        NIXOS_OZONE_WL = mkDefault "1";
+      };
+
+      file = mkIf pkgs.stdenv.isLinux (listToAttrs (map extensionFile extensions));
+    };
   };
 }
