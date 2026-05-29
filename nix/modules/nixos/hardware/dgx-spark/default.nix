@@ -11,6 +11,36 @@ in
   options.hardware.dgx-spark.enable = lib.mkEnableOption "NVIDIA DGX Spark (GB10) hardware support";
 
   config = lib.mkIf cfg.enable {
+    # Every DGX Spark has a single internal NVMe — use it whole: a 1G ESP plus
+    # an XFS root spanning the rest. disko generates `fileSystems` from this.
+    disko.devices.disk.nvme0 = {
+      type = "disk";
+      device = "/dev/nvme0n1";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = [ "umask=0077" ];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "filesystem";
+              format = "xfs";
+              mountpoint = "/";
+            };
+          };
+        };
+      };
+    };
+
     nixpkgs.config = {
       allowUnfree = true;
       cudaSupport = true;

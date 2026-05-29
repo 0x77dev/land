@@ -3,9 +3,13 @@ default: help
 help:
   @just --list
 
-# Build the installer ISO for an architecture (x86_64 or aarch64)
-iso arch="x86_64":
-  nom build .#isoConfigurations.installer-{{arch}} -o result-installer-{{arch}}
+# Build the generic (x86_64) installer ISO
+iso:
+  nom build .#nixosConfigurations.installer.config.system.build.isoImage -o result-installer
+
+# Build the NVIDIA DGX Spark (aarch64, GB10) installer ISO
+spark-iso:
+  nom build .#nixosConfigurations.spark-installer.config.system.build.isoImage -o result-spark-installer
 
 # Install NixOS on a host at an IP address
 # Use `just iso` or any linux distro with kexec-tools installed

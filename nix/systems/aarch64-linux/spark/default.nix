@@ -24,21 +24,8 @@
     };
   };
 
-  # Placeholder layout — replace device labels with the real values from
-  # `nixos-generate-config` on first install.
-  fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "ext4";
-    };
-    "/boot" = {
-      device = "/dev/disk/by-label/boot";
-      fsType = "vfat";
-    };
-  };
-
-  # NVIDIA DGX Spark (GB10) hardware profile: CUDA, NVIDIA driver +
-  # container toolkit, fwupd, and the Flox CUDA binary cache.
+  # NVIDIA DGX Spark (GB10) hardware profile: CUDA, NVIDIA driver + container
+  # toolkit, fwupd, the Flox CUDA cache, and the full-NVMe XFS disko layout.
   hardware.dgx-spark.enable = true;
 
   hardware.bluetooth = {

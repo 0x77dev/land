@@ -18,12 +18,12 @@ All systems are built from a single flake. Initial provisioning uses
 
 ### Initial Provisioning
 
-Build an installer ISO for the target architecture (`x86_64` default, or
-`aarch64` for DGX Spark and other ARM hosts):
+Build an installer ISO. The generic image covers x86_64; the DGX Spark needs a
+dedicated aarch64 image (GB10 requires the `arm64.nobti` kernel arg to boot):
 
 ```bash
-just iso          # x86_64
-just iso aarch64  # aarch64 (e.g. DGX Spark)
+just iso        # generic x86_64 installer
+just spark-iso  # NVIDIA DGX Spark (GB10) installer
 ```
 
 Bootstrap new systems remotely with [nixos-anywhere][nixos-anywhere]:
@@ -107,8 +107,10 @@ nix flake check
 nix flake update
 ```
 
-Managed hosts expose this flake's inputs through the system flake registry,
-so pinned input references work directly, for example `nix shell unstable#grype`.
+Managed hosts expose this flake's inputs through both the system flake
+registry and `NIX_PATH`, so pinned input references work directly
+(`nix shell unstable#grype`) and legacy channels resolve to the locked
+revisions (`nix-build '<nixpkgs>' -A hello`).
 
 Darwin hosts offload `x86_64-linux` and `aarch64-linux` builds to
 `muscle` via system-level Nix distributed builds. Use `nix build -j0`

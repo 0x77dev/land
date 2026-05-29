@@ -66,11 +66,6 @@
       url = "github:NixOS/nixos-hardware";
     };
 
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
@@ -139,7 +134,6 @@
           disko.nixosModules.disko
           nixos-vscode-server.nixosModules.default
           vpn-confinement.nixosModules.default
-          nixos-generators.nixosModules.all-formats
         ];
       };
 

@@ -11,15 +11,18 @@ let
     "https://cache.flox.dev"
   ];
 
-  flakeRegistryInputs = lib.filterAttrs (_name: input: input ? outputs) (
-    removeAttrs inputs [
-      "self"
-      "nixpkgs"
-    ]
-  );
+  # Every flake input that is itself a flake (excluding `self`). These are
+  # pinned into both the flake registry and the legacy `NIX_PATH` so that
+  # `nix shell nixpkgs#...` and channel-style `<nixpkgs>` lookups resolve to
+  # the exact revisions locked by this flake.
+  flakeInputs = lib.filterAttrs (_name: input: input ? outputs) (removeAttrs inputs [ "self" ]);
 in
 {
-  registry = lib.mapAttrs (_name: flake: { inherit flake; }) flakeRegistryInputs;
+  registry = lib.mapAttrs (_name: flake: { inherit flake; }) flakeInputs;
+
+  # Back legacy channels (`<nixpkgs>`, `<unstable>`, ...) with the same pinned
+  # inputs, replacing the mutable system/user channel state.
+  nixPath = lib.mapAttrsToList (name: input: "${name}=${input}") flakeInputs;
 
   settings = {
     accept-flake-config = true;

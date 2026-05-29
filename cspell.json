@@ -443,6 +443,7 @@
     "ownertrust",
     "partuuid",
     "passthru",
+    "passwordless",
     "patchelf",
     "pcall",
     "pcscd",
