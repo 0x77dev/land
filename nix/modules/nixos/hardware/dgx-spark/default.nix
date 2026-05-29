@@ -62,7 +62,9 @@ in
 
       # `hardware.nvidia` blacklists nouveau but does NOT add the nvidia modules
       # to `boot.kernelModules`, so load them here for early KMS/Wayland. Plus
-      # the Mellanox ConnectX-7 (QSFP fabric) RDMA/RoCE modules.
+      # the Mellanox ConnectX-7 (QSFP fabric) RDMA/RoCE modules — RDMA comes from
+      # these + `rdma-core`; we avoid `hardware.infiniband.enable` because it
+      # pulls opensm (the IB subnet manager), which is x86_64-only.
       kernelModules = [
         "nvidia"
         "nvidia_modeset"
@@ -88,8 +90,6 @@ in
 
     hardware = {
       enableRedistributableFirmware = true;
-      # ConnectX-7 RDMA/RoCE stack (rdma-core, IB subsystem).
-      infiniband.enable = true;
       graphics.enable = true;
       nvidia = {
         modesetting.enable = true;
