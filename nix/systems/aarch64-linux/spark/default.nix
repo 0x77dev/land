@@ -80,6 +80,15 @@
 
     pcscd.enable = true;
     tailscale.enable = true;
+
+    # Ollama with CUDA on the GB10 GPU. Listens on all interfaces (this is a
+    # headless compute node; the host firewall is disabled and it's reachable
+    # over Tailscale).
+    ollama = {
+      enable = true;
+      acceleration = "cuda";
+      host = "0.0.0.0";
+    };
   };
 
   security = {
