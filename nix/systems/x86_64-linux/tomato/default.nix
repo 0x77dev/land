@@ -6,20 +6,10 @@
 
   modules = {
     hardware.ms-01.enable = true;
-    network.bonding = {
-      enable = true;
-      vlans = [
-        {
-          id = 4;
-          name = "homelab";
-        }
-      ];
-    };
     filesystem.zfs = {
       enable = true;
       useLatestKernel = true;
     };
-    cluster.incus.enable = true;
     observability.enable = true;
   };
 
@@ -33,7 +23,7 @@
     enable = true;
     ptp = {
       enable = true;
-      interface = "enp2s0f0np0"; # First 10GbE NIC (bonded, but PTP uses physical)
+      interface = "enp2s0f0np0"; # First 10GbE NIC
       timestamping = "software"; # Match timey's software timestamping
     };
   };
@@ -42,6 +32,8 @@
     hostName = "tomato";
     domain = "0x77.computer";
     hostId = "442cbd39";
+    # Both 10GbE NICs configured independently via DHCP.
+    useDHCP = true;
   };
 
   security.sudo.wheelNeedsPassword = false;
@@ -62,7 +54,6 @@
     extraGroups = [
       "networkmanager"
       "docker"
-      "incus"
     ];
     shell = pkgs.fish;
   };

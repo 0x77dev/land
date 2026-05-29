@@ -1,4 +1,4 @@
-_:
+{ inputs, ... }:
 { lib, ... }:
 let
   substituters = [
@@ -6,9 +6,21 @@ let
     "https://land.cachix.org"
     "https://nix-community.cachix.org"
     "https://nixos-raspberrypi.cachix.org"
+    # NVIDIA-authorized pre-built CUDA binaries for aarch64-linux (DGX Spark).
+    # https://flox.dev
+    "https://cache.flox.dev"
   ];
+
+  flakeRegistryInputs = lib.filterAttrs (_name: input: input ? outputs) (
+    removeAttrs inputs [
+      "self"
+      "nixpkgs"
+    ]
+  );
 in
 {
+  registry = lib.mapAttrs (_name: flake: { inherit flake; }) flakeRegistryInputs;
+
   settings = {
     accept-flake-config = true;
     builders-use-substitutes = true;
@@ -27,6 +39,7 @@ in
       "land.cachix.org-1:9KPti8Xi0UJ7eQof7b8VUzSYU5piFy6WVQ8MDTLOqEA="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+      "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs="
     ];
     trusted-users = [
       "root"

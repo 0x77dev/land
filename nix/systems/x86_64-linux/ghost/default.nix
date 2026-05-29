@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   namespace,
@@ -11,17 +12,59 @@
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
   ];
 
+  modules = {
+    filesystem.zfs = {
+      enable = true;
+      useLatestKernel = true;
+      autoSnapshot.enable = true;
+    };
+    observability = {
+      enable = false;
+      openFirewall = false;
+    };
+    security-tools.enable = true;
+    vscode-server.enable = true;
+  };
+
   networking = {
     hostName = "ghost";
     domain = "0x77.computer";
+    hostId = "edbcf5ac";
+    networkmanager.enable = true;
     useDHCP = lib.mkForce true;
+    firewall = {
+      enable = true;
+      allowedTCPPorts = [ 22 ];
+    };
   };
 
   boot = {
-    supportedFilesystems = [
-      "ntfs"
-      "ext2"
-    ];
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+
+    initrd.systemd = {
+      enable = true;
+      services.rollback-root = {
+        description = "Rollback ephemeral root dataset";
+        wantedBy = [ "initrd.target" ];
+        after = [ "zfs-import-zroot.service" ];
+        before = [ "sysroot.mount" ];
+        unitConfig.DefaultDependencies = "no";
+        serviceConfig.Type = "oneshot";
+        script = ''
+          if ${config.boot.zfs.package}/bin/zfs list -H -t snapshot zroot/root@blank >/dev/null 2>&1; then
+            ${config.boot.zfs.package}/bin/zfs rollback -r zroot/root@blank
+          else
+            ${config.boot.zfs.package}/bin/zfs snapshot zroot/root@blank
+          fi
+        '';
+      };
+    };
+
+    zfs.allowHibernation = false;
+
     kernelModules = [ "kvm-intel" ];
     kernelParams = [
       "quiet"
@@ -31,20 +74,18 @@
     ];
     consoleLogLevel = 3;
     kernel.sysctl = {
+      "fs.protected_fifos" = 2;
+      "fs.protected_hardlinks" = 1;
+      "fs.protected_regular" = 2;
+      "fs.protected_symlinks" = 1;
+      "kernel.dmesg_restrict" = 1;
+      "kernel.kptr_restrict" = 2;
+      "kernel.unprivileged_bpf_disabled" = 1;
+      "kernel.yama.ptrace_scope" = 1;
+      "net.core.bpf_jit_harden" = 2;
       "vm.swappiness" = 10;
-      "vm.overcommit_memory" = 1;
-      "vm.overcommit_ratio" = 100;
     };
   };
-
-  # T480 has 16GB RAM max - use swap file for suspend/hibernate
-  swapDevices = [
-    {
-      device = "/var/lib/swapfile";
-      size = 16 * 1024; # 16GB for hibernation
-      discardPolicy = "once";
-    }
-  ];
 
   hardware = {
     enableRedistributableFirmware = true;
@@ -56,41 +97,23 @@
     bluetooth = {
       enable = true;
       powerOnBoot = true;
-      settings = {
-        General = {
-          Enable = "Source,Sink,Media,Socket";
-          Experimental = true;
-        };
+      settings.General = {
+        Enable = "Source,Sink,Media,Socket";
+        Experimental = true;
       };
     };
   };
 
-  # Laptop-specific power management
   powerManagement = {
     enable = true;
     powertop.enable = true;
   };
 
-  # Disable sleep/suspend (optional: keep laptop always on)
-  systemd.sleep.extraConfig = ''
-    AllowSuspend=no
-    AllowHibernation=no
-    AllowSuspendThenHibernate=no
-    AllowHybridSleep=no
-  '';
-
-  nixpkgs.config.allowUnfree = true;
-
-  # Cinnamon uses GTK, no Qt needed
   programs = {
-    dconf.enable = true;
-    nix-ld.enable = true;
-
     appimage = {
       enable = true;
       binfmt = true;
     };
-
     chromium = {
       enable = true;
       extensions = [
@@ -99,12 +122,23 @@
         "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
       ];
     };
-    fish.enable = true;
+    dconf.enable = true;
+    nix-ld.enable = true;
   };
 
   services = {
-    # Enable TLP for better battery life on laptop
-    power-profiles-daemon.enable = false; # Disable conflicting service
+    desktopManager.gnome.enable = true;
+    displayManager.gdm.enable = true;
+
+    xserver = {
+      enable = true;
+      xkb.layout = "us";
+      excludePackages = with pkgs; [ xterm ];
+    };
+
+    gnome.gnome-remote-desktop.enable = false;
+
+    power-profiles-daemon.enable = false;
     tlp = {
       enable = true;
       settings = {
@@ -114,23 +148,6 @@
         STOP_CHARGE_THRESH_BAT0 = 80;
       };
     };
-
-    xserver = {
-      enable = true;
-      xkb.layout = "us";
-      # Cinnamon desktop environment
-      desktopManager.cinnamon.enable = true;
-      displayManager.lightdm = {
-        enable = true;
-        greeters.slick = {
-          enable = true;
-          theme.name = "Mint-Y-Dark";
-        };
-      };
-    };
-
-    # Cinnamon services
-    cinnamon.apps.enable = true;
 
     pipewire = {
       enable = true;
@@ -156,19 +173,17 @@
       };
     };
 
-    # Smart card support (Yubikey)
+    fprintd.enable = true;
+    fwupd.enable = true;
     pcscd.enable = true;
 
-    # Time synchronization
     time-client = {
       enable = true;
       server = "timey.0x77.computer";
     };
 
-    # Laptop-specific: automatic backlight adjustment
     illum.enable = true;
 
-    # Touchpad support
     libinput = {
       enable = true;
       touchpad = {
@@ -178,21 +193,19 @@
       };
     };
 
-    tailscale.enable = true;
+    tailscale = {
+      enable = true;
+      openFirewall = true;
+    };
   };
 
   security = {
+    apparmor.enable = true;
+    audit.enable = true;
+    auditd.enable = true;
+    polkit.enable = true;
     rtkit.enable = true;
-    sudo.wheelNeedsPassword = false;
-  };
-
-  # Disable sops validation during installation (SSH keys don't exist yet)
-  sops.validateSopsFiles = false;
-
-  modules = {
-    vscode-server.enable = true;
-    observability.enable = true;
-    security-tools.enable = true;
+    sudo.wheelNeedsPassword = lib.mkDefault true;
   };
 
   snowfallorg.users.mykhailo = {
@@ -216,27 +229,19 @@
 
   fonts.fontconfig.enable = true;
 
-  environment = {
-    # Exclude some default Cinnamon apps we don't need
-    cinnamon.excludePackages = with pkgs.cinnamon; [
-      # Keep most apps for now, can trim later
-    ];
+  environment.systemPackages = with pkgs; [
+    btop
+    fastfetch
+    fwupd
+    gnome-tweaks
+    google-chrome
+    hwloc
+    libfido2
+    opensc
+    pkgs.${namespace}.tx-02-variable
+    vim
+    xdg-utils
+  ];
 
-    systemPackages = with pkgs; [
-      btop
-      fastfetch
-      hwloc
-      google-chrome
-      pkgs.${namespace}.tx-02-variable
-      gitFull
-      vim
-      libfido2
-      opensc
-      ghostty
-      xdg-utils
-    ];
-  };
-
-  networking.firewall.enable = false;
   system.stateVersion = "25.11";
 }

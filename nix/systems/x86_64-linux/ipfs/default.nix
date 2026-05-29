@@ -9,8 +9,29 @@
 }:
 {
   imports = [
-    "${inputs.nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
+    "${inputs.nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
   ];
+
+  # Standalone qemu/VM boot + root filesystem.
+  boot = {
+    loader.systemd-boot.enable = true;
+    growPartition = true;
+    kernelParams = [
+      "console=tty1"
+      "console=ttyS0"
+    ];
+  };
+  fileSystems = {
+    "/" = {
+      device = "/dev/disk/by-label/nixos";
+      fsType = "ext4";
+      autoResize = true;
+    };
+    "/boot" = {
+      device = "/dev/disk/by-label/ESP";
+      fsType = "vfat";
+    };
+  };
 
   system.stateVersion = "25.11";
 
@@ -61,8 +82,6 @@
 
     time-client.enable = true;
   };
-
-  virtualisation.incus.agent.enable = true;
 
   # VPN Confinement for IPFS service
   # The systemd service name for kubo is 'ipfs'

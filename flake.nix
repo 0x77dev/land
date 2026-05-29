@@ -37,8 +37,8 @@
       inputs.nixpkgs.follows = "unstable";
     };
 
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -54,11 +54,6 @@
 
     nixos-vscode-server = {
       url = "github:nix-community/nixos-vscode-server";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    deploy-rs = {
-      url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -99,6 +94,10 @@
   outputs =
     inputs:
     let
+      # Shared treefmt config (single source of truth) — also consumed by the
+      # dev shell and the pre-commit `treefmt` hook via `lib.land.treefmt`.
+      treefmt = import ./nix/lib/treefmt/default.nix { inherit inputs; };
+
       lib = inputs.snowfall-lib.mkLib {
         inherit inputs;
         src = ./.;
@@ -118,8 +117,9 @@
       outputs = lib.mkFlake {
         channels-config.allowUnfree = true;
 
+        # `nix fmt` runs treefmt via the shared config (single source of truth).
         outputs-builder = channels: {
-          formatter = channels.nixpkgs.nixfmt;
+          formatter = (treefmt.mkEval channels.nixpkgs).config.build.wrapper;
         };
 
         overlays = with inputs; [
@@ -133,25 +133,14 @@
 
         systems.modules.darwin = with inputs; [
           nix-homebrew.darwinModules.nix-homebrew
-          sops-nix.darwinModules.sops
         ];
 
         systems.modules.nixos = with inputs; [
-          sops-nix.nixosModules.sops
           disko.nixosModules.disko
           nixos-vscode-server.nixosModules.default
           vpn-confinement.nixosModules.default
           nixos-generators.nixosModules.all-formats
         ];
-
-        homes.modules = with inputs; [
-          sops-nix.homeManagerModules.sops
-        ];
-      };
-
-      # Automatically generate deploy-rs nodes from all configurations
-      deployNodes = outputs.lib.deployment.mkDeployNodes {
-        inherit (outputs) darwinConfigurations nixosConfigurations;
       };
 
       automation = outputs.lib.automation.mkOutputs { inherit outputs; };
@@ -159,6 +148,5 @@
     outputs
     // {
       inherit automation;
-      deploy.nodes = deployNodes;
     };
 }

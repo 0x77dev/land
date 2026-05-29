@@ -1,5 +1,7 @@
 {
+  lib,
   inputs,
+  namespace,
   ...
 }:
 let
@@ -7,14 +9,17 @@ let
     excludes = [
       ".*\\.lock\\.nix$"
       ".*\\.lock$"
-      "secrets.*\.(yaml|json|env|ini)$"
-      ".sops.yaml$"
       "peering/*.json$"
+      # Vendored upstream artifacts: machine-generated kernel config and
+      # patches. Excluded from linters/spell-check, as upstream does.
+      "nix/modules/nixos/hardware/dgx-spark/nvidia-dgx-spark-.*\\.nix$"
+      ".*\\.patch$"
     ];
   };
 
-  config = {
-    nixfmt.enable = true;
+  # Linters and checkers. Formatting is delegated to the shared treefmt
+  # config (single source of truth), wired in as the `treefmt` hook below.
+  baseConfig = {
     deadnix.enable = true;
     statix.enable = true;
     cspell.enable = true;
@@ -25,13 +30,25 @@ let
     editorconfig-checker.enable = true;
   };
 
-  hooks = builtins.mapAttrs (
-    _name: value:
-    if builtins.isAttrs value then
-      common // value // { excludes = (common.excludes or [ ]) ++ (value.excludes or [ ]); }
-    else
-      common // { enable = value; }
-  ) config;
+  mkHooks =
+    pkgs:
+    let
+      treefmtWrapper = (lib.${namespace}.treefmt.mkEval pkgs).config.build.wrapper;
+
+      config = baseConfig // {
+        treefmt = {
+          enable = true;
+          packageOverrides.treefmt = treefmtWrapper;
+        };
+      };
+    in
+    builtins.mapAttrs (
+      _name: value:
+      if builtins.isAttrs value then
+        common // value // { excludes = (common.excludes or [ ]) ++ (value.excludes or [ ]); }
+      else
+        common // { enable = value; }
+    ) config;
 
   mkRun =
     {
@@ -40,10 +57,11 @@ let
       pkgs,
     }:
     inputs.git-hooks.lib.${system}.run {
-      inherit hooks src;
+      hooks = mkHooks pkgs;
+      inherit src;
       package = pkgs.prek;
     };
 in
 {
-  inherit hooks mkRun;
+  inherit mkRun;
 }

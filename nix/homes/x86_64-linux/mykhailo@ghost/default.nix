@@ -13,7 +13,6 @@ in
   inherit (shared) home;
 
   modules.home = shared.modules.home // {
-    secrets.backend = "age";
     ai.enable = true;
     cloud.enable = true;
     fonts.enable = true;
@@ -31,7 +30,7 @@ in
     ssh.enable = true;
     gpg = {
       enable = true;
-      pinentryPackage = pkgs.pinentry-curses; # Cinnamon doesn't use GNOME keyring
+      pinentryPackage = pkgs.pinentry-gnome3;
     };
   };
 }

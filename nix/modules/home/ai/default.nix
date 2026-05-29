@@ -1,8 +1,6 @@
 {
   config,
   lib,
-  pkgs,
-  namespace,
   ...
 }:
 let
@@ -14,12 +12,10 @@ let
     [
       "${configHome}/opencode/config.json"
       "${configHome}/opencode/AGENTS.md"
-      "${configHome}/opencode/oh-my-openagent.json"
     ];
 in
 {
   imports = [
-    ./mcp.nix
     ./opencode.nix
     ./shell
   ];
@@ -29,21 +25,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    services.ollama.enable = true;
-
     home = {
       sessionVariables = {
-        OMO_SEND_ANONYMOUS_TELEMETRY = "0";
-        OMO_DISABLE_POSTHOG = "1";
         OTEL_SDK_DISABLED = "true";
       };
-
-      packages = with pkgs.${namespace}; [
-        unifi-network-mcp
-        unifi-access-mcp
-        unifi-protect-mcp
-        unifi-mcp-relay
-      ];
 
       # The Home Manager program modules generate store-backed config files.
       # Materialize them after activation so the CLIs can update their own state.

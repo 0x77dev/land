@@ -4,7 +4,6 @@
 {
   pkgs,
   inputs,
-  config,
   ...
 }:
 let
@@ -61,22 +60,33 @@ let
 in
 {
   imports = [
-    "${inputs.nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
+    "${inputs.nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
   ];
+
+  # Standalone qemu/VM boot + root filesystem.
+  boot = {
+    loader.systemd-boot.enable = true;
+    growPartition = true;
+    kernelParams = [
+      "console=tty1"
+      "console=ttyS0"
+    ];
+  };
+  fileSystems = {
+    "/" = {
+      device = "/dev/disk/by-label/nixos";
+      fsType = "ext4";
+      autoResize = true;
+    };
+    "/boot" = {
+      device = "/dev/disk/by-label/ESP";
+      fsType = "vfat";
+    };
+  };
 
   system.stateVersion = "25.11";
 
   nixpkgs.config.allowUnfree = true; # Required for Plex
-
-  # Sops secrets configuration
-  sops = {
-    defaultSopsFile = ./secrets.yaml;
-    age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-    secrets = {
-      "aria2/rpc_token" = { };
-    };
-  };
 
   # Cloudflare Warp VPN
   services.wgcf = {
@@ -151,7 +161,8 @@ in
     aria2 = {
       enable = true;
       openPorts = true;
-      rpcSecretFile = config.sops.secrets."aria2/rpc_token".path;
+      # RPC secret is generated locally at boot (no external secret manager).
+      rpcSecretFile = "/var/lib/aria2/rpc-secret";
       settings = {
         # Basic
         dir = "${mediaRoot}/downloads";
@@ -387,8 +398,6 @@ in
     };
   };
 
-  virtualisation.incus.agent.enable = true;
-
   # Create media directory structure
   # Format: "type path mode user group age argument"
   # Using 0777 for universal r/w access by all services
@@ -404,6 +413,20 @@ in
 
   # VPN Confinement for Servarr services
   systemd.services = {
+    # Generate the aria2 RPC secret locally on first boot.
+    aria2-rpc-secret = {
+      wantedBy = [ "multi-user.target" ];
+      before = [ "aria2.service" ];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        install -d -m 0700 /var/lib/aria2
+        if [ ! -s /var/lib/aria2/rpc-secret ]; then
+          ${pkgs.openssl}/bin/openssl rand -hex 32 > /var/lib/aria2/rpc-secret
+          chmod 0600 /var/lib/aria2/rpc-secret
+        fi
+      '';
+    };
+
     sonarr.vpnConfinement = {
       enable = true;
       vpnNamespace = "wgcf";

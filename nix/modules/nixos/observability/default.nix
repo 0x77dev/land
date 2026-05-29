@@ -5,7 +5,6 @@
 }:
 let
   cfg = config.modules.observability;
-  inherit (config.services.netdata) user group;
 in
 {
   options.modules.observability = {
@@ -25,17 +24,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    sops.secrets."netdata/claim_token" = {
-      mode = "0400";
-      owner = user;
-      inherit group;
-      sopsFile = ./secrets.yaml;
-    };
-
     services.netdata = lib.mkDefault {
       enable = true;
       enableAnalyticsReporting = false;
-      claimTokenFile = config.sops.secrets."netdata/claim_token".path;
       config.global."default port" = toString cfg.webPort;
     };
 
@@ -43,7 +34,6 @@ in
 
     users.users.netdata.extraGroups =
       lib.optional config.virtualisation.docker.enable "docker"
-      ++ lib.optional config.virtualisation.incus.enable "incus-admin"
       ++ lib.optional config.virtualisation.libvirtd.enable "libvirtd";
 
     systemd.services.netdata.serviceConfig = {

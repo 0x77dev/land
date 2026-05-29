@@ -14,3 +14,7 @@ insert_final_newline = true
 [*.md]
 trim_trailing_whitespace = true # Markdownlint recommendations for "Trailing spaces" (MD009)
 indent_style = space
+# Markdown formatting is owned by prettier (treefmt) and linted by markdownlint.
+# prettier indents ordered-list continuations to the marker width (e.g. 3 spaces
+# under "3. "), which is not a multiple of 2, so don't enforce indent size here.
+indent_size = unset

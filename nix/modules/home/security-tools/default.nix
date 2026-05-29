@@ -18,9 +18,6 @@ in
       pdf-sign
       yubikey-personalization
       yubikey-manager
-      sops
-      age
-      ssh-to-age
     ];
   };
 }

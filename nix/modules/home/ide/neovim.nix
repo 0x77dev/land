@@ -157,45 +157,6 @@ in
           };
         };
 
-        # Fuzzy finder
-        telescope = {
-          enable = true;
-          keymaps = {
-            "<leader>fb" = {
-              action = "buffers";
-              options.desc = "Buffers";
-            };
-            "<leader>fh" = {
-              action = "help_tags";
-              options.desc = "Help tags";
-            };
-            "<leader>fr" = {
-              action = "oldfiles";
-              options.desc = "Recent files";
-            };
-            "<leader>fd" = {
-              action = "diagnostics";
-              options.desc = "Diagnostics";
-            };
-            "<leader>fs" = {
-              action = "lsp_document_symbols";
-              options.desc = "Document symbols";
-            };
-            "<leader>fS" = {
-              action = "lsp_workspace_symbols";
-              options.desc = "Workspace symbols";
-            };
-            "<leader>/" = {
-              action = "current_buffer_fuzzy_find";
-              options.desc = "Search in buffer";
-            };
-          };
-          extensions = {
-            fzf-native.enable = true;
-            ui-select.enable = true;
-          };
-        };
-
         # Git integration
         gitsigns = {
           enable = true;
@@ -244,6 +205,10 @@ in
               {
                 __unkeyed-1 = "<leader>a";
                 group = "AI (OpenCode)";
+              }
+              {
+                __unkeyed-1 = "<leader>e";
+                desc = "Toggle explorer";
               }
             ];
           };
@@ -381,33 +346,20 @@ in
           },
         })
 
-        local wk = require("which-key")
-
-        wk.add({
-          { "<leader>a", group = "AI" },
-          { "<leader>c", group = "Code" },
-          { "<leader>e", desc = "Explorer" },
-          { "<leader>f", group = "Find" },
-          { "<leader>g", group = "Git" },
-          { "<leader>x", group = "Diagnostics" },
-        })
-
+        -- Buffer-local LSP aliases (VSCode-style), bound only once a server attaches.
         vim.api.nvim_create_autocmd("LspAttach", {
           callback = function(event)
-            wk.add({
-              { "gd", desc = "Go to definition", buffer = event.buf },
-              { "gD", desc = "Go to declaration", buffer = event.buf },
-              { "gi", desc = "Go to implementation", buffer = event.buf },
-              { "gr", desc = "Go to references", buffer = event.buf },
-              { "K", desc = "Hover documentation", buffer = event.buf },
-              { "<leader>c", group = "Code", buffer = event.buf },
-              { "<leader>ca", desc = "Code action", buffer = event.buf },
-              { "<leader>cr", desc = "Rename symbol", buffer = event.buf },
-              { "<leader>fs", desc = "Document symbols", buffer = event.buf },
-              { "<leader>fS", desc = "Workspace symbols", buffer = event.buf },
-            })
+            local function map(lhs, rhs, desc)
+              vim.keymap.set("n", lhs, rhs, { buffer = event.buf, desc = desc })
+            end
+            map("<F2>", vim.lsp.buf.rename, "Rename symbol")
+            map("<F12>", vim.lsp.buf.definition, "Go to definition")
+            map("<S-F12>", vim.lsp.buf.references, "Go to references")
+            map("gh", vim.lsp.buf.hover, "Hover documentation")
           end,
         })
+
+        local wk = require("which-key")
 
         vim.api.nvim_create_autocmd("FileType", {
           pattern = "snacks_picker_input",
@@ -467,7 +419,7 @@ in
 
       # ── Keymaps ──────────────────────────────────────────────────────
       keymaps = [
-        # Explorer
+        # Explorer (snacks) — file tree, VSCode <C-b>
         {
           mode = "n";
           key = "-";
@@ -480,13 +432,25 @@ in
           action.__raw = "function() Snacks.explorer() end";
           options.desc = "Toggle explorer";
         }
+        {
+          mode = "n";
+          key = "<C-b>";
+          action.__raw = "function() Snacks.explorer() end";
+          options.desc = "Toggle explorer";
+        }
 
-        # FFF
+        # Search — fff is the primary file finder + grep
         {
           mode = "n";
           key = "<leader>ff";
           action.__raw = ''function() require("fff").find_files() end'';
           options.desc = "Find files";
+        }
+        {
+          mode = "n";
+          key = "<C-p>";
+          action.__raw = ''function() require("fff").find_files() end'';
+          options.desc = "Find files (quick open)";
         }
         {
           mode = "n";
@@ -496,9 +460,124 @@ in
         }
         {
           mode = "n";
-          key = "<leader>f/";
+          key = "<C-S-f>";
+          action.__raw = ''function() require("fff").live_grep() end'';
+          options.desc = "Search in files";
+        }
+        {
+          mode = "n";
+          key = "<leader>fw";
           action.__raw = ''function() require("fff").live_grep({ query = vim.fn.expand("<cword>") }) end'';
           options.desc = "Grep current word";
+        }
+
+        # Secondary pickers (snacks) — everything fff does not cover
+        {
+          mode = "n";
+          key = "<leader>fb";
+          action.__raw = "function() Snacks.picker.buffers() end";
+          options.desc = "Buffers";
+        }
+        {
+          mode = "n";
+          key = "<leader>fr";
+          action.__raw = "function() Snacks.picker.recent() end";
+          options.desc = "Recent files";
+        }
+        {
+          mode = "n";
+          key = "<leader>fh";
+          action.__raw = "function() Snacks.picker.help() end";
+          options.desc = "Help tags";
+        }
+        {
+          mode = "n";
+          key = "<leader>fs";
+          action.__raw = "function() Snacks.picker.lsp_symbols() end";
+          options.desc = "Document symbols";
+        }
+        {
+          mode = "n";
+          key = "<leader>fS";
+          action.__raw = "function() Snacks.picker.lsp_workspace_symbols() end";
+          options.desc = "Workspace symbols";
+        }
+        {
+          mode = "n";
+          key = "<leader>fc";
+          action.__raw = "function() Snacks.picker.commands() end";
+          options.desc = "Commands";
+        }
+        {
+          mode = "n";
+          key = "<leader>fk";
+          action.__raw = "function() Snacks.picker.keymaps() end";
+          options.desc = "Keymaps";
+        }
+        {
+          mode = "n";
+          key = "<leader>/";
+          action.__raw = "function() Snacks.picker.lines() end";
+          options.desc = "Search in buffer";
+        }
+        # VSCode-style command palette
+        {
+          mode = "n";
+          key = "<C-S-p>";
+          action.__raw = "function() Snacks.picker.commands() end";
+          options.desc = "Command palette";
+        }
+
+        # Save (VSCode <C-s>)
+        {
+          mode = "n";
+          key = "<C-s>";
+          action = "<cmd>w<cr>";
+          options.desc = "Save file";
+        }
+        {
+          mode = "i";
+          key = "<C-s>";
+          action = "<esc><cmd>w<cr>";
+          options.desc = "Save file";
+        }
+
+        # Toggle comment (VSCode <C-/>; terminals send <C-_>)
+        {
+          mode = "n";
+          key = "<C-/>";
+          action = "gcc";
+          options = {
+            desc = "Toggle comment";
+            remap = true;
+          };
+        }
+        {
+          mode = "n";
+          key = "<C-_>";
+          action = "gcc";
+          options = {
+            desc = "Toggle comment";
+            remap = true;
+          };
+        }
+        {
+          mode = "v";
+          key = "<C-/>";
+          action = "gc";
+          options = {
+            desc = "Toggle comment";
+            remap = true;
+          };
+        }
+        {
+          mode = "v";
+          key = "<C-_>";
+          action = "gc";
+          options = {
+            desc = "Toggle comment";
+            remap = true;
+          };
         }
 
         # Format

@@ -21,6 +21,7 @@ in
         tg # Telegram
         iamb # Matrix
       ]
+      # discord/slack have no aarch64-linux builds; gate them to x86_64-linux and Darwin.
       ++
         lib.optionals
           (
@@ -28,6 +29,7 @@ in
             || pkgs.stdenv.isDarwin && (pkgs.stdenv.isx86_64 || pkgs.stdenv.isAarch64)
           )
           [
+            discord
             slack
           ];
 

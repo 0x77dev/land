@@ -12,7 +12,7 @@
 
   networking = {
     hostName = "muscle";
-    domain = "osv.computer";
+    domain = "clubhouse.osv.computer";
     useDHCP = lib.mkForce true;
   };
 
@@ -40,6 +40,8 @@
       "loglevel=3"
       "rd.systemd.show_status=auto"
       "rd.udev.log_level=3"
+      # Let Linux reassign PCI bridge windows when firmware leaves resources unassigned.
+      "pci=realloc"
       # Some games need split lock detection disabled
       "split_lock_detect=off"
       "amd-pstate=active"
@@ -64,6 +66,7 @@
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
+    # Expose arm64 Linux builds to Darwin clients through NixOS binfmt support.
     binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
 
@@ -384,6 +387,14 @@
   nix = {
     buildMachines = lib.mkForce [ ];
     distributedBuilds = lib.mkForce false;
+    settings = {
+      system-features = [
+        "benchmark"
+        "big-parallel"
+        "kvm"
+        "nixos-test"
+      ];
+    };
   };
 
   system.stateVersion = "25.11";

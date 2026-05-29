@@ -2,8 +2,8 @@ argparse --stop-nonopt 'n/new' 'm/model=' 's/session=' 'a/agent=' -- $argv
 or return
 
 set -l flags
-set -a flags --model (set -q _flag_model; and echo $_flag_model; or echo "furnace/zai-org/GLM-5")
-set -a flags --variant instant
+set -a flags --model (set -q _flag_model; and echo $_flag_model; or echo "openai/gpt-5.5")
+set -a flags --variant xhigh
 set -a flags --thinking
 set -q _flag_agent; and set -a flags --agent $_flag_agent
 

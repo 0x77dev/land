@@ -28,7 +28,7 @@ let
     else
       "/run/user/1000/gnupg/S.gpg-agent.ssh";
 
-  # Remote socket paths (on pickle/tomato/muscle - all Linux)
+  # Remote socket paths (on tomato/muscle - all Linux)
   remoteAgentSocket = "/run/user/1000/gnupg/S.gpg-agent";
   remoteAgentSshSocket = "/run/user/1000/gnupg/S.gpg-agent.ssh";
 in
@@ -62,7 +62,7 @@ in
       }
       // optionalAttrs gpgEnabled {
         # Only forward to specific trusted servers
-        "pickle pickle.0x77.computer tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer beefy beefy.0x77.computer" =
+        "tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer muscle.clubhouse.osv.computer beefy beefy.0x77.computer" =
           {
             forwardAgent = true;
             # Forward the GPG agent's extra socket to the remote system

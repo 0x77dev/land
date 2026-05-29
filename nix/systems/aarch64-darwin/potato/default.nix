@@ -5,6 +5,17 @@
 }:
 let
   userName = "mykhailo";
+  muscleBuilderHostName = "muscle.clubhouse.osv.computer";
+  muscleBuilderPublicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1BM3dYNWtSSm9OdHhZK3ByMmNjTjdZZXJTRVB2Si81Y0s3emRRMldwcHYK";
+  mkMuscleBuilder =
+    attrs:
+    {
+      hostName = muscleBuilderHostName;
+      protocol = "ssh-ng";
+      sshUser = userName;
+      publicHostKey = muscleBuilderPublicHostKey;
+    }
+    // attrs;
 in
 {
   system = {
@@ -87,30 +98,31 @@ in
   nix = {
     distributedBuilds = true;
     buildMachines = [
-      {
-        hostName = "muscle";
-        protocol = "ssh-ng";
-        sshUser = userName;
-        publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1BM3dYNWtSSm9OdHhZK3ByMmNjTjdZZXJTRVB2Si81Y0s3emRRMldwcHYK";
-        systems = [
-          "x86_64-linux"
-          "aarch64-linux"
-        ];
-        maxJobs = 1;
-        speedFactor = 2;
+      (mkMuscleBuilder {
+        systems = [ "x86_64-linux" ];
+        maxJobs = 16;
+        speedFactor = 8;
         supportedFeatures = [
           "benchmark"
           "big-parallel"
           "kvm"
           "nixos-test"
         ];
-      }
+      })
+      (mkMuscleBuilder {
+        systems = [ "aarch64-linux" ];
+        maxJobs = 4;
+        speedFactor = 2;
+        supportedFeatures = [ "big-parallel" ];
+      })
     ];
   };
 
   programs.ssh.knownHosts.muscle = {
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMA3wX5kRJoNtxY+pr2ccN7YerSEPvJ/5cK7zdQ2Wppv";
     extraHostNames = [
+      muscleBuilderHostName
+      "10.10.0.49"
       "muscle.0x77.computer"
       "muscle.osv.computer"
     ];

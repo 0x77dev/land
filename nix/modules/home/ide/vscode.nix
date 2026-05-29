@@ -243,6 +243,7 @@ in
             "terminal.integrated.smoothScrolling" = true;
             "editor.cursorSmoothCaretAnimation" = "on";
             "remote.SSH.remotePlatform" = {
+              "muscle.clubhouse.osv.computer" = "linux";
               "muscle.0x77.computer" = "linux";
               "muscle.osv.computer" = "linux";
               "*.coder" = "linux";

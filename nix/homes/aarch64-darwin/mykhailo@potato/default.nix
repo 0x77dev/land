@@ -11,7 +11,6 @@ in
 
   inherit (shared) home;
   modules.home = shared.modules.home // {
-    secrets.backend = "gpg";
     ai.enable = true;
     cloud.enable = true;
     fonts.enable = true;

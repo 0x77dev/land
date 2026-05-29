@@ -91,6 +91,10 @@ in
       nodejs_24
       pnpm
       fastfetch
+      jq
+      fx
+      yq-go
+      duckdb
     ];
 
     programs = {
