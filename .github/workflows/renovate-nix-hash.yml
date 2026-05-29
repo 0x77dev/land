@@ -1,0 +1,58 @@
+name: renovate-nix-hash
+
+# The hosted Renovate App bumps versions but cannot recompute Nix digests. This
+# helper runs on Renovate's branches, refreshes every platform digest of the
+# affected package, validates the build, then pushes the fix back so the PR can
+# automerge. Its commits are listed in renovate.json5 `gitIgnoredAuthors`, so
+# Renovate keeps managing the branch; the push (via PAT) re-triggers CI.
+on:
+  push:
+    branches:
+      - "renovate/**"
+    paths:
+      - nix/packages/helium/default.nix
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate-nix-hash-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rehash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          token: ${{ secrets.RENOVATE_REHASH_TOKEN }}
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
+        with:
+          name: land
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Refresh, validate, and push digests
+        run: |
+          bash scripts/nix-rehash.sh nix/packages/helium/default.nix helium
+          if git diff --quiet; then
+            echo "digests already current; nothing to do"
+            exit 0
+          fi
+          # Only build when a digest actually changed (i.e. a real version bump),
+          # so unrelated re-runs stay cheap.
+          nix build .#packages.x86_64-linux.helium
+          git -c user.name='renovate-nix-hash[bot]' \
+              -c user.email='renovate-nix-hash@users.noreply.github.com' \
+              commit -am 'chore(deps): refresh nix digests'
+          git push

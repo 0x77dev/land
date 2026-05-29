@@ -12,6 +12,7 @@ in
   inherit (shared) home;
   modules.home = shared.modules.home // {
     ai.enable = true;
+    browser.enable = true;
     cloud.enable = true;
     fonts.enable = true;
     ghostty.enable = true;

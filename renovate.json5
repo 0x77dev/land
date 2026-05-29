@@ -7,6 +7,9 @@
   ],
   timezone: "America/New_York",
   labels: ["dependencies"],
+  // The renovate-nix-hash workflow refreshes Nix digests on Renovate branches;
+  // ignore its commits so Renovate keeps rebasing/managing those branches.
+  gitIgnoredAuthors: ["renovate-nix-hash@users.noreply.github.com"],
   enabledManagers: ["custom.regex", "github-actions", "nix"],
   schedule: ["before 5am on Monday"],
   prConcurrentLimit: 5,
@@ -109,6 +112,18 @@
       matchManagers: ["custom.regex"],
       dependencyDashboardApproval: true,
       automerge: false,
+    },
+    {
+      // Helium ships per-platform binaries; bumping the version leaves four
+      // stale SRI digests behind. The hosted Renovate App cannot run Nix, so the
+      // `renovate-nix-hash` workflow refreshes the digests on the branch; this
+      // rule just lets the bump bypass approval and automerge once CI is green.
+      description: "Auto-update Helium (digests refreshed by the renovate-nix-hash workflow)",
+      matchManagers: ["custom.regex"],
+      matchDepNames: ["helium"],
+      dependencyDashboardApproval: false,
+      automerge: true,
+      automergeStrategy: "squash",
     },
   ],
 }

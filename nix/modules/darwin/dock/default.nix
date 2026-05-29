@@ -21,8 +21,8 @@ let
 
   appDefs = [
     {
-      path = "/Applications/Helium.app";
-      available = has "helium-browser";
+      path = "${hmApps}/Helium.app";
+      available = has "helium";
     }
     {
       path = "/Applications/Superhuman.app";
