@@ -10,10 +10,6 @@ let
       ".*\\.lock\\.nix$"
       ".*\\.lock$"
       "peering/*.json$"
-      # Vendored upstream artifacts: machine-generated kernel config and
-      # patches. Excluded from linters/spell-check, as upstream does.
-      "nix/modules/nixos/hardware/dgx-spark/nvidia-dgx-spark-.*\\.nix$"
-      ".*\\.patch$"
     ];
   };
 

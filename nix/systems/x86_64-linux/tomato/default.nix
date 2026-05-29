@@ -19,12 +19,28 @@
     autoPrune.enable = true;
   };
 
-  services.time-client = {
-    enable = true;
-    ptp = {
+  services = {
+    time-client = {
       enable = true;
-      interface = "enp2s0f0np0"; # First 10GbE NIC
-      timestamping = "software"; # Match timey's software timestamping
+      ptp = {
+        enable = true;
+        interface = "enp2s0f0np0"; # First 10GbE NIC
+        timestamping = "software"; # Match timey's software timestamping
+      };
+    };
+
+    # Firmware updates via LVFS.
+    fwupd.enable = true;
+
+    openssh = {
+      enable = true;
+      openFirewall = true;
+      settings = {
+        PermitRootLogin = "no";
+        PasswordAuthentication = false;
+        AllowAgentForwarding = true;
+        StreamLocalBindUnlink = true;
+      };
     };
   };
 
@@ -56,18 +72,6 @@
       "docker"
     ];
     shell = pkgs.fish;
-  };
-
-  # OpenSSH
-  services.openssh = {
-    enable = true;
-    openFirewall = true;
-    settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = false;
-      AllowAgentForwarding = true;
-      StreamLocalBindUnlink = true;
-    };
   };
 
   system.stateVersion = "25.11";

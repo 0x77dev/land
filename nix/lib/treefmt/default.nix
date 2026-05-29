@@ -29,9 +29,6 @@ let
       "*.jpg"
       "*.svg"
       "LICENSE"
-      # Vendored, machine-generated NVIDIA DGX Spark kernel config (~2400
-      # options). Kept byte-identical to upstream for verifiability.
-      "nix/modules/nixos/hardware/dgx-spark/nvidia-dgx-spark-*.nix"
     ];
   };
 in

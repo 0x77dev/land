@@ -84,6 +84,10 @@
     cpu.amd.updateMicrocode = true;
     nvidia = {
       open = true;
+      # Kernel-module driver must match the running kernel's ABI, so it is
+      # pulled from `boot.kernelPackages` (the CachyOS kernel) rather than the
+      # unstable overlay. Only NVIDIA userspace (CUDA, nvtop, container
+      # toolkit) is routed from unstable.
       package = config.boot.kernelPackages.nvidiaPackages.stable;
       nvidiaSettings = true;
       modesetting.enable = true;
@@ -254,6 +258,9 @@
     };
 
     pcscd.enable = true;
+
+    # Firmware updates via LVFS.
+    fwupd.enable = true;
 
     time-client = {
       enable = true;

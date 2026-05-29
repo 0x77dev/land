@@ -58,6 +58,13 @@ final: prev:
 This makes unstable packages available throughout the configuration
 via `pkgs.ghostty` without explicitly prefixing with a namespace.
 
+All NVIDIA userspace tooling (CUDA, `nvtopPackages`,
+`nvidia-container-toolkit`) is routed from unstable here. The same overlay
+pins `cudaPackages`/`cudatoolkit` to a single CUDA version (`cudaPackages_12_9`)
+as the single source of truth, so every host stays on the same toolkit. Per-GPU
+`cudaCapabilities` and the kernel-matched `hardware.nvidia.package` driver stay
+in the host configs.
+
 ### Custom Overlays
 
 Create new overlays in `nix/overlays/<name>/default.nix`.
@@ -84,10 +91,11 @@ All modules are automatically applied to matching system types.
 
 Hardware-specific support lives in `nix/modules/nixos/hardware/<name>/`. Each is
 an option-driven module that a system opts into with a single flag. For example,
-the `dgx-spark` module (NVIDIA DGX Spark / GB10: CUDA `sm_121`, NVIDIA driver +
-container toolkit, the pinned NVIDIA 6.17.1 kernel via `useNvidiaKernel`, fwupd,
-Flox CUDA cache) is enabled with `hardware.dgx-spark.enable =
-true;`, as used by the `spark` system, and `ms-01` (Minisforum MS-01) via
+the `dgx-spark` module (NVIDIA DGX Spark / GB10: CUDA `sm_121`, the out-of-tree
+NVIDIA driver + container toolkit, the `arm64.nobti` workaround, fwupd, Flox CUDA
+cache — on stock mainline, no custom kernel) is enabled with
+`hardware.dgx-spark.enable = true;`, as used by the `spark` system, and `ms-01`
+(Minisforum MS-01) via
 `modules.hardware.ms-01.enable = true;`, as used by `tomato`.
 
 ## Library Functions

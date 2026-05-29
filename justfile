@@ -3,9 +3,9 @@ default: help
 help:
   @just --list
 
-# Build the installer ISO
-iso:
-  nom build .#isoConfigurations.installer -o result-installer
+# Build the installer ISO for an architecture (x86_64 or aarch64)
+iso arch="x86_64":
+  nom build .#isoConfigurations.installer-{{arch}} -o result-installer-{{arch}}
 
 # Install NixOS on a host at an IP address
 # Use `just iso` or any linux distro with kexec-tools installed

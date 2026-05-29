@@ -18,11 +18,12 @@ All systems are built from a single flake. Initial provisioning uses
 
 ### Initial Provisioning
 
-Build an ISO:
+Build an installer ISO for the target architecture (`x86_64` default, or
+`aarch64` for DGX Spark and other ARM hosts):
 
 ```bash
-nom build .#isoConfigurations.installer -o result-installer
-ls ./result-installer
+just iso          # x86_64
+just iso aarch64  # aarch64 (e.g. DGX Spark)
 ```
 
 Bootstrap new systems remotely with [nixos-anywhere][nixos-anywhere]:

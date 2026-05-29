@@ -1,18 +1,10 @@
-{ inputs, ... }:
-final: _prev:
+_: _final: prev:
 let
-  patchedOllamaPackage = builtins.toFile "ollama-package.nix" (
-    builtins.replaceStrings
-      [ "cudaToolkit = buildEnv {" ]
-      [
-        ''
-          cudaToolkit = buildEnv {
-            ignoreCollisions = true;''
-      ]
-      (builtins.readFile "${inputs.nixpkgs.outPath}/pkgs/by-name/ol/ollama/package.nix")
-  );
-
-  mkOllama = acceleration: final.callPackage patchedOllamaPackage { inherit acceleration; };
+  # Build each acceleration variant by overriding the upstream package's
+  # `acceleration` argument. (The previous string-patch that injected
+  # `ignoreCollisions = true` is obsolete: upstream now sets it on the
+  # `cudaToolkit` buildEnv itself.)
+  mkOllama = acceleration: prev.ollama.override { inherit acceleration; };
 in
 {
   ollama = mkOllama null;
