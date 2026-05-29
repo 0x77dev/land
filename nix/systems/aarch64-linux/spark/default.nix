@@ -100,6 +100,15 @@ in
     sudo.wheelNeedsPassword = false;
   };
 
+  # Always-on appliance — never suspend/hibernate (it serves Ollama/compute).
+  systemd.sleep.extraConfig = ''
+    AllowSuspend=no
+    AllowHibernation=no
+    AllowSuspendThenHibernate=no
+    AllowHybridSleep=no
+  '';
+  powerManagement.enable = false;
+
   modules = {
     vscode-server.enable = true;
     observability.enable = true;
