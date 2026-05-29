@@ -65,6 +65,9 @@ in
         "nvidia_modeset"
         "nvidia_uvm"
         "nvidia_drm"
+        # Mellanox ConnectX-7 (the QSFP fabric) + RDMA/RoCE.
+        "mlx5_core"
+        "mlx5_ib"
       ];
 
       blacklistedKernelModules = [ "nouveau" ];
@@ -88,6 +91,8 @@ in
 
     hardware = {
       enableRedistributableFirmware = true;
+      # ConnectX-7 RDMA/RoCE stack (rdma-core, IB subsystem).
+      infiniband.enable = true;
       graphics.enable = true;
       nvidia = {
         modesetting.enable = true;
@@ -112,6 +117,8 @@ in
       iperf3
       ethtool
       rdma-core
+      # Mellanox/ConnectX firmware + diagnostics.
+      mstflint
     ];
   };
 }
