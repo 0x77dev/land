@@ -68,6 +68,22 @@ in
       ];
 
       blacklistedKernelModules = [ "nouveau" ];
+
+      # There's no generated hardware-configuration.nix, so the initrd must be
+      # told how to reach the NVMe root: `nvme` for the disk, plus the Spark's
+      # platform (ARM64 device-tree) xHCI for USB keyboards in early boot.
+      # Without `nvme` here stage-1 can't mount root and init panics.
+      initrd = {
+        systemd.enable = true;
+        availableKernelModules = [
+          "nvme"
+          "xhci_plat_hcd"
+          "usbhid"
+          "uas"
+          "sd_mod"
+          "usb_storage"
+        ];
+      };
     };
 
     hardware = {

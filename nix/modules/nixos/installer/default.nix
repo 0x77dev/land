@@ -7,6 +7,7 @@
 }:
 let
   cfg = config.modules.installer;
+  keys = (lib.${namespace}.shared.user-config { inherit lib; }).openssh.authorizedKeys.keys;
 in
 {
   options.modules.installer.enable = lib.mkEnableOption "NixOS installer image extras (SSH keys + kexec)";
@@ -18,13 +19,13 @@ in
     # ZFS kernel support (without enabling ZFS) so installs onto ZFS pools work.
     modules.filesystem.zfs.kernelSupport = true;
 
-    users.users.nixos.openssh.authorizedKeys.keys =
-      (lib.${namespace}.shared.user-config { inherit lib; }).openssh.authorizedKeys.keys;
+    # `nixos-anywhere` runs its install phase as root over SSH, so root must
+    # accept our key. Both users get the keys; password auth stays off.
+    users.users.root.openssh.authorizedKeys.keys = keys;
+    users.users.nixos.openssh.authorizedKeys.keys = keys;
 
-    # Key-only SSH: the live `nixos` user has an empty password, so password
-    # auth over the network must stay off.
     services.openssh.settings = {
-      PermitRootLogin = lib.mkForce "no";
+      PermitRootLogin = lib.mkForce "prohibit-password";
       PasswordAuthentication = lib.mkForce false;
     };
 
