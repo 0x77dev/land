@@ -11,25 +11,12 @@ in
   networking = {
     hostName = "spark";
     domain = "osv.computer";
-    # Use systemd-networkd, not NetworkManager (which GNOME enables by default).
-    networkmanager.enable = lib.mkForce false;
-    useNetworkd = true;
+    # NetworkManager (GNOME's default) handles DHCP — networkd wouldn't lease here.
+    networkmanager.enable = true;
     firewall.enable = false;
   };
 
   systemd = {
-    network = {
-      enable = true;
-      # Match only physical wired NICs (en*/eth*) — `Type = "ether"` would also
-      # grab docker/virtual bridges and stop the real NIC getting a DHCP lease.
-      networks."10-wired" = {
-        matchConfig.Name = "en* eth*";
-        networkConfig.DHCP = "yes";
-        # Don't block boot on NICs without a carrier (e.g. unused QSFP ports).
-        linkConfig.RequiredForOnline = "no";
-      };
-    };
-
     # Always-on appliance — never suspend/hibernate (it serves Ollama/compute).
     sleep.extraConfig = ''
       AllowSuspend=no
