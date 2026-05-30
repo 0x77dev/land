@@ -36,4 +36,11 @@ in
   programs = {
     home-manager.enable = true;
   };
+
+  # GNOME reads cursor/icon themes from dconf; the prior KDE install left
+  # `breeze` set there, which is gone now and renders broken. Pin Adwaita.
+  dconf.settings."org/gnome/desktop/interface" = {
+    cursor-theme = "Adwaita";
+    icon-theme = "Adwaita";
+  };
 }
