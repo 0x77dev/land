@@ -42,12 +42,6 @@ in
     daemon.settings.features.containerd-snapshotter = true;
   };
 
-  qt = {
-    enable = true;
-    platformTheme = "kde";
-    style = "breeze";
-  };
-
   programs = {
     dconf.enable = true;
     nix-ld.enable = true;
@@ -55,14 +49,14 @@ in
   };
 
   services = {
-    xserver.xkb.layout = "us";
-
-    # KDE Plasma 6 on Wayland
-    desktopManager.plasma6.enable = true;
-    displayManager.sddm = {
+    xserver = {
       enable = true;
-      wayland.enable = true;
+      xkb.layout = "us";
     };
+
+    # Full GNOME on Wayland (gdm defaults to Wayland).
+    desktopManager.gnome.enable = true;
+    displayManager.gdm.enable = true;
 
     pipewire = {
       enable = true;
@@ -85,9 +79,8 @@ in
     pcscd.enable = true;
     tailscale.enable = true;
 
-    # Ollama with CUDA on the GB10 GPU. Listens on all interfaces (this is a
-    # headless compute node; the host firewall is disabled and it's reachable
-    # over Tailscale).
+    # Ollama with CUDA on the GB10 GPU. Listens on all interfaces (the host
+    # firewall is disabled and it's reachable over Tailscale).
     ollama = {
       enable = true;
       acceleration = "cuda";
@@ -174,11 +167,8 @@ in
       wl-clipboard
       xdg-utils
 
-      # KDE apps
-      kdePackages.dolphin
-      kdePackages.ark
-      kdePackages.konsole
-      kdePackages.kate
+      # GNOME extras (full GNOME provides nautilus, console, text editor, etc.)
+      gnome-tweaks
     ];
 
     variables.CUDA_PATH = "${pkgs.cudatoolkit}";
