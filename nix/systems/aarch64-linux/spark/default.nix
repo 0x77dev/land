@@ -11,8 +11,35 @@ in
   networking = {
     hostName = "spark";
     domain = "0x77.computer";
-    useDHCP = true;
+    # Use systemd-networkd, not NetworkManager (which GNOME enables by default).
+    networkmanager.enable = lib.mkForce false;
+    useNetworkd = true;
     firewall.enable = false;
+  };
+
+  systemd = {
+    network = {
+      enable = true;
+      networks."10-wired" = {
+        matchConfig.Type = "ether";
+        networkConfig.DHCP = "yes";
+        # Don't block boot on NICs without a carrier (e.g. unused QSFP ports).
+        linkConfig.RequiredForOnline = "no";
+      };
+    };
+
+    # Always-on appliance — never suspend/hibernate (it serves Ollama/compute).
+    sleep.extraConfig = ''
+      AllowSuspend=no
+      AllowHibernation=no
+      AllowSuspendThenHibernate=no
+      AllowHybridSleep=no
+    '';
+
+    # The nix-daemon authenticates to muscle via the YubiKey, exposed through
+    # mykhailo's gpg-agent ssh socket (same as the Darwin hosts' launchd setup).
+    # uid 1000 = first normal user (uids are auto-allocated, so not in eval).
+    services.nix-daemon.environment.SSH_AUTH_SOCK = "/run/user/1000/gnupg/S.gpg-agent.ssh";
   };
 
   boot = {
@@ -93,13 +120,7 @@ in
     sudo.wheelNeedsPassword = false;
   };
 
-  # Always-on appliance — never suspend/hibernate (it serves Ollama/compute).
-  systemd.sleep.extraConfig = ''
-    AllowSuspend=no
-    AllowHibernation=no
-    AllowSuspendThenHibernate=no
-    AllowHybridSleep=no
-  '';
+  # Always-on appliance — sleep is inhibited in the `systemd` block above.
   powerManagement.enable = false;
 
   modules = {
@@ -117,11 +138,6 @@ in
   };
   programs.ssh.knownHosts.muscle = muscle.knownHost;
 
-  # The nix-daemon authenticates to muscle via the YubiKey, exposed through
-  # mykhailo's gpg-agent ssh socket (same as the Darwin hosts' launchd setup).
-  # uid 1000 = first normal user (uids are auto-allocated, so not in eval).
-  systemd.services.nix-daemon.environment.SSH_AUTH_SOCK = "/run/user/1000/gnupg/S.gpg-agent.ssh";
-
   snowfallorg.users.mykhailo = {
     create = true;
     admin = true;
@@ -134,7 +150,6 @@ in
     extraGroups = [
       "wheel"
       "docker"
-      "networkmanager"
       "video"
       "audio"
       "input"
@@ -167,7 +182,6 @@ in
       wl-clipboard
       xdg-utils
 
-      # GNOME extras (full GNOME provides nautilus, console, text editor, etc.)
       gnome-tweaks
     ];
 
