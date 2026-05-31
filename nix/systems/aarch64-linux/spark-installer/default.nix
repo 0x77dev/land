@@ -28,13 +28,13 @@
 
   hardware = {
     # GPU driver in the live environment (e.g. for `nvidia-smi` hardware checks).
-    # Open modules only (required on Blackwell); no `cudaSupport`, so no CUDA
-    # world-rebuild — just the driver against the stock kernel.
+    # Use NVIDIA's newest proprietary driver; no `cudaSupport`, so no CUDA
+    # world-rebuild, just the driver against the stock kernel.
     graphics.enable = true;
     nvidia = {
       modesetting.enable = true;
-      open = true;
-      package = config.boot.kernelPackages.nvidiaPackages.production;
+      open = false;
+      package = config.boot.kernelPackages.nvidiaPackages.latest;
     };
   };
   services.xserver.videoDrivers = [ "nvidia" ];

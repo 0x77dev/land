@@ -93,11 +93,11 @@ in
       graphics.enable = true;
       nvidia = {
         modesetting.enable = true;
-        # Blackwell only supports the open kernel modules.
-        open = true;
+        # Spark tracks NVIDIA's newest proprietary driver for CUDA/GB10 fixes.
+        open = false;
         nvidiaPersistenced = true;
         nvidiaSettings = true;
-        package = config.boot.kernelPackages.nvidiaPackages.production;
+        package = config.boot.kernelPackages.nvidiaPackages.latest;
       };
       nvidia-container-toolkit.enable = true;
     };
