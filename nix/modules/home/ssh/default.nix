@@ -52,29 +52,25 @@ in
         StreamLocalBindUnlink yes
       '';
 
-      matchBlocks = {
+      settings = {
         # Default settings for all hosts (replaces enableDefaultConfig)
         "*" = {
-          extraOptions = {
-            AddKeysToAgent = "yes";
-          };
+          AddKeysToAgent = "yes";
         };
       }
       // optionalAttrs gpgEnabled {
         # Only forward to specific trusted servers
         "tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer muscle.clubhouse.osv.computer beefy beefy.0x77.computer" =
           {
-            forwardAgent = true;
+            ForwardAgent = true;
             # Forward the GPG agent's extra socket to the remote system
             # Local: agent-extra-socket -> Remote: agent-socket (replaces remote agent)
             # Local: agent-ssh-socket -> Remote: agent-ssh-socket (for SSH keys)
-            extraOptions = {
-              # GPG agent forwarding (for GPG operations: sign, decrypt, etc.)
-              "RemoteForward" = lib.strings.concatStringsSep "\n  RemoteForward " [
-                "${remoteAgentSocket} ${localAgentExtraSocket}"
-                "${remoteAgentSshSocket} ${localAgentSshSocket}"
-              ];
-            };
+            # GPG agent forwarding (for GPG operations: sign, decrypt, etc.)
+            RemoteForward = [
+              "${remoteAgentSocket} ${localAgentExtraSocket}"
+              "${remoteAgentSshSocket} ${localAgentSshSocket}"
+            ];
           };
       };
     };

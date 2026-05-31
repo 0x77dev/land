@@ -7,7 +7,7 @@
 with lib;
 let
   cfg = config.modules.home.ide;
-  vscodePackage = pkgs.code-cursor;
+  cursorPackage = pkgs.code-cursor;
 
   marketplaceExtensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
     {
@@ -141,9 +141,9 @@ in
     let
       userDir =
         if pkgs.stdenv.hostPlatform.isDarwin then
-          "${config.home.homeDirectory}/Library/Application Support/${config.programs.vscode.nameShort}/User"
+          "${config.home.homeDirectory}/Library/Application Support/Cursor/User"
         else
-          "${config.xdg.configHome}/${config.programs.vscode.nameShort}/User";
+          "${config.xdg.configHome}/Cursor/User";
       mutableConfigTargets = [
         "${userDir}/settings.json"
         "${userDir}/mcp.json"
@@ -152,7 +152,7 @@ in
       ];
     in
     {
-      home.activation.materializeVscodeConfigs = {
+      home.activation.materializeCursorConfigs = {
         after = [ "linkGeneration" ];
         before = [ ];
         data = ''
@@ -170,7 +170,7 @@ in
               return 0
             fi
 
-            temp_file="$(mktemp "$HOME/.hm-vscode-config.XXXXXX")"
+            temp_file="$(mktemp "$HOME/.hm-cursor-config.XXXXXX")"
             cat "$target" > "$temp_file"
             chmod 0644 "$temp_file"
             mv "$temp_file" "$target"
@@ -182,9 +182,9 @@ in
         '') mutableConfigTargets;
       };
 
-      programs.vscode = {
+      programs.cursor = {
         enable = true;
-        package = vscodePackage;
+        package = cursorPackage;
 
         # Keep this mutable until Cursor-only/vendor extensions are packaged
         # declaratively as well:

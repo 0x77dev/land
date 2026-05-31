@@ -16,7 +16,8 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       kubo
-      iroh
+      iroh-dns-server
+      iroh-relay
       dumbpipe
     ];
   };

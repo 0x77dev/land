@@ -154,10 +154,11 @@
       package = pkgs.steam.override {
         extraPkgs =
           pkgs': with pkgs'; [
-            xorg.libXcursor
-            xorg.libXi
-            xorg.libXinerama
-            xorg.libXScrnSaver
+            # cspell:words libxcursor libxi libxinerama libxscrnsaver
+            libxcursor
+            libxi
+            libxinerama
+            libxscrnsaver
             libpng
             libpulseaudio
             libvorbis
@@ -279,12 +280,12 @@
     sudo.wheelNeedsPassword = false;
   };
 
-  systemd.sleep.extraConfig = ''
-    AllowSuspend=no
-    AllowHibernation=no
-    AllowSuspendThenHibernate=no
-    AllowHybridSleep=no
-  '';
+  systemd.sleep.settings.Sleep = {
+    AllowSuspend = "no";
+    AllowHibernation = "no";
+    AllowSuspendThenHibernate = "no";
+    AllowHybridSleep = "no";
+  };
 
   powerManagement.enable = false;
 

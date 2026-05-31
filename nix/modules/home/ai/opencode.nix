@@ -14,7 +14,7 @@ in
     programs.opencode = {
       enable = true;
       settings = removeAttrs rawSettings [ "$schema" ];
-      rules = configDir + "/ai/AGENTS.md";
+      context = configDir + "/ai/AGENTS.md";
     };
   };
 }

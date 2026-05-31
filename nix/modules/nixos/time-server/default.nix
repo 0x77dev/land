@@ -8,6 +8,7 @@
 let
   cfg = config.services.time-server;
   dashboards = lib.${namespace}.shared.grafana-dashboards;
+  grafanaSecretKeyFile = "${config.services.grafana.dataDir}/secret-key";
 in
 {
   options.services.time-server = {
@@ -170,6 +171,7 @@ in
             enabled = true;
             org_role = "Viewer";
           };
+          security.secret_key = "$__file{${grafanaSecretKeyFile}}";
         };
         provision = {
           enable = true;
@@ -218,5 +220,23 @@ in
         };
       };
     };
+
+    systemd.services.grafana.preStart = lib.mkIf cfg.enableGrafana (
+      lib.mkBefore ''
+        secret_file=${lib.escapeShellArg grafanaSecretKeyFile}
+        db_file=${lib.escapeShellArg config.services.grafana.dataDir}/grafana.db
+
+        if [ ! -s "$secret_file" ]; then
+          if [ -e "$db_file" ]; then
+            # Preserve the pre-26.05 default key for existing Grafana databases.
+            printf '%s\n' 'SW2YcwTIb9zpOOhoPsMm' > "$secret_file"
+          else
+            ${pkgs.openssl}/bin/openssl rand -hex 32 > "$secret_file"
+          fi
+
+          chmod 0600 "$secret_file"
+        fi
+      ''
+    );
   };
 }

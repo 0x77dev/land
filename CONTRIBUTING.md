@@ -34,7 +34,7 @@ nix/
 
 This flake uses two nixpkgs channels:
 
-- **nixpkgs** (nixos-25.11): Stable channel for primary packages
+- **nixpkgs** (nixos-26.05): Stable channel for primary packages
 - **unstable** (nixpkgs-unstable): Rolling release for bleeding-edge packages
 
 ## Overlays
@@ -204,7 +204,7 @@ nix flake check
 GitHub Actions provides two workflows:
 
 - `ci.yml` derives its native build matrix and output evaluation targets
-  from `flake.nix` via `automation.githubActions`, then builds the
+  from `flake.nix` via `lib.automation.githubActions`, then builds the
   declared check and dev shell closures plus evaluates every declared
   system and home output.
 - `security.yml` runs weekly security automation with OpenSSF Scorecard

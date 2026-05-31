@@ -89,19 +89,20 @@ let
     libglvnd
     libkrb5
     libpng
-    xorg.libX11
-    xorg.libxcb
-    xorg.libXcomposite
-    xorg.libXcursor
-    xorg.libXdamage
-    xorg.libXext
-    xorg.libXfixes
-    xorg.libXi
+    # cspell:words libx libxcomposite libxcursor libxdamage libxext libxfixes libxi libxrandr libxrender libxtst
+    libx11
+    libxcb
+    libxcomposite
+    libxcursor
+    libxdamage
+    libxext
+    libxfixes
+    libxi
     libxkbcommon
-    xorg.libXrandr
-    xorg.libXrender
-    xorg.libxshmfence
-    xorg.libXtst
+    libxrandr
+    libxrender
+    libxshmfence
+    libxtst
     libgbm
     libpulseaudio
     libva

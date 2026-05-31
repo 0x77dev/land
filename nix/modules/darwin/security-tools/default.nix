@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 with lib;
@@ -22,5 +23,12 @@ in
     programs._1password = {
       enable = true;
     };
+
+    environment.systemPackages =
+      with pkgs;
+      lib.mkAfter [
+        _1password-gui
+        _1password-cli
+      ];
   };
 }

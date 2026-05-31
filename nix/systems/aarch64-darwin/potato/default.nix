@@ -62,11 +62,6 @@ in
 
   programs.fish.enable = true;
 
-  environment.systemPackages = with pkgs; [
-    _1password-gui
-    _1password-cli
-  ];
-
   services = {
     openssh.enable = true;
     ipfs = {

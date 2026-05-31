@@ -26,6 +26,8 @@ _final: _prev: {
     nvidia-container-toolkit
     fish
     netdata
+    _1password-gui
+    _1password-cli
     ;
 
   # Single source of truth for the CUDA toolkit version across every host.

@@ -158,7 +158,10 @@ in
   config = lib.mkMerge [
     # Kernel selection (applies to both kernelSupport and enable)
     (lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel || cfg.enable) {
-      boot.kernelPackages = lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel) latestKernelPackage;
+      boot = {
+        kernelPackages = lib.mkIf (cfg.kernelSupport || cfg.useLatestKernel) latestKernelPackage;
+        zfs.forceImportRoot = lib.mkDefault false;
+      };
     })
 
     # Full ZFS configuration
@@ -178,7 +181,6 @@ in
         zfs = {
           # ZFS package selection
           package = lib.mkIf cfg.useUnstable pkgs.zfs_unstable;
-          forceImportRoot = lib.mkDefault false;
           inherit (cfg) extraPools;
           devNodes = lib.mkIf (cfg.devNodes != null) cfg.devNodes;
         };

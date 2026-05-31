@@ -18,12 +18,12 @@ in
 
   systemd = {
     # Always-on appliance — never suspend/hibernate (it serves Ollama/compute).
-    sleep.extraConfig = ''
-      AllowSuspend=no
-      AllowHibernation=no
-      AllowSuspendThenHibernate=no
-      AllowHybridSleep=no
-    '';
+    sleep.settings.Sleep = {
+      AllowSuspend = "no";
+      AllowHibernation = "no";
+      AllowSuspendThenHibernate = "no";
+      AllowHybridSleep = "no";
+    };
 
     # The nix-daemon authenticates to muscle via the YubiKey, exposed through
     # mykhailo's gpg-agent ssh socket (same as the Darwin hosts' launchd setup).
@@ -99,7 +99,7 @@ in
     # firewall is disabled and it's reachable over Tailscale).
     ollama = {
       enable = true;
-      acceleration = "cuda";
+      package = pkgs.ollama-cuda;
       host = "0.0.0.0";
     };
   };

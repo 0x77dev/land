@@ -25,6 +25,7 @@ with lib;
   # deliberately left at the kernel's per-CPU defaults: enabled and correct,
   # with no global `mitigations=off` (which would trade security for perf).
   boot.kernelPackages = mkDefault pkgs.linuxPackages_latest;
+  boot.zfs.forceImportRoot = mkDefault false;
 
   # Common Packages
   environment.systemPackages = with pkgs; [

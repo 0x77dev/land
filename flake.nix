@@ -2,16 +2,16 @@
   description = "0x77dev's land";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     darwin = {
-      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -68,7 +68,10 @@
 
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
-    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
+    nixos-raspberrypi = {
+      url = "github:nvmd/nixos-raspberrypi/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # CachyOS kernel with BORE scheduler
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
   };
@@ -89,12 +92,28 @@
   outputs =
     inputs:
     let
+      supportedSystems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
+
+      # flake-utils-plus detects Nixpkgs channels by probing legacyPackages,
+      # which forces nixpkgs' x86_64-darwin deprecation warning in 26.05. Give
+      # Snowfall a channel probe that preserves the input source without forcing
+      # the whole legacy package matrix.
+      channelProbe.legacyPackages.x86_64-linux.nix = null;
+      inputsForSnowfall = inputs // {
+        nixpkgs = inputs.nixpkgs // channelProbe;
+        unstable = inputs.unstable // channelProbe;
+      };
+
       # Shared treefmt config (single source of truth) — also consumed by the
       # dev shell and the pre-commit `treefmt` hook via `lib.land.treefmt`.
       treefmt = import ./nix/lib/treefmt/default.nix { inherit inputs; };
 
       lib = inputs.snowfall-lib.mkLib {
-        inherit inputs;
+        inputs = inputsForSnowfall;
         src = ./.;
 
         snowfall = {
@@ -110,6 +129,8 @@
 
       # Generate base outputs
       outputs = lib.mkFlake {
+        inherit supportedSystems;
+
         channels-config.allowUnfree = true;
 
         # `nix fmt` runs treefmt via the shared config (single source of truth).
@@ -118,6 +139,12 @@
         };
 
         overlays = with inputs; [
+          # Snowfall Lib/flake-utils-plus still read `pkgs.system`; shadow the
+          # deprecated nixpkgs alias with the replacement value until upstream
+          # stops doing so.
+          (final: _prev: {
+            system = final.stdenv.hostPlatform.system;
+          })
           nixos-raspberrypi.overlays.bootloader
           nixos-raspberrypi.overlays.vendor-kernel
           nixos-raspberrypi.overlays.vendor-firmware
@@ -126,21 +153,31 @@
           nix-cachyos-kernel.overlays.pinned
         ];
 
-        systems.modules.darwin = with inputs; [
-          nix-homebrew.darwinModules.nix-homebrew
-        ];
+        systems = {
+          modules = {
+            darwin = with inputs; [
+              nix-homebrew.darwinModules.nix-homebrew
+            ];
 
-        systems.modules.nixos = with inputs; [
-          disko.nixosModules.disko
-          nixos-vscode-server.nixosModules.default
-          vpn-confinement.nixosModules.default
-        ];
+            nixos = with inputs; [
+              disko.nixosModules.disko
+              nixos-vscode-server.nixosModules.default
+              vpn-confinement.nixosModules.default
+            ];
+          };
+
+          hosts.timey.specialArgs = {
+            inherit (inputs) nixos-raspberrypi;
+          };
+        };
       };
 
       automation = outputs.lib.automation.mkOutputs { inherit outputs; };
     in
-    outputs
+    (removeAttrs outputs [ "snowfall" ])
     // {
-      inherit automation;
+      lib = outputs.lib // {
+        automation = outputs.lib.automation // automation;
+      };
     };
 }

@@ -63,7 +63,7 @@
       };
     };
 
-    zfs.allowHibernation = false;
+    zfs.unsafeAllowHibernation = false;
 
     kernelModules = [ "kvm-intel" ];
     kernelParams = [
