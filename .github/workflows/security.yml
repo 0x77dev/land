@@ -42,7 +42,7 @@ jobs:
         run: |
           {
             echo 'security-matrix<<EOF'
-            nix eval --json .#automation.githubActions.security.matrix
+            nix eval --json .#lib.automation.githubActions.security.matrix
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 

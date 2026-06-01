@@ -104,6 +104,9 @@
       # the whole legacy package matrix.
       channelProbe.legacyPackages.x86_64-linux.nix = null;
       inputsForSnowfall = inputs // {
+        self = inputs.self // {
+          inherit (outputs) pkgs;
+        };
         nixpkgs = inputs.nixpkgs // channelProbe;
         unstable = inputs.unstable // channelProbe;
       };
@@ -174,7 +177,10 @@
 
       automation = outputs.lib.automation.mkOutputs { inherit outputs; };
     in
-    (removeAttrs outputs [ "snowfall" ])
+    (removeAttrs outputs [
+      "pkgs"
+      "snowfall"
+    ])
     // {
       lib = outputs.lib // {
         automation = outputs.lib.automation // automation;

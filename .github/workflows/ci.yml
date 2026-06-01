@@ -38,7 +38,7 @@ jobs:
         run: |
           {
             echo 'ci-matrix<<EOF'
-            nix eval --json .#automation.githubActions.ci.matrix
+            nix eval --json .#lib.automation.githubActions.ci.matrix
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 

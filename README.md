@@ -130,8 +130,9 @@ versions can be tracked through regex managers in [`renovate.json5`].
 
 AI-enabled Home Manager profiles configure the terminal agent stack managed in
 [`nix/modules/home/ai/`]. OpenCode is the agent runtime, with global skills and
-Cursor/Neovim integrations managed declaratively. Model routing and OpenAI model
-metadata overrides live in [`config/opencode.json`](/config/opencode.json).
+Cursor/Neovim integrations managed declaratively. OpenCode settings live in the
+Home Manager module at
+[`nix/modules/home/ai/opencode.nix`](/nix/modules/home/ai/opencode.nix).
 
 Hardware-specific support lives in `nix/modules/nixos/hardware/`. Each is an
 option-driven module (e.g. `hardware.dgx-spark.enable`) so a system opts in with
