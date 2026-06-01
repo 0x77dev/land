@@ -5,3 +5,5 @@ result-*
 .env
 .pre-commit-config.yaml
 .claude/
+.lab/
+

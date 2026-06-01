@@ -35,6 +35,7 @@ in
 
   programs = {
     home-manager.enable = true;
+    opencode.web.enable = true;
   };
 
   # GNOME reads cursor/icon themes from dconf; the prior KDE install left
