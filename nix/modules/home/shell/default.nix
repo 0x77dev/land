@@ -41,7 +41,6 @@ let
   };
 
   commonAbbreviations = {
-    co = "cmux omo";
     g = "git";
     ga = "git add";
     gc = "git commit";

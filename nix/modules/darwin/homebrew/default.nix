@@ -31,7 +31,6 @@ in
     onActivation.upgrade = lib.mkDefault true;
 
     brews = lib.mkDefault [
-      "cmux"
       "steipete/tap/gogcli"
       "superhuman"
     ];

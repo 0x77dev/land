@@ -30,6 +30,7 @@ in
     experimental-features = [
       "nix-command"
       "flakes"
+      "recursive-nix"
     ];
 
     keep-derivations = true;
