@@ -14,13 +14,25 @@ let
   guestAddress = "10.77.0.2";
 
   # Models served by spark's Ollama (declaratively pulled there, see ../spark).
-  # MoE small-active is the only way to be both smart and fast on the GB10's
+  # The primary is the abliterated, Claude-4.7-distilled Qwen3.6-35B-A3B — same
+  # MoE small-active arch, the only way to be both smart and fast on the GB10's
   # 273 GB/s: the A3B primary runs ~35–50 tok/s where a dense 27B crawls at
-  # ~10–14. The fallback also absorbs qwen3.6 tool-parser 500s (ollama#16383)
-  # and runs compression.
-  ollamaModel = "qwen3.6:35b-a3b-q8_0";
+  # ~10–14. The gpt-oss:20b fallback also absorbs qwen3.6 tool-parser 500s
+  # (ollama#16383, patched on spark) and runs compression.
+  ollamaModel = "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7";
   fallbackModel = "gpt-oss:20b";
   ollamaBaseUrl = "http://${hostAddress}:11434/v1";
+
+  # VM-local secret env file — nothing secret in Nix, no secret-management
+  # machinery. External credentials are filled by hand (see the README,
+  # "Secrets"); internal self-secrets are generated write-once by the
+  # hermes-secret-init oneshot below. Deliberately NOT in NIX.md, which is
+  # surfaced to the agent — it must not carry the secret store layout (soul
+  # inspectability principle). The hermes module merges this file into
+  # $HERMES_HOME/.env on every activation (absent/empty is tolerated).
+  hermesSecretEnv = "/var/lib/hermes/secret.env";
+
+  searxngPort = 8888;
 in
 {
   # The agent workstation toolkit and the auto-generated ENVIRONMENT.md
@@ -140,12 +152,23 @@ in
   # device probes and gets its CID before stage 2 hands off).
   boot.initrd.kernelModules = [ "vmw_vsock_virtio_transport" ];
 
+  # Tailscale needs a TUN device. /dev/net/tun is a guest-kernel device
+  # (independent of cloud-hypervisor) that appears once the stock kernel's
+  # tun=m module is loaded, so just load it at boot — CAP_NET_ADMIN is a
+  # non-issue since tailscaled runs as root in this full guest. If a future
+  # kernel/microvm combo ever lacks TUN, fall back to userspace networking via
+  # `services.tailscale.interfaceName = "userspace-networking"`.
+  boot.kernelModules = [ "tun" ];
+
   # Hermes Agent — the VM is the sandbox, so the terminal backend is plain
   # `local`: no coordinator/executor split, no SSH executor. The `full`
   # package variant pre-builds every optional integration (messaging, voice,
-  # matrix, ...). Runtime state and secrets live under /var/lib/hermes on the
-  # root volume and are hermes' own business; drop provider tokens into
-  # /var/lib/hermes/.hermes/.env if messaging platforms are connected later.
+  # matrix, ...). Runtime state lives under /var/lib/hermes on the root volume
+  # and is hermes' own business. Secrets do NOT go into $HERMES_HOME/.env by
+  # hand: with environment/environmentFiles set, the module rewrites that file
+  # wholesale on every activation. Provider/platform tokens (Matrix, the API
+  # server key, future key-gated features) go into the VM-local secret file
+  # (hermesSecretEnv above) instead — environmentFiles merges it into .env.
   services = {
     resolved.enable = true;
 
@@ -177,6 +200,11 @@ in
         model = {
           provider = "custom";
           base_url = ollamaBaseUrl;
+          # Keep a real model name here — never "auto". "auto" is magic only
+          # as a *provider* (and in auxiliary slots); as a model name Ollama
+          # 404s it every turn and Hermes silently falls back to gpt-oss. The
+          # auto behavior we want already exists via fallback_providers and
+          # the auxiliary provider:"auto" resolution.
           default = ollamaModel;
           # Any non-empty value; Ollama ignores it.
           api_key = "ollama";
@@ -202,7 +230,15 @@ in
           enabled = true;
           threshold = 0.5;
         };
-        toolsets = [ "all" ];
+        # "all" expands to every toolset minus the default-off set (moa,
+        # homeassistant, spotify, video, x_search, ...). Explicitly listed
+        # names survive that subtraction; moa (mixture_of_agents) is the only
+        # default-off toolset that is purely local, so it is opted in here.
+        # The rest stay key-gated — see the README ("Secrets").
+        toolsets = [
+          "all"
+          "moa"
+        ];
         terminal = {
           backend = "local";
           timeout = 180;
@@ -211,16 +247,97 @@ in
           memory_enabled = true;
           user_profile_enabled = true;
         };
+        # web_search via the local SearXNG below (keyless, self-hosted).
+        web.search_backend = "searxng";
+        # Voice — STT (Parakeet NIM) and TTS (Kokoro) run on spark's GPU and
+        # serve OpenAI-compatible endpoints on the tap edge (see ../spark).
+        # Both conventional voice tools and Hermes' realtime voice-mode issue
+        # one-shot client-side calls (/v1/audio/transcriptions and
+        # /v1/audio/speech), so no WebSocket/Realtime server is needed. GPU
+        # budget beside the ~24 GB primary model and this VM's 32 GiB:
+        # Parakeet ~3–6 GiB at one-shot batch sizes (NVIDIA's support matrix
+        # lists ~26 GiB worst-case at the profile's max batch) plus Kokoro
+        # ~1–2 GiB — within the GB10's 128 GiB unified-memory headroom.
+        stt = {
+          provider = "openai";
+          openai = {
+            # Any non-empty value; the NIM endpoint is unauthenticated.
+            api_key = "local";
+            base_url = "http://${hostAddress}:9000/v1";
+            # Any non-"whisper-1" model name makes Hermes request plain JSON.
+            model = "parakeet";
+          };
+        };
+        tts = {
+          provider = "openai";
+          openai = {
+            base_url = "http://${hostAddress}:8101/v1";
+            # Alternates (am_fenrir, am_puck) switch by name once their
+            # weights are added to the shim's voice map in ../spark.
+            voice = "am_michael";
+            model = "kokoro";
+          };
+        };
+        # Bundled plugins are opt-in by design; disk-cleanup (auto-removal of
+        # session temp files via hooks) is the only keyless one worth having.
+        plugins.enabled = [ "disk-cleanup" ];
       };
 
-      # Workspace docs: SOUL.md is the persona seed (Hermes manages its mutable
-      # runtime copy at $HERMES_HOME/SOUL.md itself); NIX.md tells Vasyl how to
-      # use Nix idiomatically on this box. A third document, ENVIRONMENT.md, is
+      # Non-secret env, merged into $HERMES_HOME/.env at activation. The HTTP
+      # API server activates from env alone; its mandatory API_SERVER_KEY is
+      # self-generated into the secret file by hermes-secret-init below (the
+      # adapter just stays down, logged, until the key reaches .env).
+      environment = {
+        API_SERVER_ENABLED = "true";
+        SEARXNG_URL = "http://127.0.0.1:${toString searxngPort}";
+        # The TTS client resolves its API key from env only (config is not
+        # consulted); any non-empty value — the kokoro shim doesn't check it.
+        VOICE_TOOLS_OPENAI_KEY = "local";
+      };
+
+      # Secrets: external credentials are manually filled on the VM (see the
+      # README); internal ones come from hermes-secret-init below. Matrix
+      # creds in this file are also what *enables* the Matrix channel: the
+      # gateway turns a platform on purely from its env vars; there is no
+      # config.yaml switch.
+      environmentFiles = [ hermesSecretEnv ];
+
+      # The hermes wrapper ships only node/ffmpeg/ripgrep/git; the local
+      # browser toolset needs a system chromium on PATH (merges with the
+      # workstation list from ./environment.nix).
+      extraPackages = [ pkgs.chromium ];
+
+      # Workspace reference docs — `documents` installs files into the agent's
+      # workingDirectory and nothing else reads them into the prompt. NIX.md
+      # tells Vasyl how to use Nix idiomatically on this box; ENVIRONMENT.md is
       # auto-rendered from the live config in ./environment.nix — a
-      # zero-maintenance, always-current machine briefing.
+      # zero-maintenance, always-current machine briefing. SOUL.md is
+      # deliberately NOT here: the persona file Hermes actually loads lives at
+      # $HERMES_HOME/SOUL.md and is seeded via tmpfiles below.
       documents = {
-        "SOUL.md" = ./SOUL.md;
         "NIX.md" = ./NIX.md;
+      };
+    };
+
+    # SearXNG (the nixpkgs package is the module default), serving Hermes'
+    # web_search on loopback. Results require vasyl's NAT'd outbound internet
+    # through spark — without it the engines all time out. The bot-protection
+    # limiter (and its valkey/redis dependency) stays at its default OFF: it
+    # exists for public instances, and this one is loopback-only. SearXNG
+    # refuses to start with its placeholder secret_key, but the key only
+    # signs session cookies/proxy URLs — no role on a loopback, single-consumer
+    # instance — so a trivial inline value beats a secret file here.
+    searx = {
+      enable = true;
+      settings = {
+        server.port = searxngPort;
+        server.secret_key = "vasyl-local";
+        # Hermes calls /search?format=json; the default formats allow only
+        # html, which 403s JSON requests.
+        search.formats = [
+          "html"
+          "json"
+        ];
       };
     };
 
@@ -233,6 +350,22 @@ in
         AllowAgentForwarding = true;
         StreamLocalBindUnlink = true;
       };
+    };
+
+    # Tailscale — vasyl as its own tailnet node, reachable directly over
+    # Tailscale SSH instead of always SSH-jumping via spark. Purely additive:
+    # the tap edge and the `microvm -s`/spark jump stay as-is. Mirrors spark's
+    # plain `enable`, plus openFirewall for the inbound tunnel port. Auth is a
+    # one-time manual `sudo tailscale up --ssh` (interactive browser login) —
+    # no authKeyFile, so the module's tailscaled-autoconnect unit never exists
+    # and extraUpFlags (consumed only by that autoconnect) would be dead
+    # config; `--ssh` rides the manual `up` instead. That outbound login needs
+    # vasyl's NAT'd internet through spark (the externalInterface fix in
+    # ../spark). Node state persists on the volume, so SSH stays reachable
+    # across reboots without re-auth.
+    tailscale = {
+      enable = true;
+      openFirewall = true;
     };
   };
 
@@ -340,43 +473,88 @@ in
       networkConfig.Gateway = hostAddress;
     };
 
-    services.nix-upper-gc = {
-      description = "Reclaim dead in-guest build outputs from the writable store overlay";
-      path = [ config.nix.package ];
-      serviceConfig = {
-        Type = "oneshot";
-        IOSchedulingClass = "idle";
+    # Seed the agent persona. Hermes builds its identity from
+    # $HERMES_HOME/SOUL.md exclusively (agent/prompt_builder.py load_soul_md);
+    # absent that file it seeds its stock "Hermes Agent by Nous Research"
+    # default once and never overwrites an existing one. Mirror those
+    # semantics with tmpfiles `C` (copy only if missing): the repo copy is the
+    # immutable keel, the runtime copy is Vasyl's to grow — a rebuild must not
+    # reset what the agent has tended. 0660 hermes:hermes matches what Hermes
+    # itself creates under its managed-mode umask.
+    tmpfiles.rules = [
+      "C ${config.services.hermes-agent.stateDir}/.hermes/SOUL.md 0660 hermes hermes - ${./SOUL.md}"
+      # Seed the manual secret file empty (`f` never overwrites) so it exists
+      # with safe ownership before anyone edits it: hermes' own merge
+      # tolerates absence, but pre-creating avoids a root:root 0644 footgun
+      # from a casual `sudo vim`. (Tailscale needs no seed: tailscaled's unit
+      # manages /var/lib/tailscale itself via StateDirectory, and auth is the
+      # one-time interactive `tailscale up --ssh`.)
+      "f ${hermesSecretEnv} 0600 hermes hermes - -"
+    ];
+
+    # Write-once generation of INTERNAL self-secrets — keys hermes alone
+    # consumes, with no external issuer. Today that is API_SERVER_KEY (the
+    # HTTP API server's bearer key): appended to the secret file only if
+    # absent, never regenerated. External credentials (Matrix) stay manual —
+    # see the README ("Secrets"). The hermes module merges the
+    # secret file into $HERMES_HOME/.env at activation, so the key is live
+    # from the first activation/boot after it is generated.
+    services = {
+      hermes-secret-init = {
+        description = "Generate internal hermes-agent secrets (write-once)";
+        before = [ "hermes-agent.service" ];
+        path = [ pkgs.openssl ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          grep -q '^API_SERVER_KEY=' ${hermesSecretEnv} ||
+            echo "API_SERVER_KEY=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
+        '';
       };
-      script = ''
-        set -euo pipefail
-        shopt -s nullglob
 
-        # Upperdir entries that are store paths: skip overlay whiteouts (char
-        # devices) and anything not named <32 nix-base32 chars>-<name>; .lock,
-        # .chroot and .check are suffix siblings of a path, not paths.
-        declare -A upper=()
-        for p in /nix/.rw-store/store/*; do
-          [[ -c "$p" ]] && continue
-          n="''${p##*/}"
-          [[ "$n" =~ ^[0-9a-df-np-sv-z]{32}- ]] || continue
-          case "$n" in
-            *.lock | *.chroot | *.check) continue ;;
-          esac
-          upper["/nix/store/$n"]=1
-        done
-        [[ ''${#upper[@]} -eq 0 ]] && exit 0
+      # Gate the agent on the generator: pulled in and ordered after it.
+      hermes-agent = {
+        wants = [ "hermes-secret-init.service" ];
+        after = [ "hermes-secret-init.service" ];
+      };
 
-        dead=$(nix-store --gc --print-dead)
+      nix-upper-gc = {
+        description = "Reclaim dead in-guest build outputs from the writable store overlay";
+        path = [ config.nix.package ];
+        serviceConfig = {
+          Type = "oneshot";
+          IOSchedulingClass = "idle";
+        };
+        script = ''
+          set -euo pipefail
+          shopt -s nullglob
 
-        delete=()
-        while IFS= read -r p; do
-          [[ -n "$p" ]] || continue # an empty dead set herestrings one "" line
-          [[ -n "''${upper["$p"]:-}" ]] && delete+=("$p")
-        done <<< "$dead"
-        [[ ''${#delete[@]} -eq 0 ]] && exit 0
+          # Upperdir entries that are store paths: skip overlay whiteouts (char
+          # devices) and anything not named <32 nix-base32 chars>-<name>; .lock,
+          # .chroot and .check are suffix siblings of a path, not paths.
+          declare -A upper=()
+          for p in /nix/.rw-store/store/*; do
+            [[ -c "$p" ]] && continue
+            n="''${p##*/}"
+            [[ "$n" =~ ^[0-9a-df-np-sv-z]{32}- ]] || continue
+            case "$n" in
+              *.lock | *.chroot | *.check) continue ;;
+            esac
+            upper["/nix/store/$n"]=1
+          done
+          [[ ''${#upper[@]} -eq 0 ]] && exit 0
 
-        nix-store --delete "''${delete[@]}"
-      '';
+          dead=$(nix-store --gc --print-dead)
+
+          delete=()
+          while IFS= read -r p; do
+            [[ -n "$p" ]] || continue # an empty dead set herestrings one "" line
+            [[ -n "''${upper["$p"]:-}" ]] && delete+=("$p")
+          done <<< "$dead"
+          [[ ''${#delete[@]} -eq 0 ]] && exit 0
+
+          nix-store --delete "''${delete[@]}"
+        '';
+      };
     };
 
     timers.nix-upper-gc = {

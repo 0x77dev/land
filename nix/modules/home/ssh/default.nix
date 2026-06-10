@@ -59,6 +59,16 @@ in
         };
       }
       // optionalAttrs gpgEnabled {
+        # Lab hosts reached with the YubiKey-backed identity (gpg-agent's ssh
+        # socket): IdentityAgent offers it without touching the default agent,
+        # and ForwardAgent carries it onward for multi-hop (e.g. potato →
+        # spark → vasyl).
+        "spark.axolotl-sole.ts.net *.osv.computer" = {
+          User = "mykhailo";
+          ForwardAgent = true;
+          IdentityAgent = localAgentSshSocket;
+        };
+
         # Only forward to specific trusted servers
         "tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer muscle.clubhouse.osv.computer beefy beefy.0x77.computer" =
           {

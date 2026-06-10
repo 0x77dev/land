@@ -7,6 +7,41 @@
 }:
 let
   muscle = lib.${namespace}.shared.builders.muscle;
+
+  # Voice stack for vasyl (see ../vasyl): both ends serve OpenAI-compatible
+  # one-shot endpoints on the VM tap edge, next to Ollama.
+  #
+  # Kokoro-82M weights, declaratively pinned (Apache-2.0). URLs reference an
+  # explicit HF revision rather than `main`, so upstream history moving can
+  # never break the fixed-output hashes.
+  kokoroRev = "f3ff3571791e39611d31c381e3a41a3af07b4987";
+  kokoroConfig = pkgs.fetchurl {
+    url = "https://huggingface.co/hexgrad/Kokoro-82M/resolve/${kokoroRev}/config.json";
+    hash = "sha256-WrsB4kA7ByvwPQT94WBEPiCdeg2tSaQjvhUZa5tDwX8=";
+  };
+  kokoroModel = pkgs.fetchurl {
+    url = "https://huggingface.co/hexgrad/Kokoro-82M/resolve/${kokoroRev}/kokoro-v1_0.pth";
+    hash = "sha256-SW26EY0aWPXz2y78iNvcIW4Eg/yJ/m5H7h8sU/GK0eQ=";
+  };
+  # Default voice. Good alternates: am_fenrir, am_puck — fetch them the same
+  # way and append to KOKORO_VOICES below to enable.
+  kokoroVoiceMichael = pkgs.fetchurl {
+    url = "https://huggingface.co/hexgrad/Kokoro-82M/resolve/${kokoroRev}/voices/am_michael.pt";
+    hash = "sha256-mkQ7eaSyJImlsKt8ZRoLzRowvvZ1woMz8Glxq71HvTc=";
+  };
+
+  # kokoro pulls in torch, which this host builds with CUDA for sm_121 via
+  # the global cudaSupport/cudaCapabilities (see the dgx-spark module). The
+  # from-source torch build is huge — it rides the muscle build offload
+  # enabled under `nix` below instead of the Grace cores.
+  kokoroPython = pkgs.python3.withPackages (ps: [
+    ps.kokoro
+    ps.fastapi
+    ps.uvicorn
+    # misaki[en] G2P loads this spaCy model at KPipeline init; without it,
+    # it spacy.cli.download()s at startup → crash-loop offline.
+    ps.spacy-models.en_core_web_sm
+  ]);
 in
 {
   networking = {
@@ -20,11 +55,19 @@ in
     };
     firewall.enable = false;
 
-    # Guest internet via NAT; no externalInterface needed (no port forwards),
-    # so masquerading follows whatever uplink NetworkManager has up.
+    # Guest internet via NAT, masqueraded out the RJ45 uplink. Without
+    # externalInterface the module still masquerades, but unscoped (no `-o`):
+    # guest flows get SNATed out *every* egress path (tailscale0 included),
+    # and with the firewall off the rules ride a standalone nat.service with
+    # no ordering against docker's FORWARD-policy-DROP setup. Pinning the
+    # uplink renders `-o enP7s7` on both the MASQUERADE and FORWARD-accept
+    # rules. enP7s7 is the Spark's Realtek 10GbE port — a firmware-path
+    # predictable name, stable on this hardware; reconfirm on the box with
+    # `ip route get 1.1.1.1` if the uplink ever moves.
     nat = {
       enable = true;
       internalInterfaces = [ "vm-vasyl" ];
+      externalInterface = "enP7s7";
     };
   };
 
@@ -76,6 +119,55 @@ in
     # mykhailo's gpg-agent ssh socket (same as the Darwin hosts' launchd setup).
     # uid 1000 = first normal user (uids are auto-allocated, so not in eval).
     services.nix-daemon.environment.SSH_AUTH_SOCK = "/run/user/1000/gnupg/S.gpg-agent.ssh";
+
+    # TTS for vasyl: Kokoro-82M on CUDA, pure Nix — torch from this host's
+    # cudaSupport package set plus the pinned weights above, no container.
+    # (The stock ghcr.io/remsky/kokoro-fastapi-gpu arm64 image is broken on
+    # sm_121; if this from-source path ever becomes untenable, a self-built
+    # CUDA container would be the fallback.) The ~60-line shim serves
+    # OpenAI-compatible /v1/audio/speech.
+    services.kokoro-openai = {
+      description = "Kokoro-82M TTS (OpenAI-compatible) for vasyl";
+      wantedBy = [ "multi-user.target" ];
+      # Binds the tap edge; if 10.77.0.1 isn't up yet the bind fails and the
+      # restart loop converges once networkd has the address.
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      path = [ pkgs.ffmpeg ];
+      environment = {
+        # Weights are pinned in the store — never touch the hub.
+        HF_HUB_OFFLINE = "1";
+        KOKORO_CONFIG = "${kokoroConfig}";
+        KOKORO_MODEL = "${kokoroModel}";
+        KOKORO_VOICES = "am_michael=${kokoroVoiceMichael}";
+        KOKORO_HOST = "10.77.0.1";
+        KOKORO_PORT = "8101";
+        # Writable HOME for the CUDA/torch JIT caches under DynamicUser.
+        HOME = "/var/cache/kokoro-openai";
+      };
+      serviceConfig = {
+        ExecStart = "${kokoroPython}/bin/python ${./kokoro-shim.py}";
+        DynamicUser = true;
+        SupplementaryGroups = [
+          "render"
+          "video"
+        ];
+        CacheDirectory = "kokoro-openai";
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+    };
+
+    # NGC secrets for the parakeet-nim container, seeded empty (`f` never
+    # overwrites) and filled by hand — see the README ("Secrets"). The model
+    # cache is bind-mounted into the container, whose unprivileged inner uid
+    # must be able to write it (NVIDIA's own quickstart opens it the same way).
+    tmpfiles.rules = [
+      "d /var/lib/nim 0700 root root - -"
+      "f /var/lib/nim/ngc-key 0600 root root - -"
+      "f /var/lib/nim/ngc.env 0600 root root - -"
+      "d /var/lib/nim/cache 0777 root root - -"
+    ];
   };
 
   boot = {
@@ -100,9 +192,52 @@ in
     powerOnBoot = true;
   };
 
-  virtualisation.docker = {
-    enable = true;
-    daemon.settings.features.containerd-snapshotter = true;
+  virtualisation = {
+    docker = {
+      enable = true;
+      daemon.settings.features.containerd-snapshotter = true;
+    };
+
+    # STT for vasyl: Parakeet 1.1B RNNT Multilingual as an NVIDIA NIM — the
+    # one justified container here (NVIDIA ships it CUDA-ready for Blackwell
+    # and the DGX Spark per the speech NIM support matrix; it is the only
+    # Spark-supported Parakeet) serving OpenAI-compatible
+    # /v1/audio/transcriptions on the tap edge. GPU access is CDI:
+    # hardware.nvidia-container-toolkit (dgx-spark module) generates the spec
+    # and docker >= 28.2 has CDI on by default, so `--device=nvidia.com/gpu`
+    # is the official path (no --runtime=nvidia wrapper on NixOS).
+    oci-containers = {
+      backend = "docker";
+      containers.parakeet-nim = {
+        # Tag and profile are from the NIM ASR support matrix; reconfirm both
+        # against the NGC model card at deploy time.
+        image = "nvcr.io/nim/nvidia/parakeet-1-1b-rnnt-multilingual:latest";
+        # NGC registry auth: literal "$oauthtoken" username + the API key.
+        # The key file is seeded empty below; the unit retries until filled
+        # (same manual-fill discipline as vasyl's secret files — see the
+        # README, "Secrets").
+        login = {
+          registry = "nvcr.io";
+          username = "$oauthtoken";
+          passwordFile = "/var/lib/nim/ngc-key";
+        };
+        # NGC_API_KEY=<key>, the in-container model-download credential.
+        environmentFiles = [ "/var/lib/nim/ngc.env" ];
+        environment = {
+          NIM_HTTP_API_PORT = "9000";
+          NIM_GRPC_API_PORT = "50051";
+          # The documented offline (one-shot) profile for this container —
+          # it ships no diarizer-disabled profiles, only sortformer+silero.
+          NIM_TAGS_SELECTOR = "diarizer=sortformer,mode=ofl,type=default,vad=silero";
+        };
+        ports = [ "10.77.0.1:9000:9000" ];
+        volumes = [ "/var/lib/nim/cache:/opt/nim/.cache" ];
+        extraOptions = [
+          "--device=nvidia.com/gpu=all"
+          "--shm-size=8g"
+        ];
+      };
+    };
   };
 
   programs = {
@@ -171,9 +306,12 @@ in
       # Models for vasyl's hermes-agent (see ../vasyl): pulled by the
       # non-blocking ollama-model-loader.service, content-addressed (no-op
       # when unchanged). syncModels stays off on purpose — it would GC any
-      # model pulled manually outside this list.
+      # model pulled manually outside this list. The primary is Q4_K_M
+      # (~24 GB on disk, down from the old q8_0's ~39 GB) — ample headroom in
+      # the GB10's 128 GiB unified memory beside vasyl's 32 GiB and the KV
+      # cache. Same 35B-A3B arch, so the qwen3.6 tool-parser patch still applies.
       loadModels = [
-        "qwen3.6:35b-a3b-q8_0"
+        "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7"
         "gpt-oss:20b"
       ];
 
@@ -208,10 +346,11 @@ in
 
   # Offload large/parallel builds to muscle (Threadripper 7985WX) — it
   # out-compiles the Grace cores even on aarch64 via binfmt, and frees the
-  # Spark for inference.
+  # Spark for inference. The kokoro stack's from-source torch-CUDA build is
+  # exactly the job this exists for.
   nix = {
     distributedBuilds = true;
-    # buildMachines = muscle.mkMachines { sshUser = "mykhailo"; };
+    buildMachines = muscle.mkMachines { sshUser = "mykhailo"; };
   };
   programs.ssh.knownHosts.muscle = muscle.knownHost;
 

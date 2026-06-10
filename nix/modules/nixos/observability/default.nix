@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -24,9 +25,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # netdata 2.x ships no local dashboard unless built withCloudUi (the v3 UI),
+    # otherwise :19999 only serves the API and `/` returns netdata's own 404.
+    # The enclosing mkDefault pushes down to every leaf, so package stays at
+    # default priority and a host may still override it.
     services.netdata = lib.mkDefault {
       enable = true;
       enableAnalyticsReporting = false;
+      package = pkgs.netdata.override { withCloudUi = true; };
       config.global."default port" = toString cfg.webPort;
     };
 

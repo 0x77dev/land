@@ -87,6 +87,50 @@ sudo nix run nix-darwin --experimental-features 'nix-command flakes' -- \
 Darwin activations refresh Homebrew taps with `brew update` and apply
 upgrades with `brew upgrade` by default.
 
+### Secrets
+
+Nothing secret lives in Nix and there is no secret-management machinery.
+Services on `spark` and `vasyl` read host-local files that the configuration
+seeds empty with safe permissions. External credentials are filled once by
+hand over SSH (the owning unit sits failed/retrying until then); internal
+self-secrets are generated write-once on the box and need no manual entry.
+This runbook is deliberately kept out of the agent-facing docs shipped to
+`vasyl`.
+
+On `vasyl` (the agent VM):
+
+- `/var/lib/hermes/secret.env` (0600 hermes) — merged into `$HERMES_HOME/.env`
+  on every activation; never edit `.env` itself, it is rewritten wholesale.
+  Apply an edit with
+  `sudo /run/current-system/activate && sudo systemctl restart hermes-agent`
+  (a reboot does the same). Keys in this file gate features:
+  - **Matrix** (the enabled channel): `MATRIX_HOMESERVER`,
+    `MATRIX_ACCESS_TOKEN`, `MATRIX_USER_ID`. The gateway turns a platform on
+    purely from its credentials — there is no config.yaml switch. Optional
+    behavior (`matrix.require_mention`, `matrix.allowed_rooms`, ...) is a
+    hand-edit to the group-writable `$HERMES_HOME/config.yaml`; keys Nix does
+    not declare survive rebuilds via the deep-merge.
+  - **HTTP API server**: `API_SERVER_KEY` is auto-generated into this file
+    (write-once, never regenerated) by the `hermes-secret-init` oneshot before
+    the agent starts — nothing to fill manually.
+  - **Deferred, keyed the same way**: image generation (`FAL_KEY`), X search
+    (`XAI_API_KEY`), cloud browser, cloud TTS/STT, extra search/extract
+    backends, hosted memory providers, and the other messaging platforms.
+    (`computer_use` is macOS-only and cannot run in the VM regardless.)
+- Tailscale (no secret file) — vasyl is its own tailnet node; authenticate
+  once with `sudo tailscale up --ssh` (interactive browser login; needs
+  vasyl's NAT'd internet through `spark`). Node state persists on the
+  volume — no re-auth across reboots.
+
+On `spark` (host), for the Parakeet NIM STT container — both take the same
+free NGC API key from [ngc.nvidia.com](https://ngc.nvidia.com):
+
+- `/var/lib/nim/ngc-key` (0600 root) — the raw key; used with the literal
+  `$oauthtoken` username to log in to `nvcr.io` and pull the image.
+- `/var/lib/nim/ngc.env` (0600 root) — `NGC_API_KEY=<same key>`, the
+  container's model-download credential. After filling both:
+  `sudo systemctl restart docker-parakeet-nim`.
+
 ## Systems
 
 | Host     | Platform         | Role              | Specs                     |
@@ -103,7 +147,11 @@ upgrades with `brew upgrade` by default.
 `vasyl` is a [microvm.nix][microvm-nix] guest built and deployed together with
 `spark`: rebuilding the host updates and restarts the VM. It runs
 [Hermes Agent][hermes-agent] against the host's Ollama over a private tap
-network; see [`nix/systems/aarch64-linux/vasyl/`](/nix/systems/aarch64-linux/vasyl/).
+network, with a local SearXNG instance backing web search and the host GPU
+serving voice (Parakeet NIM STT in a container, Kokoro TTS as a pure-Nix CUDA
+service); credentials are filled manually in host-local files — see
+[Secrets](#secrets) and
+[`nix/systems/aarch64-linux/vasyl/`](/nix/systems/aarch64-linux/vasyl/).
 
 ## Development
 
