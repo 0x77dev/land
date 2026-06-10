@@ -348,9 +348,19 @@ in
   # out-compiles the Grace cores even on aarch64 via binfmt, and frees the
   # Spark for inference. The kokoro stack's from-source torch-CUDA build is
   # exactly the job this exists for.
+  #
+  # The nix-daemon runs as root, so it authenticates to muscle with a
+  # dedicated root-readable key (one-time: generate /root/.ssh/id_ed25519 on
+  # spark, append its pubkey to mykhailo@muscle's authorized_keys — same
+  # manual-key discipline as the NGC/Matrix secrets). A passwordless key is
+  # what makes the offload work unattended (e.g. nightly autoUpgrade), where
+  # the YubiKey-backed agent below is unavailable.
   nix = {
     distributedBuilds = true;
-    buildMachines = muscle.mkMachines { sshUser = "mykhailo"; };
+    buildMachines = muscle.mkMachines {
+      sshUser = "mykhailo";
+      sshKey = "/root/.ssh/id_ed25519";
+    };
   };
   programs.ssh.knownHosts.muscle = muscle.knownHost;
 
