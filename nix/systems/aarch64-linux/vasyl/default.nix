@@ -63,14 +63,22 @@ in
       }
     ];
 
-    # AF_VSOCK channel: boot-readiness signaling to the host and the control
-    # edge for future tooling. Setting a cid makes the runner advertise
-    # supportsNotifySocket, which flips the host's microvm@vasyl unit to
-    # Type=notify: the host then REQUIRES the guest to send READY=1 over
-    # vsock (host CID 2 port 8888, socat-bridged into the unit's
+    # AF_VSOCK channel: boot-readiness signaling to the host plus shell access
+    # without touching the network path. Setting a cid makes the runner
+    # advertise supportsNotifySocket, which flips the host's microvm@vasyl
+    # unit to Type=notify: the host then REQUIRES the guest to send READY=1
+    # over vsock (host CID 2 port 8888, socat-bridged into the unit's
     # NOTIFY_SOCKET) — otherwise it kills the healthy VM at startupTimeout
     # (150s) and restart-loops forever.
-    vsock.cid = 3;
+    vsock = {
+      cid = 3;
+      # `microvm -s vasyl -l mykhailo` from spark (root login is off here, so
+      # the command's default `-l root` is refused by sshd). The listener is
+      # sshd-vsock.socket from systemd-ssh-generator, which only materializes
+      # when /dev/vsock + a CID exist at *generator* time — see the initrd
+      # module below.
+      ssh.enable = true;
+    };
 
     # ...and that READY=1 needs a working delivery path. microvm.nix tells
     # guest systemd where to notify via an SMBIOS Type 11 OEM-string
@@ -120,11 +128,17 @@ in
     writableStoreOverlay = "/nix/.rw-store";
   };
 
-  # PID 1 sends READY=1 exactly once, at startup-finished, over AF_VSOCK.
-  # The virtio vsock transport is =m in the stock kernel; modules-load
-  # (sysinit, strictly before startup-finished) makes it deterministically
-  # present for that one-shot send, where udev coldplug is merely fast.
-  boot.kernelModules = [ "vmw_vsock_virtio_transport" ];
+  # The virtio vsock transport is =m in the stock kernel and BOTH in-guest
+  # vsock consumers need it earlier than udev coldplug or modules-load can
+  # guarantee:
+  #   - systemd-ssh-generator probes AF_VSOCK + /dev/vsock CID at generator
+  #     time — before ANY unit runs — and silently skips creating
+  #     sshd-vsock.socket (the `microvm -s` listener) if it is not there yet;
+  #   - PID 1 sends READY=1 exactly once, at startup-finished.
+  # Stage 1 is the only point early enough for the generator, so force-load
+  # it in the initrd (virtio_pci is already there for the root volume, so the
+  # device probes and gets its CID before stage 2 hands off).
+  boot.initrd.kernelModules = [ "vmw_vsock_virtio_transport" ];
 
   # Hermes Agent — the VM is the sandbox, so the terminal backend is plain
   # `local`: no coordinator/executor split, no SSH executor. The `full`
