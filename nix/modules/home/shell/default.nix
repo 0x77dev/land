@@ -72,6 +72,7 @@ in
       coreutils
       devenv
       direnv
+      eza
       fd
       ripgrep
       ast-grep
@@ -80,6 +81,7 @@ in
       glow
       hwatch
       starship
+      tree
       watchexec
       yazi
       zoxide
@@ -167,6 +169,8 @@ in
         nix-direnv.enable = true;
         enableZshIntegration = false;
       };
+
+      tmux.enable = true;
 
       zoxide = {
         enable = true;

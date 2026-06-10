@@ -53,8 +53,10 @@ in
 
     max-jobs = "auto";
     cores = 0;
-    min-free = 1073741824; # 1 GiB
-    max-free = 4294967296; # 4 GiB
+    # mkDefault so a host with an overlay store (vasyl) can disarm the in-daemon
+    # auto-GC by setting these to 0; every other host keeps these values.
+    min-free = lib.mkDefault 1073741824; # 1 GiB
+    max-free = lib.mkDefault 4294967296; # 4 GiB
     connect-timeout = 5;
     download-speed = 0;
     narinfo-cache-negative-ttl = 0;
@@ -64,11 +66,11 @@ in
   };
 
   gc = {
-    automatic = true;
+    automatic = lib.mkDefault true;
     options = "--delete-older-than 14d";
   };
 
-  optimise.automatic = true;
+  optimise.automatic = lib.mkDefault true;
 
   distributedBuilds = lib.mkDefault false;
 }

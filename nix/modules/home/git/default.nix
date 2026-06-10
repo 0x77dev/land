@@ -13,6 +13,12 @@ in
 {
   options.modules.home.git = {
     enable = mkEnableOption "git";
+
+    signing = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Sign commits and tags with the YubiKey-backed key.";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -21,7 +27,7 @@ in
         enable = true;
         package = pkgs.gitFull;
         lfs.enable = true;
-        signing = {
+        signing = mkIf cfg.signing {
           key = "A6337A4AB36481FB18A4FCC5F1171FAAAA237211";
           signByDefault = true;
         };
@@ -31,9 +37,9 @@ in
             email = "mykhailo@0x77.dev";
             useConfigOnly = true;
           };
-          commit.gpgsign = true;
-          tag.gpgsign = true;
-          push.gpgSign = "if-asked";
+          commit.gpgsign = cfg.signing;
+          tag.gpgsign = cfg.signing;
+          push.gpgSign = mkIf cfg.signing "if-asked";
           gpg.program = "${pkgs.gnupg}/bin/gpg";
           gpg.format = "openpgp";
           init.defaultBranch = "main";

@@ -68,6 +68,16 @@
 
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
+    microvm = {
+      url = "github:microvm-nix/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      inputs.nixpkgs.follows = "unstable";
+    };
+
     nixos-raspberrypi = {
       url = "github:nvmd/nixos-raspberrypi/main";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -169,8 +179,19 @@
             ];
           };
 
-          hosts.timey.specialArgs = {
-            inherit (inputs) nixos-raspberrypi;
+          hosts = {
+            timey.specialArgs = {
+              inherit (inputs) nixos-raspberrypi;
+            };
+
+            # microvm.nix stays per-host: spark hosts VMs, vasyl is a guest.
+            spark.modules = with inputs; [
+              microvm.nixosModules.host
+            ];
+            vasyl.modules = with inputs; [
+              microvm.nixosModules.microvm
+              hermes-agent.nixosModules.default
+            ];
           };
         };
       };

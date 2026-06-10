@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  inputs,
   namespace,
   ...
 }:
@@ -12,8 +13,54 @@ in
     hostName = "spark";
     domain = "osv.computer";
     # NetworkManager (GNOME's default) handles DHCP — networkd wouldn't lease here.
-    networkmanager.enable = true;
+    networkmanager = {
+      enable = true;
+      # MicroVM taps belong to networkd below, not NetworkManager.
+      unmanaged = [ "interface-name:vm-*" ];
+    };
     firewall.enable = false;
+
+    # Guest internet via NAT; no externalInterface needed (no port forwards),
+    # so masquerading follows whatever uplink NetworkManager has up.
+    nat = {
+      enable = true;
+      internalInterfaces = [ "vm-vasyl" ];
+    };
+  };
+
+  # vasyl — hermes-agent microVM (see nix/systems/aarch64-linux/vasyl).
+  # Built from this flake's nixosConfigurations with the host: rebuilding
+  # spark updates and restarts the VM (no imperative `microvm -u` step).
+  microvm.vms.vasyl = {
+    flake = inputs.self;
+    restartIfChanged = true;
+  };
+
+  # Host side of the VM edge: 10.77.0.1 ↔ 10.77.0.2 (vasyl) on a dedicated
+  # tap. The guest reaches Ollama at 10.77.0.1:11434 (it listens broadly).
+  # networkd only manages this tap; NetworkManager keeps the uplinks.
+  systemd.network = {
+    enable = true;
+    networks."40-vm-vasyl" = {
+      matchConfig.Name = "vm-vasyl";
+      address = [ "10.77.0.1/24" ];
+    };
+  };
+
+  # Forwarding resolver for vasyl: an extra stub listener on the tap edge so
+  # the guest inherits whatever upstream DNS spark currently uses (guest →
+  # 10.77.0.1 → host upstreams) instead of hardcoding resolvers in the guest.
+  # The stub freebinds, so it comes up before the tap exists; NetworkManager
+  # integrates with resolved automatically once it is enabled. The host
+  # firewall is off, so no port-53 opening is needed.
+  services.resolved = {
+    enable = true;
+    settings.Resolve.DNSStubListenerExtra = "10.77.0.1";
+
+    # Empty fallback: vasyl inherits spark's upstreams via the stub above, so if
+    # spark ever has no upstream, resolution must fail loudly here instead of
+    # silently leaking to systemd's compiled-in public resolvers.
+    settings.Resolve.FallbackDNS = [ ];
   };
 
   systemd = {
@@ -99,8 +146,49 @@ in
     # firewall is disabled and it's reachable over Tailscale).
     ollama = {
       enable = true;
-      package = pkgs.ollama-cuda;
+      # Root-cause fix for qwen3.6 tool-call drift → HTTP 500 (ollama/ollama#16383):
+      # carry the unmerged parser fix (ollama/ollama#16398, 2 commits) as source
+      # patches. Spark-only — other hosts keep the stock pkgs.ollama-cuda. Pure Go
+      # parser change + tests; no go.mod/go.sum impact, so vendorHash is untouched.
+      # Drop once the pinned channel's ollama contains the merged fix (the build
+      # fails loudly at patchPhase if upstream code drifts).
+      package = pkgs.ollama-cuda.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [
+          (pkgs.fetchpatch {
+            name = "ollama-qwen36-tolerate-tool-template-drift.patch";
+            url = "https://github.com/ollama/ollama/commit/beed6703d8fe3795049db45863458785774ef396.patch";
+            hash = "sha256-xh59I8WNHjkH2Rx1jsGl+8anjvGA/294yz5Z3dV87QY=";
+          })
+          (pkgs.fetchpatch {
+            name = "ollama-qwen36-skip-empty-tool-call-envelopes.patch";
+            url = "https://github.com/ollama/ollama/commit/769dcb5eb7bc8707aabf5de611a1dcb05ffa3ab5.patch";
+            hash = "sha256-kRSPiX+wJfv7HOKhaxP50ZHUdPIOhXbjdKp/0L8AYOU=";
+          })
+        ];
+      });
       host = "0.0.0.0";
+
+      # Models for vasyl's hermes-agent (see ../vasyl): pulled by the
+      # non-blocking ollama-model-loader.service, content-addressed (no-op
+      # when unchanged). syncModels stays off on purpose — it would GC any
+      # model pulled manually outside this list.
+      loadModels = [
+        "qwen3.6:35b-a3b-q8_0"
+        "gpt-oss:20b"
+      ];
+
+      environmentVariables = {
+        # Hermes hard-requires >=64K; vasyl's context_length must match.
+        OLLAMA_CONTEXT_LENGTH = "131072";
+        # Off by default; prerequisite for KV-cache quantization below,
+        # which halves KV memory (~2.7 → ~1.35 GB at 128K).
+        OLLAMA_FLASH_ATTENTION = "1";
+        OLLAMA_KV_CACHE_TYPE = "q8_0";
+        # Agent box: don't evict the models after the 5m default.
+        OLLAMA_KEEP_ALIVE = "24h";
+        # KV is allocated per parallel slot — keep a single slot.
+        OLLAMA_NUM_PARALLEL = "1";
+      };
     };
   };
 
@@ -126,6 +214,22 @@ in
     buildMachines = muscle.mkMachines { sshUser = "mykhailo"; };
   };
   programs.ssh.knownHosts.muscle = muscle.knownHost;
+
+  # Nightly unattended upgrade: spark pulls the public land flake from GitHub and
+  # rebuilds itself (the 26.05 module adds `--refresh --flake` on its own). vasyl
+  # rides along — its `flake = self` attachment re-links and restarts the guest
+  # on switch, so no guest-side upgrade machinery is needed. allowReboot is on
+  # per Mykhailo: kernel/bootloader updates apply unattended, a brief Ollama
+  # interruption is accepted, and vasyl picks up new kernels on its restart
+  # regardless. Daily GC is already inherited from the shared nix-config.
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:0x77dev/land";
+    flags = [ "--print-build-logs" ];
+    dates = "04:00";
+    randomizedDelaySec = "45min";
+    allowReboot = true;
+  };
 
   snowfallorg.users.mykhailo = {
     create = true;

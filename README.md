@@ -98,6 +98,12 @@ upgrades with `brew upgrade` by default.
 | `beefy`  | `aarch64-darwin` | Media             | M2 Ultra, 64GB            |
 | `muscle` | `x86_64-linux`   | AI/Compute        | TR 7985WX, RTX6000, 250GB |
 | `ghost`  | `x86_64-linux`   | Fun               | T480, 16GB                |
+| `vasyl`  | `aarch64-linux`  | AI Agent          | microVM on `spark`        |
+
+`vasyl` is a [microvm.nix][microvm-nix] guest built and deployed together with
+`spark`: rebuilding the host updates and restarts the VM. It runs
+[Hermes Agent][hermes-agent] against the host's Ollama over a private tap
+network; see [`nix/systems/aarch64-linux/vasyl/`](/nix/systems/aarch64-linux/vasyl/).
 
 ## Development
 
@@ -170,3 +176,5 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [home-manager]: https://github.com/nix-community/home-manager
 [snowfall-lib]: https://snowfall.org
 [nixos-anywhere]: https://github.com/nix-community/nixos-anywhere
+[microvm-nix]: https://github.com/microvm-nix/microvm.nix
+[hermes-agent]: https://github.com/NousResearch/hermes-agent
