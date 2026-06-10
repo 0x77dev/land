@@ -211,7 +211,7 @@ in
   # Spark for inference.
   nix = {
     distributedBuilds = true;
-    buildMachines = muscle.mkMachines { sshUser = "mykhailo"; };
+    # buildMachines = muscle.mkMachines { sshUser = "mykhailo"; };
   };
   programs.ssh.knownHosts.muscle = muscle.knownHost;
 
