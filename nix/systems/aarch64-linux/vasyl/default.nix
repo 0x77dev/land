@@ -63,9 +63,27 @@ in
       }
     ];
 
-    # AF_VSOCK channel: lets cloud-hypervisor signal boot readiness over
-    # systemd-notify and serves as the control edge for future tooling.
+    # AF_VSOCK channel: boot-readiness signaling to the host and the control
+    # edge for future tooling. Setting a cid makes the runner advertise
+    # supportsNotifySocket, which flips the host's microvm@vasyl unit to
+    # Type=notify: the host then REQUIRES the guest to send READY=1 over
+    # vsock (host CID 2 port 8888, socat-bridged into the unit's
+    # NOTIFY_SOCKET) — otherwise it kills the healthy VM at startupTimeout
+    # (150s) and restart-loops forever.
     vsock.cid = 3;
+
+    # ...and that READY=1 needs a working delivery path. microvm.nix tells
+    # guest systemd where to notify via an SMBIOS Type 11 OEM-string
+    # credential (--platform oem_strings=[io.systemd.credential:...]), but
+    # cloud-hypervisor implements SMBIOS on x86_64 only (arch/src/x86_64/
+    # smbios.rs) — on aarch64 the string silently never reaches the guest,
+    # PID 1 never learns of vmm.notify_socket, and the boot times out as
+    # above. Hand PID 1 the same credential over the kernel cmdline instead:
+    # systemd imports systemd.set_credential= into the same system-credential
+    # set it reads vmm.notify_socket from (core/import-creds.c), so this is
+    # transport-equivalent to the SMBIOS string. Nothing secret here — it is
+    # only the notify address, fine in /proc/cmdline.
+    kernelParams = [ "systemd.set_credential=vmm.notify_socket:vsock-stream:2:8888" ];
 
     # ~1 TiB sparse root image, created and formatted by microvm.nix on first
     # start. All mutable state (hermes home, /home, /var, and the writable
@@ -101,6 +119,12 @@ in
     # `nix shell` in-guest (see NIX.md); guest-built paths survive reboots.
     writableStoreOverlay = "/nix/.rw-store";
   };
+
+  # PID 1 sends READY=1 exactly once, at startup-finished, over AF_VSOCK.
+  # The virtio vsock transport is =m in the stock kernel; modules-load
+  # (sysinit, strictly before startup-finished) makes it deterministically
+  # present for that one-shot send, where udev coldplug is merely fast.
+  boot.kernelModules = [ "vmw_vsock_virtio_transport" ];
 
   # Hermes Agent — the VM is the sandbox, so the terminal backend is plain
   # `local`: no coordinator/executor split, no SSH executor. The `full`
