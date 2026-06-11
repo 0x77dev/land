@@ -33,6 +33,8 @@ let
   hermesSecretEnv = "/var/lib/hermes/secret.env";
 
   searxngPort = 8888;
+  hermesWebhookPort = 8644;
+  hermesDashboardPort = 9119;
 in
 {
   # The agent workstation toolkit and the auto-generated ENVIRONMENT.md
@@ -192,39 +194,57 @@ in
       createUser = false;
 
       settings = {
-        # Declared default: spark's Ollama over the VM edge (documented
-        # custom-endpoint flow). Deliberately not the only provider — more
-        # (Vercel AI Gateway, a Codex subscription, ...) get layered in later via
-        # the now-mutable config (CLI/agent) or nix without fighting this
-        # baseline; that's also why the commit trailer is model-agnostic.
+        # Declared default: GPT-5.5 through the OpenAI Codex subscription, with
+        # OpenCode Go as a second paid route and spark's Ollama endpoint as the
+        # offline/local safety net. Credentials live in Hermes auth, not Nix;
+        # the local custom endpoint keeps its dummy key because Ollama ignores it.
         model = {
-          provider = "custom";
-          base_url = ollamaBaseUrl;
-          # Keep a real model name here — never "auto". "auto" is magic only
-          # as a *provider* (and in auxiliary slots); as a model name Ollama
-          # 404s it every turn and Hermes silently falls back to gpt-oss. The
-          # auto behavior we want already exists via fallback_providers and
-          # the auxiliary provider:"auto" resolution.
-          default = ollamaModel;
-          # Any non-empty value; Ollama ignores it.
-          api_key = "ollama";
-          # Hermes auto-detects the model MAX (262144) from /v1/models, not the
-          # server's effective window — must match spark's OLLAMA_CONTEXT_LENGTH
-          # or compression fires too late and requests overflow.
-          context_length = 131072;
-          supports_vision = true;
+          provider = "openai-codex";
+          default = "gpt-5.5";
         };
         fallback_providers = [
+          {
+            provider = "opencode-go";
+            model = "kimi-k2.6";
+          }
+          {
+            provider = "custom";
+            model = ollamaModel;
+            base_url = ollamaBaseUrl;
+            api_key = "ollama";
+            # Hermes auto-detects the model MAX (262144) from /v1/models, not the
+            # server's effective window — must match spark's OLLAMA_CONTEXT_LENGTH
+            # or compression fires too late and requests overflow.
+            context_length = 131072;
+            supports_vision = true;
+          }
           {
             provider = "custom";
             model = fallbackModel;
             base_url = ollamaBaseUrl;
+            api_key = "ollama";
+            context_length = 131072;
           }
         ];
-        auxiliary.compression = {
-          model = fallbackModel;
-          base_url = ollamaBaseUrl;
-          timeout = 240;
+        auxiliary = {
+          compression = {
+            provider = "custom";
+            model = fallbackModel;
+            base_url = ollamaBaseUrl;
+            timeout = 240;
+          };
+          # Smart approval uses Hermes' auxiliary task router. Pin it to the
+          # same Codex subscription/model as the main agent instead of letting
+          # auto-provider selection drift to a weaker or unfunded backend.
+          approval = {
+            provider = "openai-codex";
+            model = "gpt-5.5";
+            timeout = 30;
+          };
+        };
+        approvals = {
+          mode = "smart";
+          cron_mode = "deny";
         };
         compression = {
           enabled = true;
@@ -254,6 +274,17 @@ in
         };
         # web_search via the local SearXNG below (keyless, self-hosted).
         web.search_backend = "searxng";
+        # Webhooks are declared in config.yaml, not env-only, because the
+        # `hermes webhook` management CLI currently checks config state when
+        # deciding whether subscriptions may be managed. The secret remains in
+        # hermesSecretEnv below so no credential enters Nix.
+        platforms.webhook = {
+          enabled = true;
+          extra = {
+            host = "0.0.0.0";
+            port = hermesWebhookPort;
+          };
+        };
         # Voice — STT (Parakeet NIM) and TTS (Kokoro) run on spark's GPU and
         # serve OpenAI-compatible endpoints on the tap edge (see ../spark).
         # Both conventional voice tools and Hermes' realtime voice-mode issue
@@ -294,6 +325,11 @@ in
       # adapter just stays down, logged, until the key reaches .env).
       environment = {
         API_SERVER_ENABLED = "true";
+        WEBHOOK_ENABLED = "true";
+        WEBHOOK_PORT = toString hermesWebhookPort;
+        # Dashboard CLI defaults to 9119/127.0.0.1; keep the values explicit so
+        # the Tailscale route and service agree if the port ever moves.
+        HERMES_DASHBOARD_PORT = toString hermesDashboardPort;
         SEARXNG_URL = "http://127.0.0.1:${toString searxngPort}";
         # The TTS client resolves its API key from env only (config is not
         # consulted); any non-empty value — the kokoro shim doesn't check it.
@@ -371,8 +407,48 @@ in
     tailscale = {
       enable = true;
       openFirewall = true;
+      # Webhooks intentionally use public node-level Funnel (`AllowFunnel`),
+      # because external systems need to call them. Dashboard/control surfaces
+      # stay off Funnel and are exposed only on the tailnet below.
+      funnel = {
+        enable = true;
+        target = "http://127.0.0.1:${toString hermesWebhookPort}";
+      };
     };
   };
+
+  # Hermes dashboard WebUI. It is deliberately NOT exposed through Tailscale
+  # Funnel: it binds on the VM so Hermes' non-loopback OAuth gate engages, and
+  # the NixOS firewall below admits the port only from the tailnet interface.
+  # The OAuth client id belongs in ${hermesSecretEnv} as
+  # HERMES_DASHBOARD_OAUTH_CLIENT_ID; missing auth config makes Hermes fail
+  # closed instead of serving an unauthenticated control plane.
+  systemd.services.hermes-dashboard = {
+    description = "Hermes Agent dashboard WebUI";
+    after = [ "hermes-agent.service" ];
+    wants = [ "hermes-agent.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = {
+      HERMES_HOME = "${config.services.hermes-agent.stateDir}/.hermes";
+      HOME = config.services.hermes-agent.stateDir;
+      HERMES_DASHBOARD_PORT = toString hermesDashboardPort;
+    };
+
+    serviceConfig = {
+      User = config.services.hermes-agent.user;
+      Group = config.services.hermes-agent.group;
+      WorkingDirectory = config.services.hermes-agent.workingDirectory;
+      ExecStart = "${lib.getExe config.services.hermes-agent.package} dashboard --host 0.0.0.0 --port ${toString hermesDashboardPort} --no-open --skip-build";
+      Restart = "on-failure";
+      RestartSec = "5s";
+    };
+  };
+
+  # Tailnet-only dashboard ingress. Do not add this port to global
+  # allowedTCPPorts: the dashboard is a control plane and must not be reachable
+  # from the public internet or the VM tap edge.
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ hermesDashboardPort ];
 
   # Machine-wide git policy, covering both mykhailo and the hermes daemon:
   # Mykhailo's identity, no signing (no YubiKey inside the VM), and the Linux
@@ -513,6 +589,8 @@ in
         script = ''
           grep -q '^API_SERVER_KEY=' ${hermesSecretEnv} ||
             echo "API_SERVER_KEY=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
+          grep -q '^WEBHOOK_SECRET=' ${hermesSecretEnv} ||
+            echo "WEBHOOK_SECRET=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
         '';
       };
 
