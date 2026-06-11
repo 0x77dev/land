@@ -258,6 +258,17 @@ in
         };
         # web_search via the local SearXNG below (keyless, self-hosted).
         web.search_backend = "searxng";
+        # Webhooks are declared in config.yaml, not env-only, because the
+        # `hermes webhook` management CLI currently checks config state when
+        # deciding whether subscriptions may be managed. The secret remains in
+        # hermesSecretEnv below so no credential enters Nix.
+        platforms.webhook = {
+          enabled = true;
+          extra = {
+            host = "0.0.0.0";
+            port = hermesWebhookPort;
+          };
+        };
         # Voice — STT (Parakeet NIM) and TTS (Kokoro) run on spark's GPU and
         # serve OpenAI-compatible endpoints on the tap edge (see ../spark).
         # Both conventional voice tools and Hermes' realtime voice-mode issue
