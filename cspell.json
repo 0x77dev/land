@@ -848,7 +848,8 @@
     "muxer",
     "spacy",
     "setgid",
-    "EACCES"
+    "EACCES",
+    "mkstemp"
   ],
   "ignorePaths": [
     ".cursor/rules",

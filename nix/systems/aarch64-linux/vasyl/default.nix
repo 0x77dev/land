@@ -574,6 +574,33 @@ in
           nix-store --delete "''${delete[@]}"
         '';
       };
+
+      # Hermes re-tightens $HERMES_HOME/.env to 0600 ~1s into startup: it
+      # rewrites the file via tempfile.mkstemp (born 0600) + atomic replace
+      # during config migration, and its _secure_file() only ever tightens and
+      # no-ops in managed mode — so neither the activation relabel nor the
+      # .hermes default ACL keeps .env group-readable (a 0600-created file
+      # zeroes the inherited ACL mask). Re-assert 0660 hermes:hermes on every
+      # change, so mykhailo (hermes group) keeps read access for `hermes chat`.
+      # chmod/chown emit IN_ATTRIB, which PathChanged ignores — no self-trigger.
+      hermes-env-perms = {
+        path = [ pkgs.coreutils ];
+        serviceConfig.Type = "oneshot";
+        script = ''
+          f=${config.services.hermes-agent.stateDir}/.hermes/.env
+          [ -e "$f" ] || exit 0
+          chown hermes:hermes "$f"
+          chmod 0660 "$f"
+        '';
+      };
+    };
+
+    paths.hermes-env-perms = {
+      wantedBy = [ "multi-user.target" ];
+      pathConfig = {
+        PathChanged = "${config.services.hermes-agent.stateDir}/.hermes/.env";
+        Unit = "hermes-env-perms.service";
+      };
     };
 
     timers.nix-upper-gc = {
