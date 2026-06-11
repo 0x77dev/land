@@ -241,6 +241,11 @@ in
         ];
         terminal = {
           backend = "local";
+          # Canonical home of the agent's working directory (the gateway
+          # bridges it to TERMINAL_CWD). Supersedes the deprecated
+          # MESSAGING_CWD the module still injects into the unit env —
+          # scrubbed via UnsetEnvironment below.
+          cwd = config.services.hermes-agent.workingDirectory;
           timeout = 180;
         };
         memory = {
@@ -515,6 +520,20 @@ in
       hermes-agent = {
         wants = [ "hermes-secret-init.service" ];
         after = [ "hermes-secret-init.service" ];
+        serviceConfig = {
+          # The hermes module unconditionally puts the deprecated
+          # MESSAGING_CWD into the unit env (settings.terminal.cwd above is
+          # the canonical replacement, same value). Re-defining the env key
+          # would conflict without mkForce, so strip it from the final
+          # process env instead — UnsetEnvironment applies after
+          # Environment= — and the gateway's startup deprecation warning
+          # stays quiet.
+          UnsetEnvironment = "MESSAGING_CWD";
+          # Cover the gateway's 180s restart drain plus the 30s headroom its
+          # startup check expects; the module leaves systemd's 90s default,
+          # which would SIGKILL the gateway mid-drain.
+          TimeoutStopSec = "210s";
+        };
       };
 
       nix-upper-gc = {
@@ -565,6 +584,34 @@ in
         RandomizedDelaySec = "1h";
       };
     };
+  };
+
+  # Make HERMES_HOME genuinely shared between the hermes daemon and mykhailo —
+  # both in the hermes group (see addToSystemPackages, groups.hermes, and
+  # mykhailo's membership below). The module already gives the daemon UMask
+  # 0007 and sets /var/lib/hermes + .hermes to 2770 (setgid), but two distinct
+  # UIDs write here: the module's activation installs .env 0640 (group can't
+  # write), readline creates .hermes_history 0600 on first use, and stale live
+  # files predate the group-share intent — so `hermes chat` as mykhailo hits
+  # EACCES on .env / .hermes_history. Fix in one place, ordered right after the
+  # module's "hermes-agent-setup" (which rewrites .env every activation): a
+  # default ACL makes NEW files group-rw regardless of the creator's umask, and
+  # a recursive pass relabels the already-created tree (the fresh 0640 .env
+  # included) to group-rw. Scoped to .hermes only — secret.env is a sibling at
+  # 0600 and must stay unexposed.
+  system.activationScripts.hermes-shared-perms = {
+    deps = [ "hermes-agent-setup" ];
+    text = ''
+      home=${config.services.hermes-agent.stateDir}/.hermes
+      if [ -d "$home" ]; then
+        # readline opens history 0600 on create, locking out the other group
+        # UID; pre-create it group-writable so both only ever append.
+        [ -e "$home/.hermes_history" ] ||
+          install -o hermes -g hermes -m 0660 /dev/null "$home/.hermes_history"
+        ${pkgs.acl}/bin/setfacl -R -d -m g::rwX "$home"
+        ${pkgs.acl}/bin/setfacl -R -m g::rwX "$home"
+      fi
+    '';
   };
 
   security.sudo.wheelNeedsPassword = false;

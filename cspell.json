@@ -846,7 +846,9 @@
     "headerless",
     "misaki",
     "muxer",
-    "spacy"
+    "spacy",
+    "setgid",
+    "EACCES"
   ],
   "ignorePaths": [
     ".cursor/rules",
