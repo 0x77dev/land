@@ -192,33 +192,36 @@ in
       createUser = false;
 
       settings = {
-        # Declared default: spark's Ollama over the VM edge (documented
-        # custom-endpoint flow). Deliberately not the only provider — more
-        # (Vercel AI Gateway, a Codex subscription, ...) get layered in later via
-        # the now-mutable config (CLI/agent) or nix without fighting this
-        # baseline; that's also why the commit trailer is model-agnostic.
+        # Declared default: GPT-5.5 through the OpenAI Codex subscription, with
+        # OpenCode Go as a second paid route and spark's Ollama endpoint as the
+        # offline/local safety net. Credentials live in Hermes auth, not Nix;
+        # the local custom endpoint keeps its dummy key because Ollama ignores it.
         model = {
-          provider = "custom";
-          base_url = ollamaBaseUrl;
-          # Keep a real model name here — never "auto". "auto" is magic only
-          # as a *provider* (and in auxiliary slots); as a model name Ollama
-          # 404s it every turn and Hermes silently falls back to gpt-oss. The
-          # auto behavior we want already exists via fallback_providers and
-          # the auxiliary provider:"auto" resolution.
-          default = ollamaModel;
-          # Any non-empty value; Ollama ignores it.
-          api_key = "ollama";
-          # Hermes auto-detects the model MAX (262144) from /v1/models, not the
-          # server's effective window — must match spark's OLLAMA_CONTEXT_LENGTH
-          # or compression fires too late and requests overflow.
-          context_length = 131072;
-          supports_vision = true;
+          provider = "openai-codex";
+          default = "gpt-5.5";
         };
         fallback_providers = [
+          {
+            provider = "opencode-go";
+            model = "kimi-k2.6";
+          }
+          {
+            provider = "custom";
+            model = ollamaModel;
+            base_url = ollamaBaseUrl;
+            api_key = "ollama";
+            # Hermes auto-detects the model MAX (262144) from /v1/models, not the
+            # server's effective window — must match spark's OLLAMA_CONTEXT_LENGTH
+            # or compression fires too late and requests overflow.
+            context_length = 131072;
+            supports_vision = true;
+          }
           {
             provider = "custom";
             model = fallbackModel;
             base_url = ollamaBaseUrl;
+            api_key = "ollama";
+            context_length = 131072;
           }
         ];
         auxiliary.compression = {
