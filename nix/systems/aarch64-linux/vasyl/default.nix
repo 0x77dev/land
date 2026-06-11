@@ -34,6 +34,7 @@ let
 
   searxngPort = 8888;
   hermesWebhookPort = 8644;
+  hermesDashboardPort = 9119;
 in
 {
   # The agent workstation toolkit and the auto-generated ENVIRONMENT.md
@@ -225,10 +226,25 @@ in
             context_length = 131072;
           }
         ];
-        auxiliary.compression = {
-          model = fallbackModel;
-          base_url = ollamaBaseUrl;
-          timeout = 240;
+        auxiliary = {
+          compression = {
+            provider = "custom";
+            model = fallbackModel;
+            base_url = ollamaBaseUrl;
+            timeout = 240;
+          };
+          # Smart approval uses Hermes' auxiliary task router. Pin it to the
+          # same Codex subscription/model as the main agent instead of letting
+          # auto-provider selection drift to a weaker or unfunded backend.
+          approval = {
+            provider = "openai-codex";
+            model = "gpt-5.5";
+            timeout = 30;
+          };
+        };
+        approvals = {
+          mode = "smart";
+          cron_mode = "deny";
         };
         compression = {
           enabled = true;
@@ -311,6 +327,9 @@ in
         API_SERVER_ENABLED = "true";
         WEBHOOK_ENABLED = "true";
         WEBHOOK_PORT = toString hermesWebhookPort;
+        # Dashboard CLI defaults to 9119/127.0.0.1; keep the values explicit so
+        # the Tailscale route and service agree if the port ever moves.
+        HERMES_DASHBOARD_PORT = toString hermesDashboardPort;
         SEARXNG_URL = "http://127.0.0.1:${toString searxngPort}";
         # The TTS client resolves its API key from env only (config is not
         # consulted); any non-empty value — the kokoro shim doesn't check it.
@@ -388,15 +407,48 @@ in
     tailscale = {
       enable = true;
       openFirewall = true;
-      # Nixpkgs' `services.tailscale.serve` covers tailnet Services (`svc:*`)
-      # but not public node-level Funnel (`AllowFunnel`). Use the local module
-      # extension for the upstream gap instead of an inline host oneshot.
+      # Webhooks intentionally use public node-level Funnel (`AllowFunnel`),
+      # because external systems need to call them. Dashboard/control surfaces
+      # stay off Funnel and are exposed only on the tailnet below.
       funnel = {
         enable = true;
         target = "http://127.0.0.1:${toString hermesWebhookPort}";
       };
     };
   };
+
+  # Hermes dashboard WebUI. It is deliberately NOT exposed through Tailscale
+  # Funnel: it binds on the VM so Hermes' non-loopback OAuth gate engages, and
+  # the NixOS firewall below admits the port only from the tailnet interface.
+  # The OAuth client id belongs in ${hermesSecretEnv} as
+  # HERMES_DASHBOARD_OAUTH_CLIENT_ID; missing auth config makes Hermes fail
+  # closed instead of serving an unauthenticated control plane.
+  systemd.services.hermes-dashboard = {
+    description = "Hermes Agent dashboard WebUI";
+    after = [ "hermes-agent.service" ];
+    wants = [ "hermes-agent.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = {
+      HERMES_HOME = "${config.services.hermes-agent.stateDir}/.hermes";
+      HOME = config.services.hermes-agent.stateDir;
+      HERMES_DASHBOARD_PORT = toString hermesDashboardPort;
+    };
+
+    serviceConfig = {
+      User = config.services.hermes-agent.user;
+      Group = config.services.hermes-agent.group;
+      WorkingDirectory = config.services.hermes-agent.workingDirectory;
+      ExecStart = "${lib.getExe config.services.hermes-agent.package} dashboard --host 0.0.0.0 --port ${toString hermesDashboardPort} --no-open --skip-build";
+      Restart = "on-failure";
+      RestartSec = "5s";
+    };
+  };
+
+  # Tailnet-only dashboard ingress. Do not add this port to global
+  # allowedTCPPorts: the dashboard is a control plane and must not be reachable
+  # from the public internet or the VM tap edge.
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ hermesDashboardPort ];
 
   # Machine-wide git policy, covering both mykhailo and the hermes daemon:
   # Mykhailo's identity, no signing (no YubiKey inside the VM), and the Linux
