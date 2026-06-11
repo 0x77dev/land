@@ -33,6 +33,7 @@ let
   hermesSecretEnv = "/var/lib/hermes/secret.env";
 
   searxngPort = 8888;
+  hermesWebhookPort = 8644;
 in
 {
   # The agent workstation toolkit and the auto-generated ENVIRONMENT.md
@@ -297,6 +298,8 @@ in
       # adapter just stays down, logged, until the key reaches .env).
       environment = {
         API_SERVER_ENABLED = "true";
+        WEBHOOK_ENABLED = "true";
+        WEBHOOK_PORT = toString hermesWebhookPort;
         SEARXNG_URL = "http://127.0.0.1:${toString searxngPort}";
         # The TTS client resolves its API key from env only (config is not
         # consulted); any non-empty value — the kokoro shim doesn't check it.
@@ -374,6 +377,13 @@ in
     tailscale = {
       enable = true;
       openFirewall = true;
+      # Nixpkgs' `services.tailscale.serve` covers tailnet Services (`svc:*`)
+      # but not public node-level Funnel (`AllowFunnel`). Use the local module
+      # extension for the upstream gap instead of an inline host oneshot.
+      funnel = {
+        enable = true;
+        target = "http://127.0.0.1:${toString hermesWebhookPort}";
+      };
     };
   };
 
@@ -516,6 +526,8 @@ in
         script = ''
           grep -q '^API_SERVER_KEY=' ${hermesSecretEnv} ||
             echo "API_SERVER_KEY=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
+          grep -q '^WEBHOOK_SECRET=' ${hermesSecretEnv} ||
+            echo "WEBHOOK_SECRET=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
         '';
       };
 
