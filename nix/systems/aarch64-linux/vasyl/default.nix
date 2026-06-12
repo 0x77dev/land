@@ -340,10 +340,12 @@ in
         stt = {
           provider = "openai";
           openai = {
-            # Any non-empty value; the NIM endpoint is unauthenticated.
+            # Any non-empty value; the Parakeet shim is unauthenticated.
             api_key = "local";
-            base_url = "http://${hostAddress}:9000/v1";
-            # Any non-"whisper-1" model name makes Hermes request plain JSON.
+            base_url = "http://${hostAddress}:8102/v1";
+            # The shim accepts the normal OpenAI multipart shape and ignores
+            # the model because raw Parakeet NIM selects its profile by
+            # language internally.
             model = "parakeet";
           };
         };

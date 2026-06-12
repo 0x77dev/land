@@ -42,6 +42,13 @@ let
     # it spacy.cli.download()s at startup → crash-loop offline.
     ps.spacy-models.en_core_web_sm
   ]);
+
+  parakeetShimPython = pkgs.python3.withPackages (ps: [
+    ps.fastapi
+    ps.httpx
+    ps.python-multipart
+    ps.uvicorn
+  ]);
 in
 {
   networking = {
@@ -115,46 +122,79 @@ in
       AllowHybridSleep = "no";
     };
 
-    # The nix-daemon authenticates to muscle via the YubiKey, exposed through
-    # mykhailo's gpg-agent ssh socket (same as the Darwin hosts' launchd setup).
-    # uid 1000 = first normal user (uids are auto-allocated, so not in eval).
-    services.nix-daemon.environment.SSH_AUTH_SOCK = "/run/user/1000/gnupg/S.gpg-agent.ssh";
+    services = {
+      # The nix-daemon authenticates to muscle via the YubiKey, exposed through
+      # mykhailo's gpg-agent ssh socket (same as the Darwin hosts' launchd setup).
+      # uid 1000 = first normal user (uids are auto-allocated, so not in eval).
+      nix-daemon.environment.SSH_AUTH_SOCK = "/run/user/1000/gnupg/S.gpg-agent.ssh";
 
-    # TTS for vasyl: Kokoro-82M on CUDA, pure Nix — torch from this host's
-    # cudaSupport package set plus the pinned weights above, no container.
-    # (The stock ghcr.io/remsky/kokoro-fastapi-gpu arm64 image is broken on
-    # sm_121; if this from-source path ever becomes untenable, a self-built
-    # CUDA container would be the fallback.) The ~60-line shim serves
-    # OpenAI-compatible /v1/audio/speech.
-    services.kokoro-openai = {
-      description = "Kokoro-82M TTS (OpenAI-compatible) for vasyl";
-      wantedBy = [ "multi-user.target" ];
-      # Binds the tap edge; if 10.77.0.1 isn't up yet the bind fails and the
-      # restart loop converges once networkd has the address.
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
-      path = [ pkgs.ffmpeg ];
-      environment = {
-        # Weights are pinned in the store — never touch the hub.
-        HF_HUB_OFFLINE = "1";
-        KOKORO_CONFIG = "${kokoroConfig}";
-        KOKORO_MODEL = "${kokoroModel}";
-        KOKORO_VOICES = "am_michael=${kokoroVoiceMichael}";
-        KOKORO_HOST = "10.77.0.1";
-        KOKORO_PORT = "8101";
-        # Writable HOME for the CUDA/torch JIT caches under DynamicUser.
-        HOME = "/var/cache/kokoro-openai";
+      # TTS for vasyl: Kokoro-82M on CUDA, pure Nix — torch from this host's
+      # cudaSupport package set plus the pinned weights above, no container.
+      # (The stock ghcr.io/remsky/kokoro-fastapi-gpu arm64 image is broken on
+      # sm_121; if this from-source path ever becomes untenable, a self-built
+      # CUDA container would be the fallback.) The ~60-line shim serves
+      # OpenAI-compatible /v1/audio/speech.
+      kokoro-openai = {
+        description = "Kokoro-82M TTS (OpenAI-compatible) for vasyl";
+        wantedBy = [ "multi-user.target" ];
+        # Binds the tap edge; if 10.77.0.1 isn't up yet the bind fails and the
+        # restart loop converges once networkd has the address.
+        after = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+        path = [ pkgs.ffmpeg ];
+        environment = {
+          # Weights are pinned in the store — never touch the hub.
+          HF_HUB_OFFLINE = "1";
+          KOKORO_CONFIG = "${kokoroConfig}";
+          KOKORO_MODEL = "${kokoroModel}";
+          KOKORO_VOICES = "am_michael=${kokoroVoiceMichael}";
+          KOKORO_HOST = "10.77.0.1";
+          KOKORO_PORT = "8101";
+          # Writable HOME for the CUDA/torch JIT caches under DynamicUser.
+          HOME = "/var/cache/kokoro-openai";
+        };
+        serviceConfig = {
+          ExecStart = "${kokoroPython}/bin/python ${./kokoro-shim.py}";
+          DynamicUser = true;
+          SupplementaryGroups = [
+            "render"
+            "video"
+          ];
+          CacheDirectory = "kokoro-openai";
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
       };
-      serviceConfig = {
-        ExecStart = "${kokoroPython}/bin/python ${./kokoro-shim.py}";
-        DynamicUser = true;
-        SupplementaryGroups = [
-          "render"
-          "video"
+
+      # STT for vasyl: an OpenAI-compatible facade in front of NVIDIA's
+      # Parakeet NIM. The raw NIM endpoint selects the DGX Spark profile by
+      # BCP-47 language and rejects arbitrary OpenAI `model` names; the shim
+      # accepts the normal OpenAI multipart shape from Hermes, ignores `model`,
+      # supplies `language=en-US`, and returns `{ "text": ... }`.
+      parakeet-openai = {
+        description = "Parakeet NIM STT (OpenAI-compatible) for vasyl";
+        wantedBy = [ "multi-user.target" ];
+        wants = [
+          "network-online.target"
+          "docker-parakeet-nim.service"
         ];
-        CacheDirectory = "kokoro-openai";
-        Restart = "on-failure";
-        RestartSec = 5;
+        after = [
+          "network-online.target"
+          "docker-parakeet-nim.service"
+        ];
+        environment = {
+          PARAKEET_HOST = "10.77.0.1";
+          PARAKEET_PORT = "8102";
+          PARAKEET_LANGUAGE = "en-US";
+          PARAKEET_UPSTREAM_URL = "http://127.0.0.1:9000/v1/audio/transcriptions";
+          PARAKEET_TIMEOUT_SECONDS = "300";
+        };
+        serviceConfig = {
+          ExecStart = "${parakeetShimPython}/bin/python ${./parakeet-openai-shim.py}";
+          DynamicUser = true;
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
       };
     };
 
@@ -201,8 +241,9 @@ in
     # STT for vasyl: Parakeet 1.1B RNNT Multilingual as an NVIDIA NIM — the
     # one justified container here (NVIDIA ships it CUDA-ready for Blackwell
     # and the DGX Spark per the speech NIM support matrix; it is the only
-    # Spark-supported Parakeet) serving OpenAI-compatible
-    # /v1/audio/transcriptions on the tap edge. GPU access is CDI:
+    # Spark-supported Parakeet). The raw NIM HTTP API is kept loopback-only;
+    # vasyl reaches it through the OpenAI-compatible parakeet-openai shim on
+    # the tap edge. GPU access is CDI:
     # hardware.nvidia-container-toolkit (dgx-spark module) generates the spec
     # and docker >= 28.2 has CDI on by default, so `--device=nvidia.com/gpu`
     # is the official path (no --runtime=nvidia wrapper on NixOS).
@@ -230,7 +271,7 @@ in
           # it ships no diarizer-disabled profiles, only sortformer+silero.
           NIM_TAGS_SELECTOR = "diarizer=sortformer,mode=ofl,type=default,vad=silero";
         };
-        ports = [ "10.77.0.1:9000:9000" ];
+        ports = [ "127.0.0.1:9000:9000" ];
         volumes = [ "/var/lib/nim/cache:/opt/nim/.cache" ];
         extraOptions = [
           "--device=nvidia.com/gpu=all"
