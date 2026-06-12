@@ -611,6 +611,15 @@ in
           # startup check expects; the module leaves systemd's 90s default,
           # which would SIGKILL the gateway mid-drain.
           TimeoutStopSec = "210s";
+          # The upstream module hardens with NoNewPrivileges = true, which
+          # blocks setuid for the whole process tree — the agent's
+          # passwordless sudo (security.sudo.extraRules below) would be dead
+          # letter under it. ProtectSystem = "strict" must fall with it:
+          # sudo'd children inherit the unit's mount namespace, so system
+          # activation would still see a read-only /etc. mkForce because the
+          # module sets plain values.
+          NoNewPrivileges = lib.mkForce false;
+          ProtectSystem = lib.mkForce false;
         };
       };
 
@@ -719,7 +728,27 @@ in
     '';
   };
 
-  security.sudo.wheelNeedsPassword = false;
+  # The VM is the sandbox: the hermes user gets passwordless sudo (per
+  # Mykhailo) so the agent can self-administer — activate built closures,
+  # restart units, inspect the system — without a host round-trip. The
+  # boundary stays the VM edge, not the uid.
+  security.sudo = {
+    wheelNeedsPassword = false;
+    extraRules = [
+      {
+        users = [ "hermes" ];
+        commands = [
+          {
+            command = "ALL";
+            options = [
+              "NOPASSWD"
+              "SETENV"
+            ];
+          }
+        ];
+      }
+    ];
+  };
 
   # System-level self-management over D-Bus — works under the unit's
   # NoNewPrivileges because PID 1 / polkitd do the privileged work outside the

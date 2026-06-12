@@ -533,6 +533,7 @@
     "Servarr",
     "setapp",
     "setsid",
+    "setuid",
     "Shamir",
     "shellcheck",
     "shiftwidth",
