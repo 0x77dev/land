@@ -262,15 +262,46 @@ in
           enabled = true;
           threshold = 0.5;
         };
-        # "all" expands to every toolset minus the default-off set (moa,
-        # homeassistant, spotify, video, x_search, ...). Explicitly listed
-        # names survive that subtraction; moa (mixture_of_agents) is the only
-        # default-off toolset that is purely local, so it is opted in here.
-        # The rest stay key-gated — see the README ("Secrets").
-        toolsets = [
-          "all"
-          "moa"
-        ];
+        # Tool exposure is per platform in current Hermes. The legacy
+        # top-level `toolsets` key is deprecated/ignored; keep the active
+        # platform defaults explicit so Matrix, API Server, cron, and the CLI
+        # retain their intended surfaces without relying on stale compatibility
+        # shims.
+        platform_toolsets = {
+          cli = [ "hermes-cli" ];
+          matrix = [ "hermes-matrix" ];
+          api_server = [ "hermes-api-server" ];
+          cron = [ "hermes-cron" ];
+          webhook = [ "hermes-webhook" ];
+        };
+
+        # Cursor-like multitasking in Hermes terms: native subagent delegation
+        # is enabled, bounded, and flat by default. The main agent decides when
+        # a task has real parallel structure; children inherit the primary
+        # model/provider route and cannot auto-approve dangerous commands.
+        delegation = {
+          max_iterations = 50;
+          max_concurrent_children = 3;
+          max_spawn_depth = 1;
+          orchestrator_enabled = true;
+          subagent_auto_approve = false;
+          inherit_mcp_toolsets = true;
+        };
+
+        # Keep durable scheduled work serialized until a job explicitly proves
+        # it is safe to parallelize; dangerous cron commands remain denied by
+        # approvals.cron_mode above.
+        cron.max_parallel_jobs = 1;
+
+        # Keep the kanban dispatcher visible in declarative config, but avoid
+        # surprising autonomous decomposition until dedicated worker profiles
+        # and isolated branch routing are deliberately added.
+        kanban = {
+          dispatch_in_gateway = true;
+          auto_decompose = false;
+          max_in_progress_per_profile = 1;
+        };
+
         terminal = {
           backend = "local";
           # Canonical home of the agent's working directory (the gateway
