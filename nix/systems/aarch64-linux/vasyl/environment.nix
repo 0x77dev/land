@@ -70,6 +70,19 @@ let
     shfmt
     uv
 
+    # Coding agents. These must be on both the system PATH and Hermes service
+    # PATH so Vasyl can delegate from Matrix/API sessions without per-user npm
+    # installs or mutable ~/.local shims. Cursor ships two CLIs: `cursor` from
+    # the editor package and `cursor-agent`/`agent` from Cursor's agent bundle.
+    pkgs.aider-chat
+    pkgs.claude-code
+    pkgs.code-cursor
+    codex
+    pkgs.land.cursor-agent
+    pkgs.gemini-cli
+    opencode
+    pkgs.qwen-code
+
     # Code search, diffs, and watch/bench/task runners. ast-grep (structural
     # search/rewrite) is agent-critical, so it is repeated here for the service
     # user like ripgrep/fd despite living in the shared shell module. entr
