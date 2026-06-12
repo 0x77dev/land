@@ -314,9 +314,14 @@ in
             model = "kokoro";
           };
         };
-        # Bundled plugins are opt-in by design; disk-cleanup (auto-removal of
-        # session temp files via hooks) is the only keyless one worth having.
-        plugins.enabled = [ "disk-cleanup" ];
+        # Bundled plugins are opt-in by design. Enable only the pieces this VM
+        # intentionally operates: disk-cleanup for session temp-file GC, and
+        # basic dashboard auth so the tailnet-exposed dashboard can bind
+        # non-loopback without falling back to --insecure.
+        plugins.enabled = [
+          "dashboard_auth/basic"
+          "disk-cleanup"
+        ];
       };
 
       # Non-secret env, merged into $HERMES_HOME/.env at activation. The HTTP
@@ -420,13 +425,21 @@ in
   # Hermes dashboard WebUI. It is deliberately NOT exposed through Tailscale
   # Funnel: it binds on the VM so Hermes' non-loopback OAuth gate engages, and
   # the NixOS firewall below admits the port only from the tailnet interface.
-  # The OAuth client id belongs in ${hermesSecretEnv} as
-  # HERMES_DASHBOARD_OAUTH_CLIENT_ID; missing auth config makes Hermes fail
+  # The dashboard password is intentionally local-only: the dashboard is a
+  # tailnet control plane, not public ingress. hermes-secret-init below writes
+  # the basic-auth password once into ${hermesSecretEnv}; read it there instead
+  # of putting credentials in Nix. Missing auth config still makes Hermes fail
   # closed instead of serving an unauthenticated control plane.
   systemd.services.hermes-dashboard = {
     description = "Hermes Agent dashboard WebUI";
-    after = [ "hermes-agent.service" ];
-    wants = [ "hermes-agent.service" ];
+    after = [
+      "hermes-agent.service"
+      "hermes-secret-init.service"
+    ];
+    wants = [
+      "hermes-agent.service"
+      "hermes-secret-init.service"
+    ];
     wantedBy = [ "multi-user.target" ];
 
     environment = {
@@ -439,6 +452,7 @@ in
       User = config.services.hermes-agent.user;
       Group = config.services.hermes-agent.group;
       WorkingDirectory = config.services.hermes-agent.workingDirectory;
+      EnvironmentFile = hermesSecretEnv;
       ExecStart = "${lib.getExe config.services.hermes-agent.package} dashboard --host 0.0.0.0 --port ${toString hermesDashboardPort} --no-open --skip-build";
       Restart = "on-failure";
       RestartSec = "5s";
@@ -574,12 +588,12 @@ in
     ];
 
     # Write-once generation of INTERNAL self-secrets — keys hermes alone
-    # consumes, with no external issuer. Today that is API_SERVER_KEY (the
-    # HTTP API server's bearer key): appended to the secret file only if
-    # absent, never regenerated. External credentials (Matrix) stay manual —
-    # see the README ("Secrets"). The hermes module merges the
-    # secret file into $HERMES_HOME/.env at activation, so the key is live
-    # from the first activation/boot after it is generated.
+    # consumes, with no external issuer. Today that covers the HTTP API bearer
+    # token, webhook signing secret, and dashboard basic-auth credentials:
+    # appended to the secret file only if absent, never regenerated. External
+    # credentials (Matrix) stay manual — see the README ("Secrets"). The hermes
+    # module merges the secret file into $HERMES_HOME/.env at activation, so the
+    # key is live from the first activation/boot after it is generated.
     services = {
       hermes-secret-init = {
         description = "Generate internal hermes-agent secrets (write-once)";
@@ -591,6 +605,12 @@ in
             echo "API_SERVER_KEY=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
           grep -q '^WEBHOOK_SECRET=' ${hermesSecretEnv} ||
             echo "WEBHOOK_SECRET=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
+          grep -q '^HERMES_DASHBOARD_BASIC_AUTH_USERNAME=' ${hermesSecretEnv} ||
+            echo "HERMES_DASHBOARD_BASIC_AUTH_USERNAME=mykhailo" >> ${hermesSecretEnv}
+          grep -q '^HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=' ${hermesSecretEnv} ||
+            echo "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=$(openssl rand -base64 32)" >> ${hermesSecretEnv}
+          grep -q '^HERMES_DASHBOARD_BASIC_AUTH_SECRET=' ${hermesSecretEnv} ||
+            echo "HERMES_DASHBOARD_BASIC_AUTH_SECRET=$(openssl rand -hex 32)" >> ${hermesSecretEnv}
         '';
       };
 

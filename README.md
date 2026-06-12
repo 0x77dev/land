@@ -113,6 +113,12 @@ On `vasyl` (the agent VM):
   - **HTTP API server**: `API_SERVER_KEY` is auto-generated into this file
     (write-once, never regenerated) by the `hermes-secret-init` oneshot before
     the agent starts — nothing to fill manually.
+  - **Hermes dashboard**: `HERMES_DASHBOARD_BASIC_AUTH_USERNAME`,
+    `HERMES_DASHBOARD_BASIC_AUTH_PASSWORD`, and
+    `HERMES_DASHBOARD_BASIC_AUTH_SECRET` are auto-generated into this file
+    (write-once, never regenerated) by `hermes-secret-init`. The dashboard unit
+    reads this file directly; without auth config it fails closed rather than
+    serving an unauthenticated control plane.
   - **Deferred, keyed the same way**: image generation (`FAL_KEY`), X search
     (`XAI_API_KEY`), cloud browser, cloud TTS/STT, extra search/extract
     backends, hosted memory providers, and the other messaging platforms.
