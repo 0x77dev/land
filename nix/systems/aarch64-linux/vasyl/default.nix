@@ -226,6 +226,18 @@ in
             context_length = 131072;
           }
         ];
+        # Give Hermes' /model picker a named row for spark's Ollama endpoint.
+        # The fallback entries above are runtime-only; custom_providers is what
+        # model-switch inventory groups and live-discovers through /v1/models.
+        custom_providers = [
+          {
+            name = "Ollama";
+            base_url = ollamaBaseUrl;
+            api_key = "ollama";
+            api_mode = "chat_completions";
+            discover_models = true;
+          }
+        ];
         auxiliary = {
           compression = {
             provider = "custom";
