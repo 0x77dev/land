@@ -9,7 +9,8 @@ let
   muscle = lib.${namespace}.shared.builders.muscle;
 
   # Voice stack for vasyl (see ../vasyl): both ends serve OpenAI-compatible
-  # one-shot endpoints on the VM tap edge, next to Ollama.
+  # one-shot endpoints — bound to all interfaces (LAN + Tailnet + the VM tap
+  # edge), next to Ollama.
   #
   # Kokoro-82M weights, declaratively pinned (Apache-2.0). URLs reference an
   # explicit HF revision rather than `main`, so upstream history moving can
@@ -137,8 +138,10 @@ in
       kokoro-openai = {
         description = "Kokoro-82M TTS (OpenAI-compatible) for vasyl";
         wantedBy = [ "multi-user.target" ];
-        # Binds the tap edge; if 10.77.0.1 isn't up yet the bind fails and the
-        # restart loop converges once networkd has the address.
+        # Binds 0.0.0.0 so TTS is reachable on the LAN (enP7s7, e.g.
+        # 192.168.0.172:8101) and the Tailnet, not just the vasyl tap edge
+        # (10.77.0.1) — same all-interfaces exposure as Ollama (below), fine
+        # because the host firewall is off.
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
         path = [ pkgs.ffmpeg ];
@@ -148,7 +151,7 @@ in
           KOKORO_CONFIG = "${kokoroConfig}";
           KOKORO_MODEL = "${kokoroModel}";
           KOKORO_VOICES = "am_michael=${kokoroVoiceMichael}";
-          KOKORO_HOST = "10.77.0.1";
+          KOKORO_HOST = "0.0.0.0";
           KOKORO_PORT = "8101";
           # Writable HOME for the CUDA/torch JIT caches under DynamicUser.
           HOME = "/var/cache/kokoro-openai";
@@ -183,7 +186,10 @@ in
           "docker-parakeet-nim.service"
         ];
         environment = {
-          PARAKEET_HOST = "10.77.0.1";
+          # 0.0.0.0: STT shim reachable on the LAN (e.g. 192.168.0.172:8102)
+          # and the Tailnet too, not just the vasyl tap edge. The raw NIM stays
+          # loopback-only (127.0.0.1:9000) — this shim is its only exposed face.
+          PARAKEET_HOST = "0.0.0.0";
           PARAKEET_PORT = "8102";
           PARAKEET_LANGUAGE = "en-US";
           PARAKEET_UPSTREAM_URL = "http://127.0.0.1:9000/v1/audio/transcriptions";
