@@ -6,6 +6,7 @@ exactly what Hermes' voice tools and realtime voice-mode clients issue.
 """
 
 import os
+import re
 import subprocess
 import threading
 
@@ -31,6 +32,44 @@ ENCODERS = {
 # "name=/path/to/voice.pt,..." — first entry is the default voice.
 VOICES = dict(pair.split("=", 1) for pair in os.environ["KOKORO_VOICES"].split(","))
 DEFAULT_VOICE = next(iter(VOICES))
+
+# Kokoro renders best on bounded inputs: a single long forward approaches the
+# model's 510-token cap (where KPipeline silently truncates the tail) and is
+# more prone to prosody drift. Split long text into sentence-grouped chunks
+# rendered separately and concatenated. Each chunk's audio begins and ends in
+# silence, so naive concatenation joins cleanly (no clicks). Short inputs — the
+# common case — pass through unchanged as a single chunk.
+MAX_CHARS = 400
+
+
+def chunk_text(text: str) -> list[str]:
+    text = text.strip()
+    if len(text) <= MAX_CHARS:
+        return [text] if text else []
+    chunks: list[str] = []
+    current = ""
+    for sentence in re.split(r"(?<=[.!?])\s+", text):
+        if not sentence:
+            continue
+        if not current:
+            current = sentence
+        elif len(current) + 1 + len(sentence) <= MAX_CHARS:
+            current = f"{current} {sentence}"
+        else:
+            chunks.append(current)
+            current = sentence
+        # A single sentence longer than the cap: hard-split on word boundaries
+        # so no forward exceeds it (only hit by pathological run-on input).
+        while len(current) > MAX_CHARS:
+            cut = current.rfind(" ", 0, MAX_CHARS)
+            if cut <= 0:
+                cut = MAX_CHARS
+            chunks.append(current[:cut].strip())
+            current = current[cut:].strip()
+    if current:
+        chunks.append(current)
+    return chunks
+
 
 model = (
     KModel(
@@ -65,7 +104,8 @@ def speech(request: SpeechRequest) -> Response:
     with lock:
         chunks = [
             result.audio
-            for result in pipeline(request.input, voice=voice, speed=request.speed)
+            for segment in chunk_text(request.input)
+            for result in pipeline(segment, voice=voice, speed=request.speed)
             if result.audio is not None
         ]
     if not chunks:
