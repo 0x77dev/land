@@ -205,9 +205,16 @@ in
           default = "gpt-5.5";
         };
         fallback_providers = [
+          # OpenCode Go: pick the best ZDR module. The Go plan routes every
+          # model through a zero-retention policy with no per-model exceptions
+          # (per opencode.ai/go privacy FAQ and the platform-wide X post
+          # declaring ZDR agreements with all Go providers), so ZDR strength
+          # is uniform across the lineup. The discriminator is capability:
+          # Kimi K2.7 Code is the code-specialized successor to K2.6 and the
+          # best fit for the engineering workload on this VM.
           {
             provider = "opencode-go";
-            model = "kimi-k2.6";
+            model = "kimi-k2.7-code";
           }
           {
             provider = "custom";
