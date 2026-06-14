@@ -40,6 +40,25 @@ def _as_text(payload: object) -> str:
     return str(payload)
 
 
+def _normalize_language(lang: str | None) -> str:
+    """Map a client language code to a locale the NIM actually serves.
+
+    The DGX Spark Parakeet profile loads specific locales (e.g. ``en-US``) and
+    returns 404 "Model not found for language <x>" for bare/alias codes like
+    ``en`` — which is exactly what Home Assistant sends. When the requested
+    language shares its base language with the configured default
+    (``DEFAULT_LANGUAGE``), use the default's full locale so those clients work.
+    Genuinely different languages pass through unchanged (the NIM rejects the
+    ones it has no model for, which is the correct, honest failure).
+    """
+    lang = (lang or "").strip()
+    if not lang:
+        return DEFAULT_LANGUAGE
+    if lang.split("-")[0].lower() == DEFAULT_LANGUAGE.split("-")[0].lower():
+        return DEFAULT_LANGUAGE
+    return lang
+
+
 async def _transcribe(
     audio: bytes,
     filename: str,
@@ -50,7 +69,7 @@ async def _transcribe(
 ) -> str:
     """Run one-shot recognition against the Parakeet NIM and return the text."""
     data: dict[str, str] = {
-        "language": language or DEFAULT_LANGUAGE,
+        "language": _normalize_language(language),
         "response_format": "json",
     }
     if prompt:
