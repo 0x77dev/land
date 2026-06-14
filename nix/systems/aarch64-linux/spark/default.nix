@@ -351,14 +351,17 @@ in
       # (~24 GB on disk, down from the old q8_0's ~39 GB) — ample headroom in
       # the GB10's 128 GiB unified memory beside vasyl's 32 GiB and the KV
       # cache. Same 35B-A3B arch, so the qwen3.6 tool-parser patch still applies.
+      # qwen3:4b-instruct-2507 (Q4_K_M, ~2.5 GB) runs compression: 256K native
+      # context, light enough to keep warm beside the 35B primary.
       loadModels = [
         "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7"
+        "qwen3:4b-instruct-2507-q4_K_M"
         "gpt-oss:20b"
       ];
 
       environmentVariables = {
         # Hermes hard-requires >=64K; vasyl's context_length must match.
-        OLLAMA_CONTEXT_LENGTH = "131072";
+        OLLAMA_CONTEXT_LENGTH = "262144";
         # Off by default; prerequisite for KV-cache quantization below,
         # which halves KV memory (~2.7 → ~1.35 GB at 128K).
         OLLAMA_FLASH_ATTENTION = "1";

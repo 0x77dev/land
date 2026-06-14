@@ -18,9 +18,11 @@ let
   # MoE small-active arch, the only way to be both smart and fast on the GB10's
   # 273 GB/s: the A3B primary runs ~35–50 tok/s where a dense 27B crawls at
   # ~10–14. The gpt-oss:20b fallback also absorbs qwen3.6 tool-parser 500s
-  # (ollama#16383, patched on spark) and runs compression.
+  # ~10–14. Keep gpt-oss:20b as a local fallback for parser/runtime quirks, but
+  # use Qwen3-4B-2507 for compression: 256K native context at ~2.5 GB Q4_K_M.
   ollamaModel = "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7";
   fallbackModel = "gpt-oss:20b";
+  compressionModel = "qwen3:4b-instruct-2507-q4_K_M";
   ollamaBaseUrl = "http://${hostAddress}:11434/v1";
 
   # VM-local secret env file — nothing secret in Nix, no secret-management
@@ -215,7 +217,7 @@ in
             # Hermes auto-detects the model MAX (262144) from /v1/models, not the
             # server's effective window — must match spark's OLLAMA_CONTEXT_LENGTH
             # or compression fires too late and requests overflow.
-            context_length = 131072;
+            context_length = 262144;
             supports_vision = true;
           }
           {
@@ -223,7 +225,7 @@ in
             model = fallbackModel;
             base_url = ollamaBaseUrl;
             api_key = "ollama";
-            context_length = 131072;
+            context_length = 262144;
           }
         ];
         # Give Hermes' /model picker a named row for spark's Ollama endpoint.
@@ -241,7 +243,7 @@ in
         auxiliary = {
           compression = {
             provider = "custom";
-            model = fallbackModel;
+            model = compressionModel;
             base_url = ollamaBaseUrl;
             timeout = 240;
           };
