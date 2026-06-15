@@ -18,9 +18,11 @@ let
   # MoE small-active arch, the only way to be both smart and fast on the GB10's
   # 273 GB/s: the A3B primary runs ~35–50 tok/s where a dense 27B crawls at
   # ~10–14. The gpt-oss:20b fallback also absorbs qwen3.6 tool-parser 500s
-  # (ollama#16383, patched on spark) and runs compression.
+  # (ollama#16383, patched on spark). Context compaction uses the paid
+  # OpenCode Go route below instead of spending local Spark GPU time.
   ollamaModel = "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7";
   fallbackModel = "gpt-oss:20b";
+  compactionModel = "deepseek-v4-pro";
   ollamaBaseUrl = "http://${hostAddress}:11434/v1";
 
   # VM-local secret env file — nothing secret in Nix, no secret-management
@@ -239,10 +241,12 @@ in
           }
         ];
         auxiliary = {
+          # Compaction is a faithful state-preservation pass, not a local-inference
+          # showcase. Use the same OpenCode Go paid route Mykhailo chose for
+          # compaction rather than burning Spark/Muscle Ollama VRAM mid-turn.
           compression = {
-            provider = "custom";
-            model = fallbackModel;
-            base_url = ollamaBaseUrl;
+            provider = "opencode-go";
+            model = compactionModel;
             timeout = 240;
           };
           # Smart approval uses Hermes' auxiliary task router. Pin it to the
