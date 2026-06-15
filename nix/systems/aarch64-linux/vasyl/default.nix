@@ -18,12 +18,11 @@ let
   # MoE small-active arch, the only way to be both smart and fast on the GB10's
   # 273 GB/s: the A3B primary runs ~35–50 tok/s where a dense 27B crawls at
   # ~10–14. The gpt-oss:20b fallback also absorbs qwen3.6 tool-parser 500s
-  # (ollama#16383, patched on spark) and remains the local compression default.
-  # OpenCode Go only backs the auxiliary fallback chain when local Ollama cannot
-  # serve compaction.
+  # (ollama#16383, patched on spark). Auxiliary compression/approval use the
+  # paid OpenCode Go route below instead of spending local Spark/Muscle time.
   ollamaModel = "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7";
   fallbackModel = "gpt-oss:20b";
-  opencodeCompactionModel = "deepseek-v4-pro";
+  opencodeAuxiliaryModel = "deepseek-v4-flash";
   ollamaBaseUrl = "http://${hostAddress}:11434/v1";
 
   # VM-local secret env file — nothing secret in Nix, no secret-management
@@ -242,34 +241,18 @@ in
           }
         ];
         auxiliary = {
-          # Keep compaction local by default: spark/muscle Ollama already pull
-          # gpt-oss:20b from the shared agent set. If the LAN Ollama route is
-          # down or quota/capacity-like failure bubbles up, Hermes' supported
-          # per-task fallback_chain sends compression to OpenCode Go instead.
+          # Pin Hermes' auxiliary task defaults to Vasyl's chosen OpenCode Go
+          # model instead of letting compaction/smart-approval drift independently.
           compression = {
-            provider = "custom";
-            model = fallbackModel;
-            base_url = ollamaBaseUrl;
-            api_key = "ollama";
-            context_length = 131072;
+            provider = "opencode-go";
+            model = opencodeAuxiliaryModel;
             timeout = 240;
-            fallback_chain = [
-              {
-                provider = "opencode-go";
-                model = opencodeCompactionModel;
-              }
-              {
-                provider = "opencode-go";
-                model = "kimi-k2.6";
-              }
-            ];
           };
-          # Smart approval uses Hermes' auxiliary task router. Pin it to the
-          # same Codex subscription/model as the main agent instead of letting
-          # auto-provider selection drift to a weaker or unfunded backend.
+          # Smart approval uses Hermes' auxiliary task router; keep it on the
+          # same auxiliary model as compression.
           approval = {
-            provider = "openai-codex";
-            model = "gpt-5.5";
+            provider = "opencode-go";
+            model = opencodeAuxiliaryModel;
             timeout = 30;
           };
         };
