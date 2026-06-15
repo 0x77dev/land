@@ -160,7 +160,9 @@ service); credentials are filled manually in host-local files — see
 [`nix/systems/aarch64-linux/vasyl/`](/nix/systems/aarch64-linux/vasyl/).
 
 `muscle` also exposes CUDA Ollama on the LAN/Tailscale interface, using the same
-agent model set as `spark` and bounded by its 2x RTX 6000 Ada VRAM budget.
+agent model set as `spark`. The shared pull set includes Qwen3-Coder-Next as the
+long-context coding/agent pick and stays bounded by Muscle's 2x RTX 6000 Ada VRAM
+budget.
 
 ## Development
 
