@@ -146,7 +146,7 @@ free NGC API key from [ngc.nvidia.com](https://ngc.nvidia.com):
 | `spark`  | `aarch64-linux`  | AI/Compute        | NVIDIA DGX Spark (GB10)   |
 | `timey`  | `aarch64-linux`  | IoT/Edge/Time     | RPi 5, eMMC               |
 | `beefy`  | `aarch64-darwin` | Media             | M2 Ultra, 64GB            |
-| `muscle` | `x86_64-linux`   | AI/Compute        | TR 7985WX, RTX6000, 250GB |
+| `muscle` | `x86_64-linux`   | AI/Compute        | TR 7985WX, 2x RTX6000 Ada |
 | `ghost`  | `x86_64-linux`   | Fun               | T480, 16GB                |
 | `vasyl`  | `aarch64-linux`  | AI Agent          | microVM on `spark`        |
 
@@ -158,6 +158,9 @@ serving voice (Parakeet NIM STT in a container, Kokoro TTS as a pure-Nix CUDA
 service); credentials are filled manually in host-local files — see
 [Secrets](#secrets) and
 [`nix/systems/aarch64-linux/vasyl/`](/nix/systems/aarch64-linux/vasyl/).
+
+`muscle` also exposes CUDA Ollama on the LAN/Tailscale interface, using the same
+agent model set as `spark` and bounded by its 2x RTX 6000 Ada VRAM budget.
 
 ## Development
 

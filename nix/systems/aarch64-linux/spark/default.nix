@@ -328,39 +328,15 @@ in
     # firewall is disabled and it's reachable over Tailscale).
     ollama = {
       enable = true;
-      # Root-cause fix for qwen3.6 tool-call drift → HTTP 500 (ollama/ollama#16383):
-      # carry the unmerged parser fix (ollama/ollama#16398, 2 commits) as source
-      # patches. Spark-only — other hosts keep the stock pkgs.ollama-cuda. Pure Go
-      # parser change + tests; no go.mod/go.sum impact, so vendorHash is untouched.
-      # Drop once the pinned channel's ollama contains the merged fix (the build
-      # fails loudly at patchPhase if upstream code drifts).
-      package = pkgs.ollama-cuda.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [
-          (pkgs.fetchpatch {
-            name = "ollama-qwen36-tolerate-tool-template-drift.patch";
-            url = "https://github.com/ollama/ollama/commit/beed6703d8fe3795049db45863458785774ef396.patch";
-            hash = "sha256-xh59I8WNHjkH2Rx1jsGl+8anjvGA/294yz5Z3dV87QY=";
-          })
-          (pkgs.fetchpatch {
-            name = "ollama-qwen36-skip-empty-tool-call-envelopes.patch";
-            url = "https://github.com/ollama/ollama/commit/769dcb5eb7bc8707aabf5de611a1dcb05ffa3ab5.patch";
-            hash = "sha256-kRSPiX+wJfv7HOKhaxP50ZHUdPIOhXbjdKp/0L8AYOU=";
-          })
-        ];
-      });
+      package = pkgs.ollama-cuda;
       host = "0.0.0.0";
 
       # Models for vasyl's hermes-agent (see ../vasyl): pulled by the
       # non-blocking ollama-model-loader.service, content-addressed (no-op
       # when unchanged). syncModels stays off on purpose — it would GC any
-      # model pulled manually outside this list. The primary is Q4_K_M
-      # (~24 GB on disk, down from the old q8_0's ~39 GB) — ample headroom in
-      # the GB10's 128 GiB unified memory beside vasyl's 32 GiB and the KV
-      # cache. Same 35B-A3B arch, so the qwen3.6 tool-parser patch still applies.
-      loadModels = [
-        "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7"
-        "gpt-oss:20b"
-      ];
+      # model pulled manually outside this list. The shared set is sized for
+      # both Spark and Muscle; the qwen3.6 parser fix lives in the Ollama overlay.
+      loadModels = lib.${namespace}.shared.ollama.agentModels;
 
       environmentVariables = {
         # Hermes hard-requires >=64K; vasyl's context_length must match.
