@@ -273,6 +273,23 @@
     };
 
     tailscale.enable = true;
+
+    # LAN Ollama peer to Spark. Muscle has 2x RTX 6000 Ada GPUs (48 GB each),
+    # so the pull set stays shared and vetted against that smaller VRAM budget.
+    ollama = {
+      enable = true;
+      package = pkgs.ollama-cuda;
+      host = "0.0.0.0";
+      loadModels = lib.${namespace}.shared.ollama.agentModels;
+
+      environmentVariables = {
+        OLLAMA_CONTEXT_LENGTH = "131072";
+        OLLAMA_FLASH_ATTENTION = "1";
+        OLLAMA_KV_CACHE_TYPE = "q8_0";
+        OLLAMA_KEEP_ALIVE = "24h";
+        OLLAMA_NUM_PARALLEL = "1";
+      };
+    };
   };
 
   security = {

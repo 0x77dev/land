@@ -13,4 +13,5 @@
   user-config = import ./user-config { inherit lib inputs namespace; };
   grafana-dashboards = import ./grafana-dashboards { inherit lib inputs namespace; };
   builders = import ./builders { inherit lib inputs namespace; };
+  ollama = import ./ollama { inherit lib inputs namespace; };
 }
