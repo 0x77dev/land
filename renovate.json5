@@ -18,9 +18,12 @@
   branchConcurrentLimit: 5,
   rebaseWhen: "behind-base-branch",
   minimumReleaseAge: "3 days",
-  // Automerge by default for non-major updates after required CI checks pass;
-  // major bumps and regex-managed custom sources still require dashboard approval.
+  // Automerge by default for non-major updates after required CI checks pass.
+  // Use GitHub native PR auto-merge explicitly: branch automerge cannot satisfy
+  // the main ruleset's required status checks, but PR auto-merge can queue the
+  // squash merge and let GitHub land it once all checks pass.
   automerge: true,
+  automergeType: "pr",
   platformAutomerge: true,
   automergeStrategy: "squash",
   nix: {
@@ -57,8 +60,11 @@
   ],
   lockFileMaintenance: {
     enabled: true,
+    dependencyDashboardApproval: false,
     automerge: true,
+    automergeType: "pr",
     platformAutomerge: true,
+    automergeStrategy: "squash",
     schedule: ["before 5am"],
   },
   vulnerabilityAlerts: {
@@ -72,6 +78,7 @@
       matchUpdateTypes: ["digest", "patch", "minor"],
       groupName: "github-actions",
       automerge: true,
+      automergeType: "pr",
       platformAutomerge: true,
       automergeStrategy: "squash",
     },
@@ -81,6 +88,7 @@
       matchUpdateTypes: ["lockFileMaintenance", "digest"],
       groupName: "flake lock maintenance",
       automerge: true,
+      automergeType: "pr",
       platformAutomerge: true,
       automergeStrategy: "squash",
     },
@@ -97,6 +105,10 @@
       groupName: "core flake inputs",
       minimumReleaseAge: "3 days",
       schedule: ["before 5am"],
+      automerge: true,
+      automergeType: "pr",
+      platformAutomerge: true,
+      automergeStrategy: "squash",
     },
     {
       description: "Automerge non-major flake updates after CI and security checks pass",
@@ -105,6 +117,7 @@
       matchCurrentVersion: "!/^0/",
       minimumReleaseAge: "3 days",
       automerge: true,
+      automergeType: "pr",
       platformAutomerge: true,
       automergeStrategy: "squash",
     },
@@ -130,6 +143,8 @@
       matchDepNames: ["helium"],
       dependencyDashboardApproval: false,
       automerge: true,
+      automergeType: "pr",
+      platformAutomerge: true,
       automergeStrategy: "squash",
     },
   ],
