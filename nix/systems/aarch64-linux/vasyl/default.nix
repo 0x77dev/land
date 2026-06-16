@@ -19,7 +19,6 @@ let
   # consumed by an automatic retry path.
   opencodeAuxiliaryModel = "deepseek-v4-flash";
   opencodeFallbackModels = [
-    "minimax-m3"
     "deepseek-v4-pro"
     "kimi-k2.7-code"
     "kimi-k2.6"
@@ -543,7 +542,7 @@ in
       }
       {
         assertion = fallbackProviders == expectedFallbackProviders;
-        message = "Vasyl Hermes fallback_providers must be exactly GPT-5.5 -> MiniMax M3 -> DeepSeek V4 Pro -> Kimi K2.7 Code -> Kimi K2.6 -> GLM 5.1, all via OpenCode Go.";
+        message = "Vasyl Hermes fallback_providers must be exactly GPT-5.5 -> DeepSeek V4 Pro -> Kimi K2.7 Code -> Kimi K2.6 -> GLM 5.1, all via OpenCode Go.";
       }
       {
         assertion = lib.all auxiliaryTaskIsPinned auxiliaryTaskNames;
