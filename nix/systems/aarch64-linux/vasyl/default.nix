@@ -275,7 +275,19 @@ in
         approvals = {
           mode = "smart";
           cron_mode = "deny";
+          # Keep gateway slash/admin reload operations explicit even with smart
+          # approvals enabled; these mutate Vasyl's control plane.
+          destructive_slash_confirm = true;
+          mcp_reload_confirm = true;
         };
+        security = {
+          redact_secrets = true;
+          tirith_enabled = true;
+          # If the pre-exec scanner errors, fail closed rather than letting a
+          # risky command run because the guard was unavailable.
+          tirith_fail_open = false;
+        };
+        privacy.redact_pii = true;
         compression = {
           enabled = true;
           threshold = 0.5;
@@ -346,6 +358,25 @@ in
             host = "0.0.0.0";
             port = hermesWebhookPort;
           };
+        };
+        # Proper owner/admin split for shared access: Mykhailo gets the full
+        # slash-command/control surface; paired friends/family get normal chat
+        # but not control-plane slash commands. DM and group scopes are separate
+        # in Hermes, so declare both explicitly.
+        telegram = {
+          allow_admin_from = [ "870984963" ];
+          group_allow_admin_from = [ "870984963" ];
+          unauthorized_dm_behavior = "pair";
+        };
+        matrix = {
+          allow_admin_from = [ "@dev0x77:matrix.org" ];
+          group_allow_admin_from = [ "@dev0x77:matrix.org" ];
+          # MATRIX_ALLOWED_USERS in the VM-local secret env keeps the owner
+          # allowlisted; this opts unknown Matrix DMs back into pairing so
+          # friends/family can request access without pre-sharing Matrix IDs.
+          unauthorized_dm_behavior = "pair";
+          auto_thread = true;
+          dm_mention_threads = true;
         };
         # Voice — STT (Parakeet NIM) and TTS (Kokoro) run on spark's GPU and
         # serve OpenAI-compatible endpoints on the tap edge (see ../spark).
