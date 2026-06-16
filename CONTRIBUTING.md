@@ -218,15 +218,17 @@ permissions by default.
 
 Dependency updates are managed by `renovate.json5`.
 
-- Schedule: weekly (`before 5am on Monday`)
+- Schedule: daily (`before 5am`, `America/New_York`)
 - Scope: Nix flake inputs, GitHub Actions, and comment-annotated custom
   pinned versions matched by regex managers
-- Automerge: enabled for non-major updates after required checks pass
+- Automerge: enabled for non-major updates after required protected-branch
+  checks pass
 - Major updates: require manual review via the dependency dashboard
 
 Repository settings should also enable GitHub auto-merge and protect the
-default branch with the CI/security status checks emitted by the
-workflows.
+default branch with the GitHub Actions CI status checks emitted by the
+workflow (`check / aarch64-darwin`, `check / aarch64-linux`, and
+`check / x86_64-linux`).
 
 ## Adding Packages
 

@@ -11,11 +11,18 @@
   // ignore its commits so Renovate keeps rebasing/managing those branches.
   gitIgnoredAuthors: ["renovate-nix-hash@users.noreply.github.com"],
   enabledManagers: ["custom.regex", "github-actions", "nix"],
-  schedule: ["before 5am on Monday"],
+  // Daily run before 5am Eastern so dependency drift is caught quickly and
+  // auto-merged PRs land the same day their checks pass.
+  schedule: ["before 5am"],
   prConcurrentLimit: 5,
   branchConcurrentLimit: 5,
   rebaseWhen: "behind-base-branch",
   minimumReleaseAge: "3 days",
+  // Automerge by default for non-major updates after required CI checks pass;
+  // major bumps and regex-managed custom sources still require dashboard approval.
+  automerge: true,
+  platformAutomerge: true,
+  automergeStrategy: "squash",
   nix: {
     enabled: true,
   },
@@ -52,7 +59,7 @@
     enabled: true,
     automerge: true,
     platformAutomerge: true,
-    schedule: ["before 5am on Monday"],
+    schedule: ["before 5am"],
   },
   vulnerabilityAlerts: {
     enabled: true,
@@ -69,7 +76,7 @@
       automergeStrategy: "squash",
     },
     {
-      description: "Automerge weekly flake lock maintenance after checks pass",
+      description: "Automerge daily flake lock maintenance after checks pass",
       matchManagers: ["nix"],
       matchUpdateTypes: ["lockFileMaintenance", "digest"],
       groupName: "flake lock maintenance",
@@ -78,7 +85,7 @@
       automergeStrategy: "squash",
     },
     {
-      description: "Group core flake inputs and keep unstable channels from churning daily",
+      description: "Group core flake inputs in the daily update window",
       matchManagers: ["nix"],
       matchPackageNames: [
         "nixpkgs",
@@ -89,7 +96,7 @@
       ],
       groupName: "core flake inputs",
       minimumReleaseAge: "3 days",
-      schedule: ["before 5am on Monday"],
+      schedule: ["before 5am"],
     },
     {
       description: "Automerge non-major flake updates after CI and security checks pass",

@@ -188,10 +188,11 @@ successful CI builds to `land.cachix.org`, and runs weekly security
 checks with OpenSSF Scorecard plus `vulnix` across the native flake
 closures inferred from declared outputs.
 
-Dependency updates are managed weekly with Renovate. Non-major GitHub
-Actions and flake lock maintenance updates are configured for automerge
-after CI/security checks pass, while comment-annotated custom pinned
-versions can be tracked through regex managers in [`renovate.json5`].
+Dependency updates are managed daily with Renovate. Non-major GitHub
+Actions, Nix, and flake lock maintenance updates are configured for
+automerge after the protected-branch CI checks pass, while
+comment-annotated custom pinned versions can be tracked through regex
+managers in [`renovate.json5`].
 
 AI-enabled Home Manager profiles configure the terminal agent stack managed in
 [`nix/modules/home/ai/`]. OpenCode is the agent runtime, with global skills and
