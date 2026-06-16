@@ -13,16 +13,23 @@ let
   hostAddress = "10.77.0.1";
   guestAddress = "10.77.0.2";
 
-  # Models served by spark's Ollama (declaratively pulled there, see ../spark).
-  # The primary is the abliterated, Claude-4.7-distilled Qwen3.6-35B-A3B — same
-  # MoE small-active arch, the only way to be both smart and fast on the GB10's
-  # 273 GB/s: the A3B primary runs ~35–50 tok/s where a dense 27B crawls at
-  # ~10–14. The gpt-oss:20b fallback also absorbs qwen3.6 tool-parser 500s
-  # (ollama#16383, patched on spark). Auxiliary compression/approval use the
-  # paid OpenCode Go route below instead of spending local Spark/Muscle time.
-  ollamaModel = "huihui_ai/Qwen3.6-abliterated:35b-Claude-4.7";
-  fallbackModel = "gpt-oss:20b";
+  # Spark's Ollama endpoint stays available as an explicit `/model` choice, but
+  # it is not a runtime fallback: fallback routing and auxiliary work should stay
+  # on provider-backed models so local Spark/Muscle time is never silently
+  # consumed by an automatic retry path.
   opencodeAuxiliaryModel = "deepseek-v4-flash";
+  opencodeFallbackModels = [
+    "minimax-m3"
+    "deepseek-v4-pro"
+    "kimi-k2.7-code"
+    "kimi-k2.6"
+    "glm-5.1"
+  ];
+  mkOpencodeAuxiliary = timeout: {
+    provider = "opencode-go";
+    model = opencodeAuxiliaryModel;
+    inherit timeout;
+  };
   ollamaBaseUrl = "http://${hostAddress}:11434/v1";
 
   # VM-local secret env file — nothing secret in Nix, no secret-management
@@ -196,48 +203,22 @@ in
       createUser = false;
 
       settings = {
-        # Declared default: GPT-5.5 through the OpenAI Codex subscription, with
-        # OpenCode Go as a second paid route and spark's Ollama endpoint as the
-        # offline/local safety net. Credentials live in Hermes auth, not Nix;
-        # the local custom endpoint keeps its dummy key because Ollama ignores it.
+        # Declared default: GPT-5.5 through the OpenAI Codex subscription.
+        # Automatic fallback stays entirely on OpenCode Go's provider-backed
+        # models, ordered from the requested broad/general routes down through
+        # code-specialist and GLM backup options. Ollama remains manual-only via
+        # custom_providers below.
         model = {
           provider = "openai-codex";
           default = "gpt-5.5";
         };
-        fallback_providers = [
-          # OpenCode Go: pick the best ZDR module. The Go plan routes every
-          # model through a zero-retention policy with no per-model exceptions
-          # (per opencode.ai/go privacy FAQ and the platform-wide X post
-          # declaring ZDR agreements with all Go providers), so ZDR strength
-          # is uniform across the lineup. The discriminator is capability:
-          # Kimi K2.7 Code is the code-specialized successor to K2.6 and the
-          # best fit for the engineering workload on this VM.
-          {
-            provider = "opencode-go";
-            model = "kimi-k2.7-code";
-          }
-          {
-            provider = "custom";
-            model = ollamaModel;
-            base_url = ollamaBaseUrl;
-            api_key = "ollama";
-            # Hermes auto-detects the model MAX (262144) from /v1/models, not the
-            # server's effective window — must match spark's OLLAMA_CONTEXT_LENGTH
-            # or compression fires too late and requests overflow.
-            context_length = 131072;
-            supports_vision = true;
-          }
-          {
-            provider = "custom";
-            model = fallbackModel;
-            base_url = ollamaBaseUrl;
-            api_key = "ollama";
-            context_length = 131072;
-          }
-        ];
+        fallback_providers = map (model: {
+          provider = "opencode-go";
+          inherit model;
+        }) opencodeFallbackModels;
         # Give Hermes' /model picker a named row for spark's Ollama endpoint.
-        # The fallback entries above are runtime-only; custom_providers is what
-        # model-switch inventory groups and live-discovers through /v1/models.
+        # This is deliberately manual-only: assertions below fail evaluation if
+        # an Ollama/custom provider is reintroduced into automatic fallbacks.
         custom_providers = [
           {
             name = "Ollama";
@@ -248,20 +229,22 @@ in
           }
         ];
         auxiliary = {
-          # Pin Hermes' auxiliary task defaults to Vasyl's chosen OpenCode Go
-          # model instead of letting compaction/smart-approval drift independently.
-          compression = {
-            provider = "opencode-go";
-            model = opencodeAuxiliaryModel;
-            timeout = 240;
+          # Pin every Hermes auxiliary task to DeepSeek V4 Flash on OpenCode Go
+          # instead of letting per-task defaults drift to auto, GPT-5.5, or local
+          # Ollama routes.
+          compression = mkOpencodeAuxiliary 240;
+          approval = mkOpencodeAuxiliary 30;
+          curator = mkOpencodeAuxiliary 600;
+          kanban_decomposer = mkOpencodeAuxiliary 180;
+          mcp = mkOpencodeAuxiliary 30;
+          profile_describer = mkOpencodeAuxiliary 60;
+          skills_hub = mkOpencodeAuxiliary 30;
+          title_generation = mkOpencodeAuxiliary 30;
+          triage_specifier = mkOpencodeAuxiliary 120;
+          vision = (mkOpencodeAuxiliary 120) // {
+            download_timeout = 30;
           };
-          # Smart approval uses Hermes' auxiliary task router; keep it on the
-          # same auxiliary model as compression.
-          approval = {
-            provider = "opencode-go";
-            model = opencodeAuxiliaryModel;
-            timeout = 30;
-          };
+          web_extract = mkOpencodeAuxiliary 360;
         };
         # High-ceiling mode for deep missions: let the parent agent run long
         # enough to plan, fan out, integrate, verify, and compact instead of
@@ -516,6 +499,57 @@ in
       };
     };
   };
+
+  assertions =
+    let
+      hermesSettings = config.services.hermes-agent.settings;
+      fallbackProviders = hermesSettings.fallback_providers or [ ];
+      expectedFallbackProviders = map (model: {
+        provider = "opencode-go";
+        inherit model;
+      }) opencodeFallbackModels;
+      auxiliaryTaskNames = [
+        "approval"
+        "compression"
+        "curator"
+        "kanban_decomposer"
+        "mcp"
+        "profile_describer"
+        "skills_hub"
+        "title_generation"
+        "triage_specifier"
+        "vision"
+        "web_extract"
+      ];
+      auxiliaryTasks = hermesSettings.auxiliary or { };
+      auxiliaryTaskIsPinned =
+        name:
+        (auxiliaryTasks.${name}.provider or null) == "opencode-go"
+        && (auxiliaryTasks.${name}.model or null) == opencodeAuxiliaryModel;
+      isOllamaFallback =
+        provider:
+        (provider.provider or null) == "custom"
+        || (provider.base_url or null) == ollamaBaseUrl
+        || (provider.api_key or null) == "ollama";
+    in
+    [
+      {
+        assertion = (hermesSettings.approvals.mode or null) == "smart";
+        message = "Vasyl Hermes must auto-review dangerous-command permissions with approvals.mode = smart.";
+      }
+      {
+        assertion = fallbackProviders == expectedFallbackProviders;
+        message = "Vasyl Hermes fallback_providers must be exactly GPT-5.5 -> MiniMax M3 -> DeepSeek V4 Pro -> Kimi K2.7 Code -> Kimi K2.6 -> GLM 5.1, all via OpenCode Go.";
+      }
+      {
+        assertion = lib.all auxiliaryTaskIsPinned auxiliaryTaskNames;
+        message = "Every Vasyl Hermes auxiliary task must use opencode-go/${opencodeAuxiliaryModel}.";
+      }
+      {
+        assertion = !lib.any isOllamaFallback fallbackProviders;
+        message = "Vasyl Hermes fallback_providers must not include Ollama/custom local models; keep Ollama manual-only via custom_providers.";
+      }
+    ];
 
   # Hermes dashboard WebUI. It is deliberately NOT exposed through Tailscale
   # Funnel: it binds on the VM so Hermes' non-loopback OAuth gate engages, and
