@@ -77,6 +77,7 @@ jobs:
   nix-closures:
     name: nix closures / ${{ matrix.system }}
     needs: prepare
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group'
     strategy:
       fail-fast: false
       matrix:
