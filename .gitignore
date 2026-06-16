@@ -6,4 +6,7 @@ result-*
 .pre-commit-config.yaml
 .claude/
 .lab/
+.hermes/
+scripts/__pycache__/
+security-reports/
 

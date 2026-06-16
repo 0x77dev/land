@@ -9,7 +9,10 @@ on:
       - flake.lock
       - renovate.json5
       - .github/workflows/**
+      - scripts/nix-vulnerability-scan.sh
+      - scripts/summarize-vulnerability-report.py
   merge_group:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -35,7 +38,7 @@ jobs:
         with:
           extra_nix_config: |
             accept-flake-config = true
-            experimental-features = nix-command flakes
+            experimental-features = nix-command flakes recursive-nix
 
       - name: Export flake-driven security targets
         id: targets
@@ -71,15 +74,15 @@ jobs:
         with:
           sarif_file: scorecard-results.sarif
 
-  vulnix:
-    name: vulnix
+  nix-closures:
+    name: nix closures / ${{ matrix.system }}
     needs: prepare
     strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.prepare.outputs.security-matrix) }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     permissions:
       contents: read
     steps:
@@ -93,7 +96,7 @@ jobs:
         with:
           extra_nix_config: |
             accept-flake-config = true
-            experimental-features = nix-command flakes
+            experimental-features = nix-command flakes recursive-nix
 
       - name: Configure Cachix
         if: github.event_name == 'merge_group' || github.event_name == 'schedule' || github.event.pull_request.head.repo.full_name == github.repository
@@ -105,13 +108,83 @@ jobs:
       - name: Build native flake closures for scanning
         run: nix build --no-link ${{ join(matrix.scanTargets, ' ') }}
 
-      - name: Scan native closures with vulnix
-        run: |
-          printf '[]' > vulnix-report.json
-          for target in ${{ join(matrix.scanTargets, ' ') }}; do
-            target_path="$(nix path-info "$target")"
-            nix run nixpkgs#vulnix -- --json -C "$target_path" > vulnix-target.json
-            jq --slurp 'add' vulnix-report.json vulnix-target.json > vulnix-report.next.json
-            mv vulnix-report.next.json vulnix-report.json
-          done
-          jq 'if length == 0 then . else error("vulnerabilities detected") end' vulnix-report.json
+      - name: Scan native closures with vulnix, Grype, and OSV
+        env:
+          VULN_FAIL_ON: high
+        run: nix shell nixpkgs#nix nixpkgs#sbomnix nixpkgs#vulnix nixpkgs#grype nixpkgs#osv-scanner -c bash scripts/nix-vulnerability-scan.sh ${{ join(matrix.scanTargets, ' ') }}
+
+  osv-source:
+    name: osv-scanner / source
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Generate OSV SARIF
+        continue-on-error: true
+        run: nix run nixpkgs#osv-scanner -- scan source -r --allow-no-lockfiles --format sarif --output osv-scanner.sarif .
+
+      - name: Upload OSV SARIF
+        if: ${{ always() && hashFiles('osv-scanner.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13
+        with:
+          sarif_file: osv-scanner.sarif
+
+      - name: Enforce OSV findings
+        run: nix run nixpkgs#osv-scanner -- scan source -r --allow-no-lockfiles .
+
+  trivy:
+    name: trivy / repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Generate Trivy SARIF
+        run: >-
+          nix run nixpkgs#trivy -- fs
+          --scanners vuln,secret,misconfig
+          --severity HIGH,CRITICAL
+          --format sarif
+          --output trivy-results.sarif
+          .
+
+      - name: Upload Trivy SARIF
+        if: ${{ always() && hashFiles('trivy-results.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Enforce Trivy findings
+        run: >-
+          nix run nixpkgs#trivy -- fs
+          --scanners vuln,secret,misconfig
+          --severity HIGH,CRITICAL
+          --exit-code 1
+          .
