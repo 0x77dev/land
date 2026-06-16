@@ -9,4 +9,5 @@ result-*
 .hermes/
 scripts/__pycache__/
 security-reports/
+http_cache.sqlite
 

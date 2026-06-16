@@ -91,12 +91,20 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Nix
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af || true
+          df -h
+
+      - name: Install Nix for space-constrained scanning
         uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
         with:
           extra_nix_config: |
             accept-flake-config = true
             experimental-features = nix-command flakes recursive-nix
+            max-jobs = 2
+            cores = 2
 
       - name: Configure Cachix
         if: github.event_name == 'merge_group' || github.event_name == 'schedule' || github.event.pull_request.head.repo.full_name == github.repository
@@ -105,10 +113,7 @@ jobs:
           name: land
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Build native flake closures for scanning
-        run: nix build --no-link ${{ join(matrix.scanTargets, ' ') }}
-
-      - name: Scan native closures with vulnix, Grype, and OSV
+      - name: Scan native closures one-by-one
         env:
           VULN_FAIL_ON: high
         run: nix shell nixpkgs#nix nixpkgs#sbomnix nixpkgs#vulnix nixpkgs#grype nixpkgs#osv-scanner -c bash scripts/nix-vulnerability-scan.sh ${{ join(matrix.scanTargets, ' ') }}
