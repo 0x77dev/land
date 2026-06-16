@@ -315,7 +315,7 @@ in
         # profiles and isolated branch routing are deliberately added.
         kanban = {
           dispatch_in_gateway = true;
-          auto_decompose = false;
+          auto_decompose = true;
           max_in_progress_per_profile = 4;
         };
 
