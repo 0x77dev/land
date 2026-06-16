@@ -273,7 +273,11 @@ in
         privacy.redact_pii = true;
         compression = {
           enabled = true;
-          threshold = 0.5;
+          # Vasyl's primary route is Codex gpt-5.5. Hermes would otherwise
+          # auto-raise this to 85% and warn on every new gateway session; make
+          # the desired policy explicit instead of opting out of the auto-raise.
+          threshold = 0.85;
+          codex_gpt55_autoraise = true;
         };
         # Tool exposure is per platform in current Hermes. The legacy
         # top-level `toolsets` key is deprecated/ignored; keep the active
