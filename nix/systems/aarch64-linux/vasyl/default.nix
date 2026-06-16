@@ -263,6 +263,15 @@ in
             timeout = 30;
           };
         };
+        # High-ceiling mode for deep missions: let the parent agent run long
+        # enough to plan, fan out, integrate, verify, and compact instead of
+        # stopping mid-orchestration. Cost/safety guardrails remain in the
+        # approval and delegation settings below.
+        agent = {
+          max_turns = 240;
+          reasoning_effort = "xhigh";
+          service_tier = "fast";
+        };
         approvals = {
           mode = "smart";
           cron_mode = "deny";
@@ -284,31 +293,32 @@ in
           webhook = [ "hermes-webhook" ];
         };
 
-        # Cursor-like multitasking in Hermes terms: native subagent delegation
-        # is enabled, bounded, and flat by default. The main agent decides when
-        # a task has real parallel structure; children inherit the primary
-        # model/provider route and cannot auto-approve dangerous commands.
+        # Deep-mission orchestration is deliberately wide and recursive now:
+        # the parent may launch a dozen synchronous children per wave, and
+        # orchestrator children may expand two more levels when the configured
+        # role/toolset allows it. Dangerous command approval is still not
+        # delegated, so breadth increases throughput without lowering the
+        # safety gate.
         delegation = {
-          max_iterations = 50;
-          max_concurrent_children = 3;
-          max_spawn_depth = 1;
+          max_iterations = 150;
+          max_concurrent_children = 12;
+          max_spawn_depth = 3;
           orchestrator_enabled = true;
           subagent_auto_approve = false;
           inherit_mcp_toolsets = true;
         };
 
-        # Keep durable scheduled work serialized until a job explicitly proves
-        # it is safe to parallelize; dangerous cron commands remain denied by
-        # approvals.cron_mode above.
-        cron.max_parallel_jobs = 1;
+        # Permit a few independent scheduled intelligence jobs at once, while
+        # dangerous cron commands remain denied by approvals.cron_mode above.
+        cron.max_parallel_jobs = 4;
 
-        # Keep the kanban dispatcher visible in declarative config, but avoid
-        # surprising autonomous decomposition until dedicated worker profiles
-        # and isolated branch routing are deliberately added.
+        # Let the durable dispatcher keep several lanes moving per profile. We
+        # still avoid surprising autonomous decomposition until dedicated worker
+        # profiles and isolated branch routing are deliberately added.
         kanban = {
           dispatch_in_gateway = true;
           auto_decompose = false;
-          max_in_progress_per_profile = 1;
+          max_in_progress_per_profile = 4;
         };
 
         terminal = {
@@ -318,7 +328,7 @@ in
           # MESSAGING_CWD the module still injects into the unit env —
           # scrubbed via UnsetEnvironment below.
           cwd = config.services.hermes-agent.workingDirectory;
-          timeout = 180;
+          timeout = 600;
         };
         memory = {
           memory_enabled = true;
