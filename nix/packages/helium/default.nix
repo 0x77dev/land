@@ -17,7 +17,7 @@ let
   pname = "helium";
 
   # renovate: datasource=github-releases depName=helium packageName=imputnet/helium-linux versioning=loose
-  version = "0.12.5.1";
+  version = "0.13.3.1";
 
   linuxBase = "https://github.com/imputnet/helium-linux/releases/download/${version}";
   macosBase = "https://github.com/imputnet/helium-macos/releases/download/${version}";
