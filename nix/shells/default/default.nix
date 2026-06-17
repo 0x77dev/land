@@ -19,7 +19,13 @@ let
   nvim = inputs.nixvim.legacyPackages.${system}.makeNixvimWithModule {
     module = {
       imports = [ ../../modules/home/ide/nixvim.nix ];
-      nixpkgs.source = inputs.unstable;
+      # Match the Home Manager module: give nixvim non-elaborated platform
+      # strings so its unstable lib does not reject stable platform records.
+      nixpkgs = {
+        source = inputs.unstable;
+        buildPlatform = system;
+        hostPlatform = system;
+      };
     };
   };
 in
