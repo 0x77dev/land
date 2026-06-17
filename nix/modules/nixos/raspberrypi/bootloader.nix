@@ -529,7 +529,7 @@ in
         system = {
           build.installBootLoader = builder.${cfg.bootloader};
           boot.loader.id = "raspberrypi-${cfg.bootloader}";
-          boot.loader.kernelFile = pkgs.stdenv.hostPlatform.linux-kernel.target;
+          boot.loader.kernelFile = config.boot.kernelPackages.kernel.target;
         };
       }
     )
