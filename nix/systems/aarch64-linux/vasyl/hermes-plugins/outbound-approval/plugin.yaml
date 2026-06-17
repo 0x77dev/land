@@ -1,0 +1,6 @@
+name: outbound-approval
+version: 0.1.0
+description: "Require explicit user approval before Hermes sends outbound communications. Blocks messaging/email/social send paths until /approve resolves a gateway approval request."
+author: "Vasyl"
+hooks:
+  - pre_tool_call

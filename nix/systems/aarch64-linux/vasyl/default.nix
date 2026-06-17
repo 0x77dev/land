@@ -43,6 +43,20 @@ let
   searxngPort = 8888;
   hermesWebhookPort = 8644;
   hermesDashboardPort = 9119;
+
+  outboundApprovalPlugin = pkgs.stdenvNoCC.mkDerivation {
+    pname = "outbound-approval";
+    version = "0.1.0";
+    src = ./hermes-plugins/outbound-approval;
+    dontConfigure = true;
+    dontBuild = true;
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out
+      cp -R . $out/
+      runHook postInstall
+    '';
+  };
 in
 {
   # The agent workstation toolkit and the auto-generated ENVIRONMENT.md
@@ -200,6 +214,13 @@ in
       # The hermes user is defined below (with zsh) instead of by the module, so
       # the module must not also create it.
       createUser = false;
+
+      # Install the local approval guard through Hermes' first-class
+      # directory-plugin option. The module links this store-backed plugin into
+      # $HERMES_HOME/plugins/nix-managed-outbound-approval at activation, so the
+      # safety code is immutable and rebuild-owned rather than copied into
+      # mutable state.
+      extraPlugins = [ outboundApprovalPlugin ];
 
       settings = {
         # Declared default: GPT-5.5 through the OpenAI Codex subscription.
@@ -395,14 +416,18 @@ in
             model = "kokoro";
           };
         };
-        # Bundled plugins are opt-in by design. Enable only the pieces this VM
-        # intentionally operates: disk-cleanup for session temp-file GC, and
+        # Bundled/user plugins are opt-in by design. Enable only the pieces this
+        # VM intentionally operates: disk-cleanup for session temp-file GC,
         # basic dashboard auth so the tailnet-exposed dashboard can bind
-        # non-loopback without falling back to --insecure.
+        # non-loopback without falling back to --insecure, and the local
+        # outbound-approval guard so messages/mail/posts wait for Mykhailo's
+        # explicit approval before leaving the machine.
         plugins.enabled = [
           "dashboard_auth/basic"
           "disk-cleanup"
+          "outbound-approval"
         ];
+        outbound_approval.enabled = true;
       };
 
       # Non-secret env, merged into $HERMES_HOME/.env at activation. The HTTP
@@ -870,6 +895,15 @@ in
     text = ''
       home=${config.services.hermes-agent.stateDir}/.hermes
       if [ -d "$home" ]; then
+        # The outbound-approval plugin first landed live as an unmanaged user
+        # plugin for immediate protection. Once the flake activates, the Hermes
+        # module provides the store-backed nix-managed symlink; remove the old
+        # mutable copy so it cannot override the declarative plugin by name.
+        plugin_dir="$home/plugins/outbound-approval"
+        if [ -e "$plugin_dir" ] && [ ! -L "$plugin_dir" ]; then
+          rm -rf "$plugin_dir"
+        fi
+
         # readline opens history 0600 on create, locking out the other group
         # UID; pre-create it group-writable so both only ever append.
         [ -e "$home/.hermes_history" ] ||

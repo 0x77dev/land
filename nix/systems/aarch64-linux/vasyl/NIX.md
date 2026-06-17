@@ -68,6 +68,16 @@ restart hermes-agent`.
   `nix-upper-gc.service`; durable _system_ units belong in the flake, not in
   `/etc` by hand.
 
+## Outbound communication guard
+
+Vasyl gates tool-driven outbound communication. Drafting and read-only lookup are
+allowed, but delivery paths such as `send_message`, Gmail/email send or reply,
+social posts/DMs, and obvious terminal/API message-sending commands wait for an
+explicit gateway `/approve`; `/deny` or timeout blocks the action. The durable
+source is the Nix-managed Hermes plugin declared in `services.hermes-agent` via
+`extraPlugins`, plus `settings.plugins.enabled = [ "outbound-approval" ]` and
+`settings.outbound_approval.enabled = true`.
+
 ## Working in Mykhailo's flake
 
 If you touch his Nix config (the `land` flake, Snowfall layout):
