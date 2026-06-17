@@ -141,7 +141,7 @@
       };
 
       # Generate base outputs
-      outputs = lib.mkFlake {
+      baseOutputs = lib.mkFlake {
         inherit supportedSystems;
 
         channels-config.allowUnfree = true;
@@ -194,6 +194,24 @@
             ];
           };
         };
+      };
+
+      getSystemPackages =
+        system:
+        if builtins.hasAttr "packages" baseOutputs && builtins.hasAttr system baseOutputs.packages then
+          lib.filterAttrs (_: package: lib.isDerivation package) baseOutputs.packages.${system}
+        else
+          { };
+
+      namespacePackageChecks = lib.genAttrs supportedSystems (
+        system:
+        lib.mapAttrs' (name: package: lib.nameValuePair "package-${name}" package) (
+          getSystemPackages system
+        )
+      );
+
+      outputs = baseOutputs // {
+        checks = lib.recursiveUpdate (baseOutputs.checks or { }) namespacePackageChecks;
       };
 
       automation = outputs.lib.automation.mkOutputs { inherit outputs; };
