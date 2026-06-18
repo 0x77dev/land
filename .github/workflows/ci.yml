@@ -72,7 +72,10 @@ jobs:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Build native checks and shell
-        run: nix build ${{ join(matrix.buildTargets, ' ') }}
+        # GitHub's aarch64 runners occasionally receive a corrupt upstream
+        # substitute; --fallback lets Nix build the affected derivation locally
+        # instead of failing the whole matrix on cache integrity noise.
+        run: nix build --fallback ${{ join(matrix.buildTargets, ' ') }}
 
       - name: Evaluate native declared system and home outputs
         run: |
