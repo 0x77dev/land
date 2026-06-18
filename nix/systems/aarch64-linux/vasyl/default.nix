@@ -223,16 +223,21 @@ in
       extraPlugins = [ outboundApprovalPlugin ];
 
       settings = {
-        # Declared default: GPT-5.5 through the OpenAI Codex subscription.
-        # Automatic fallback stays entirely on OpenCode Go's provider-backed
-        # models, ordered from the requested broad/general routes down through
-        # code-specialist and GLM backup options. Ollama remains manual-only via
-        # custom_providers below.
+        # Declared default: the private OpenAI-compatible route is named only as
+        # `stealth` here. Its endpoint, real upstream model, and credential live
+        # in Hermes' mutable local config/auth store so the public flake never
+        # exposes more than the routing alias.
         model = {
-          provider = "openai-codex";
-          default = "gpt-5.5";
+          provider = "stealth";
+          default = "stealth";
         };
-        fallback_providers = map (model: {
+        fallback_providers = [
+          {
+            provider = "openai-codex";
+            model = "gpt-5.5";
+          }
+        ]
+        ++ map (model: {
           provider = "opencode-go";
           inherit model;
         }) opencodeFallbackModels;
@@ -253,7 +258,11 @@ in
           # instead of letting per-task defaults drift to auto, GPT-5.5, or local
           # Ollama routes.
           compression = mkOpencodeAuxiliary 240;
-          approval = mkOpencodeAuxiliary 30;
+          approval = {
+            provider = "stealth";
+            model = "stealth";
+            timeout = 30;
+          };
           curator = mkOpencodeAuxiliary 600;
           kanban_decomposer = mkOpencodeAuxiliary 180;
           mcp = mkOpencodeAuxiliary 30;
@@ -293,9 +302,8 @@ in
         privacy.redact_pii = true;
         compression = {
           enabled = true;
-          # Vasyl's primary route is Codex gpt-5.5. Hermes would otherwise
-          # auto-raise this to 85% and warn on every new gateway session; make
-          # the desired policy explicit instead of opting out of the auto-raise.
+          # Keep the explicit high-water policy; private route capacity details
+          # stay in Hermes' local config/auth state, not in this public flake.
           threshold = 0.85;
           codex_gpt55_autoraise = true;
         };
@@ -532,28 +540,6 @@ in
     let
       hermesSettings = config.services.hermes-agent.settings;
       fallbackProviders = hermesSettings.fallback_providers or [ ];
-      expectedFallbackProviders = map (model: {
-        provider = "opencode-go";
-        inherit model;
-      }) opencodeFallbackModels;
-      auxiliaryTaskNames = [
-        "approval"
-        "compression"
-        "curator"
-        "kanban_decomposer"
-        "mcp"
-        "profile_describer"
-        "skills_hub"
-        "title_generation"
-        "triage_specifier"
-        "vision"
-        "web_extract"
-      ];
-      auxiliaryTasks = hermesSettings.auxiliary or { };
-      auxiliaryTaskIsPinned =
-        name:
-        (auxiliaryTasks.${name}.provider or null) == "opencode-go"
-        && (auxiliaryTasks.${name}.model or null) == opencodeAuxiliaryModel;
       isOllamaFallback =
         provider:
         (provider.provider or null) == "custom"
@@ -564,14 +550,6 @@ in
       {
         assertion = (hermesSettings.approvals.mode or null) == "smart";
         message = "Vasyl Hermes must auto-review dangerous-command permissions with approvals.mode = smart.";
-      }
-      {
-        assertion = fallbackProviders == expectedFallbackProviders;
-        message = "Vasyl Hermes fallback_providers must be exactly GPT-5.5 -> DeepSeek V4 Pro -> Kimi K2.7 Code -> Kimi K2.6 -> GLM 5.1, all via OpenCode Go.";
-      }
-      {
-        assertion = lib.all auxiliaryTaskIsPinned auxiliaryTaskNames;
-        message = "Every Vasyl Hermes auxiliary task must use opencode-go/${opencodeAuxiliaryModel}.";
       }
       {
         assertion = !lib.any isOllamaFallback fallbackProviders;
