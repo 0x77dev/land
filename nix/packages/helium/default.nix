@@ -28,19 +28,19 @@ let
   sources = {
     x86_64-linux = {
       url = "${linuxBase}/helium-${version}-x86_64_linux.tar.xz";
-      hash = "sha256-tfiy1MkxXq9vOjp57R3ykHjleG0Viz/C2ttwXbHnPwA=";
+      hash = "sha256-R/cGyWuBrLeFhucrpkRpQN9k/MWN3JlnwSufEsqVkmY=";
     };
     aarch64-linux = {
       url = "${linuxBase}/helium-${version}-arm64_linux.tar.xz";
-      hash = "sha256-q6cCrvDh9eYQZwCLArKXZDpYkl0Zzi2g9gp9l+G+QIA=";
+      hash = "sha256-DSlJxzRAFhTkTyYFyUrypf+leU+Sip2pkLtOuyIduzU=";
     };
     x86_64-darwin = {
       url = "${macosBase}/helium_${version}_x86_64-macos.dmg";
-      hash = "sha256-iJSV5S9LM7Vvpn4g2cdHzgJAqUjBvUfu+izUh5N3mKI=";
+      hash = "sha256-zZH/u/dx3Vuh4wiqMQ/E0kNT/Q4YsBrLfBRX13VEh1k=";
     };
     aarch64-darwin = {
       url = "${macosBase}/helium_${version}_arm64-macos.dmg";
-      hash = "sha256-uws6OUTyV6/Ejo1FqFnpNSG3tTUGFMNelrex2m1Ymd0=";
+      hash = "sha256-4SeQxbnd9nFtWvUOFPbEFgFs1LFongXaA02UI2qfdnA=";
     };
   };
 
