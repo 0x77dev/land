@@ -198,7 +198,13 @@ in
 
     hermes-agent = {
       enable = true;
-      package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.full;
+      # Upstream input stays pinned; the ephemeral-fallback fix is overlaid as
+      # a single reviewable patch. Drop this overrideAttrs + the patch file
+      # once the fix lands upstream (NousResearch/hermes-agent). See
+      # patches/hermes-ephemeral-fallback.patch for rationale + test.
+      package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.full.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ./patches/hermes-ephemeral-fallback.patch ];
+      });
 
       # `hermes` CLI on every PATH, sharing HERMES_HOME with the gateway. This
       # also makes config.yaml group-writable (0660) — the module's official

@@ -1,7 +1,8 @@
 {
   "ignorePaths": [
     ".cursor/rules",
-    "cloudflare.json"
+    "cloudflare.json",
+    "**/*.patch"
   ],
   "ignoreRegExpList": [
     "[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"
