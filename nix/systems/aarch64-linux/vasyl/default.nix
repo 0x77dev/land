@@ -247,18 +247,18 @@ in
           provider = "opencode-go";
           inherit model;
         }) opencodeFallbackModels;
-        # Give Hermes' /model picker a named row for spark's Ollama endpoint.
+        # Give Hermes' /model picker a named row for spark's Ollama endpoint
+        # without owning `custom_providers`: that key is a list, so the NixOS
+        # module's activation merge replaces runtime-added entries. `providers`
+        # is an attribute set and deep-merges with local private provider bridges.
         # This is deliberately manual-only: assertions below fail evaluation if
         # an Ollama/custom provider is reintroduced into automatic fallbacks.
-        custom_providers = [
-          {
-            name = "Ollama";
-            base_url = ollamaBaseUrl;
-            api_key = "ollama";
-            api_mode = "chat_completions";
-            discover_models = true;
-          }
-        ];
+        providers.Ollama = {
+          api = ollamaBaseUrl;
+          api_key = "ollama";
+          transport = "chat_completions";
+          discover_models = true;
+        };
         auxiliary = {
           # Pin every Hermes auxiliary task to DeepSeek V4 Flash on OpenCode Go
           # instead of letting per-task defaults drift to auto, GPT-5.5, or local
