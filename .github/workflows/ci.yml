@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ci-matrix: ${{ steps.targets.outputs.ci-matrix }}
+      closure-matrix: ${{ steps.targets.outputs.closure-matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
@@ -40,13 +41,16 @@ jobs:
             echo 'ci-matrix<<EOF'
             nix eval --json .#lib.automation.githubActions.ci.matrix
             echo 'EOF'
+            echo 'closure-matrix<<EOF'
+            nix eval --json .#lib.automation.githubActions.ci.closureMatrix
+            echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
   checks:
     needs: prepare
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -83,9 +87,38 @@ jobs:
             nix eval --raw "$target" >/dev/null
           done
 
-      - name: Build native system and home closures
-        # Actually build the full system/home-manager closures (not just
-        # evaluate drvPath) so CI proves they are buildable and pushes
-        # substitutes to Cachix for hosts that cannot build locally.
-        if: ${{ join(matrix.systemBuildTargets, '') != '' }}
+  closures:
+    needs: prepare
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.closure-matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: Configure Cachix
+        if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
+        with:
+          name: land
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build system closure
+        # Actually build the full system/home-manager closure (not just
+        # evaluate drvPath) so CI proves buildability and pushes substitutes
+        # to Cachix for hosts that cannot build locally (e.g. spark, a Pi).
+        # Each host builds on its own runner in parallel to avoid timeouts.
         run: nix build --fallback ${{ join(matrix.systemBuildTargets, ' ') }}

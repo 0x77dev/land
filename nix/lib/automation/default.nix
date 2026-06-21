@@ -198,13 +198,31 @@ in
         buildTargets = lib.unique (
           getSystemOutputTargets outputs "checks" system ++ getSystemOutputTargets outputs "devShells" system
         );
-        # Full system/home closures — actually built (not just evaluated) so CI
-        # proves buildability and pushes substitutes to Cachix. Without this,
-        # hosts like spark (aarch64 Pi) can be stuck building hundreds of
-        # derivations locally that CI never verified.
-        systemBuildTargets = getNativeConfigurationTargets system;
         evalTargets = getNativeConfigurationEvaluationTargets system;
       };
+
+      # One matrix entry per host so each closure builds in parallel on its
+      # own runner. Bundling all hosts for an architecture into a single job
+      # causes timeouts (x86_64-linux: 10 closures > 120 min).
+      getClosureMatrixEntry =
+        entry:
+        let
+          handler = getConfigurationHandler entry.outputName;
+          buildTarget = handler.buildTarget entry.name;
+        in
+        {
+          name = "closure / ${entry.name}";
+          os = runnerSystems.${entry.resolvedSystem};
+          system = entry.resolvedSystem;
+          host = entry.name;
+          systemBuildTargets = [ buildTarget ];
+        };
+
+      closureMatrix = map getClosureMatrixEntry (
+        builtins.filter (entry: builtins.hasAttr entry.outputName outputs) (
+          getDeclaredSystemConfigurations ++ getDeclaredHomeConfigurations
+        )
+      );
 
       getSecurityMatrix = system: {
         name = "vulnix / ${system}";
@@ -222,6 +240,7 @@ in
       githubActions = {
         ci = {
           matrix = map getNativeRunnerMatrix (sortAttrNames runnerSystems);
+          inherit closureMatrix;
         };
 
         security = {
