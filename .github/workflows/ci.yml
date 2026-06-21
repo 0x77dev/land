@@ -46,7 +46,7 @@ jobs:
     needs: prepare
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -82,3 +82,10 @@ jobs:
           for target in ${{ join(matrix.evalTargets, ' ') }}; do
             nix eval --raw "$target" >/dev/null
           done
+
+      - name: Build native system and home closures
+        # Actually build the full system/home-manager closures (not just
+        # evaluate drvPath) so CI proves they are buildable and pushes
+        # substitutes to Cachix for hosts that cannot build locally.
+        if: ${{ join(matrix.systemBuildTargets, '') != '' }}
+        run: nix build --fallback ${{ join(matrix.systemBuildTargets, ' ') }}

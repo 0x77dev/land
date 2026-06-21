@@ -198,6 +198,11 @@ in
         buildTargets = lib.unique (
           getSystemOutputTargets outputs "checks" system ++ getSystemOutputTargets outputs "devShells" system
         );
+        # Full system/home closures — actually built (not just evaluated) so CI
+        # proves buildability and pushes substitutes to Cachix. Without this,
+        # hosts like spark (aarch64 Pi) can be stuck building hundreds of
+        # derivations locally that CI never verified.
+        systemBuildTargets = getNativeConfigurationTargets system;
         evalTargets = getNativeConfigurationEvaluationTargets system;
       };
 
