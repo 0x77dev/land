@@ -323,7 +323,19 @@ in
           matrix = [ "hermes-matrix" ];
           api_server = [ "hermes-api-server" ];
           cron = [ "hermes-cron" ];
-          webhook = [ "hermes-webhook" ];
+          # Webhook sessions need terminal/file/web/delegation to run autofix
+          # workflows (diagnose CI failures, create fix PRs, auto-merge). The
+          # default hermes-webhook toolset is intentionally restricted to
+          # prevent prompt injection from untrusted third-party webhook content,
+          # but this is a personal instance and the CI-failure webhook only
+          # receives events from our own GitHub Actions.
+          webhook = [
+            "hermes-webhook"
+            "terminal"
+            "file"
+            "web"
+            "delegation"
+          ];
         };
 
         # Deep-mission orchestration is deliberately wide and recursive now:
