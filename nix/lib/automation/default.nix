@@ -201,6 +201,29 @@ in
         evalTargets = getNativeConfigurationEvaluationTargets system;
       };
 
+      # One matrix entry per host so each closure builds in parallel on its
+      # own runner. Bundling all hosts for an architecture into a single job
+      # causes timeouts (x86_64-linux: 10 closures > 120 min).
+      getClosureMatrixEntry =
+        entry:
+        let
+          handler = getConfigurationHandler entry.outputName;
+          buildTarget = handler.buildTarget entry.name;
+        in
+        {
+          name = "closure / ${entry.name}";
+          os = runnerSystems.${entry.resolvedSystem};
+          system = entry.resolvedSystem;
+          host = entry.name;
+          systemBuildTargets = [ buildTarget ];
+        };
+
+      closureMatrix = map getClosureMatrixEntry (
+        builtins.filter (entry: builtins.hasAttr entry.outputName outputs) (
+          getDeclaredSystemConfigurations ++ getDeclaredHomeConfigurations
+        )
+      );
+
       getSecurityMatrix = system: {
         name = "vulnix / ${system}";
         os = runnerSystems.${system};
@@ -217,6 +240,7 @@ in
       githubActions = {
         ci = {
           matrix = map getNativeRunnerMatrix (sortAttrNames runnerSystems);
+          inherit closureMatrix;
         };
 
         security = {

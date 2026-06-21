@@ -164,6 +164,27 @@
           nixos-raspberrypi.overlays.kernel-and-firmware
           nixos-raspberrypi.overlays.vendor-pkgs
           nix-cachyos-kernel.overlays.pinned
+          # ariang's package-lock.json is v1 with a git URL for
+          # angular-input-dropdown. npm ci in newer npm fails validating
+          # sync. Wrap npm to substitute `npm ci` with `npm install`.
+          # Drop when nixpkgs fixes upstream ariang.
+          (final: prev: {
+            ariang = prev.ariang.overrideAttrs (old: {
+              prePatch = (old.prePatch or "") + ''
+                mkdir -p .npm-wrapper
+                cat > .npm-wrapper/npm <<'WRAPPER'
+                #!/bin/sh
+                if [ "$1" = "ci" ]; then
+                  shift
+                  exec ${final.nodejs}/bin/npm install --no-audit --no-fund "$@"
+                fi
+                exec ${final.nodejs}/bin/npm "$@"
+                WRAPPER
+                chmod +x .npm-wrapper/npm
+                export PATH="$PWD/.npm-wrapper:$PATH"
+              '';
+            });
+          })
         ];
 
         systems = {
