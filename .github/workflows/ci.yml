@@ -109,6 +109,17 @@ jobs:
             accept-flake-config = true
             experimental-features = nix-command flakes
 
+      - name: Reclaim runner disk space
+        # GitHub Actions runners ship ~14 GB free. Heavy from-source builds
+        # (opencv, torch, CUDA) can exhaust this and crash the runner mid-build
+        # with no error message — the job just dies with the build step still
+        # "in_progress". Remove preinstalled SDKs and toolchains we don't need.
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h /
+
       - name: Configure Cachix
         if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository
         uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
