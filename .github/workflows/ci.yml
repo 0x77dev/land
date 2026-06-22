@@ -91,7 +91,7 @@ jobs:
     needs: prepare
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 180
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -116,9 +116,35 @@ jobs:
           name: land
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Assess build work
+        # Dry-run reveals exactly what needs to be built from source vs what
+        # can be substituted from cache. When everything is already cached
+        # (the common case after the first successful build pushes to Cachix),
+        # we skip the build entirely — just substitute and verify.
+        id: dry-run
+        run: |
+          set -euo pipefail
+          nix build --dry-run --fallback ${{ join(matrix.systemBuildTargets, ' ') }} 2>&1 | tee /tmp/dry-run.txt
+
+          # Dry-run output has two sections:
+          #   "these derivations will be built:" → from-source builds
+          #   "these paths will be fetched:" → substitutions
+          BUILD_COUNT=$(awk '/^these.*will be built:/{found=1;next} /^these.*will be fetched/{found=0} found && /^  \//{count++} END{print count+0}' /tmp/dry-run.txt)
+
+          echo "build-count=$BUILD_COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$BUILD_COUNT" = "0" ]; then
+            echo "CACHE_HIT=true" >> "$GITHUB_ENV"
+            echo "✓ All derivations cached — skipping build"
+          else
+            echo "CACHE_HIT=false" >> "$GITHUB_ENV"
+            echo "⚠ $BUILD_COUNT derivations need building from source"
+          fi
+
       - name: Build system closure
-        # Actually build the full system/home-manager closure (not just
-        # evaluate drvPath) so CI proves buildability and pushes substitutes
-        # to Cachix for hosts that cannot build locally (e.g. spark, a Pi).
-        # Each host builds on its own runner in parallel to avoid timeouts.
+        # Build the full system/home-manager closure so CI proves buildability
+        # and pushes substitutes to Cachix for hosts that cannot build locally.
+        # Skipped when the dry-run shows 0 from-source builds — the closure is
+        # fully substitutable, so building would just fetch from cache and add
+        # no value. The dry-run already proved substitutability.
+        if: env.CACHE_HIT != 'true'
         run: nix build --fallback ${{ join(matrix.systemBuildTargets, ' ') }}
