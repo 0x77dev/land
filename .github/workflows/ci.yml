@@ -91,7 +91,7 @@ jobs:
     needs: prepare
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -109,6 +109,17 @@ jobs:
             accept-flake-config = true
             experimental-features = nix-command flakes
 
+      - name: Reclaim runner disk space
+        # GitHub Actions runners ship ~14 GB free. Heavy from-source builds
+        # (opencv, torch, CUDA) can exhaust this and crash the runner mid-build
+        # with no error message — the job just dies with the build step still
+        # "in_progress". Remove preinstalled SDKs and toolchains we don't need.
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h /
+
       - name: Configure Cachix
         if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository
         uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
@@ -116,9 +127,35 @@ jobs:
           name: land
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Assess build work
+        # Dry-run reveals exactly what needs to be built from source vs what
+        # can be substituted from cache. When everything is already cached
+        # (the common case after the first successful build pushes to Cachix),
+        # we skip the build entirely — just substitute and verify.
+        id: dry-run
+        run: |
+          set -euo pipefail
+          nix build --dry-run --fallback ${{ join(matrix.systemBuildTargets, ' ') }} 2>&1 | tee /tmp/dry-run.txt
+
+          # Dry-run output has two sections:
+          #   "these derivations will be built:" → from-source builds
+          #   "these paths will be fetched:" → substitutions
+          BUILD_COUNT=$(awk '/^these.*will be built:/{found=1;next} /^these.*will be fetched/{found=0} found && /^  \//{count++} END{print count+0}' /tmp/dry-run.txt)
+
+          echo "build-count=$BUILD_COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$BUILD_COUNT" = "0" ]; then
+            echo "CACHE_HIT=true" >> "$GITHUB_ENV"
+            echo "✓ All derivations cached — skipping build"
+          else
+            echo "CACHE_HIT=false" >> "$GITHUB_ENV"
+            echo "⚠ $BUILD_COUNT derivations need building from source"
+          fi
+
       - name: Build system closure
-        # Actually build the full system/home-manager closure (not just
-        # evaluate drvPath) so CI proves buildability and pushes substitutes
-        # to Cachix for hosts that cannot build locally (e.g. spark, a Pi).
-        # Each host builds on its own runner in parallel to avoid timeouts.
+        # Build the full system/home-manager closure so CI proves buildability
+        # and pushes substitutes to Cachix for hosts that cannot build locally.
+        # Skipped when the dry-run shows 0 from-source builds — the closure is
+        # fully substitutable, so building would just fetch from cache and add
+        # no value. The dry-run already proved substitutability.
+        if: env.CACHE_HIT != 'true'
         run: nix build --fallback ${{ join(matrix.systemBuildTargets, ' ') }}

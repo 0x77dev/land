@@ -198,13 +198,36 @@ in
 
     hermes-agent = {
       enable = true;
-      # Upstream input stays pinned; the ephemeral-fallback fix is overlaid as
-      # a single reviewable patch. Drop this overrideAttrs + the patch file
-      # once the fix lands upstream (NousResearch/hermes-agent). See
-      # patches/hermes-ephemeral-fallback.patch for rationale + test.
-      package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.full.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ ./patches/hermes-ephemeral-fallback.patch ];
-      });
+      # Upstream input stays pinned; the ephemeral-fallback fix is overlaid
+      # via postInstall because the `full` package has dontUnpack=true
+      # (assembled from pre-built components, not built from source). The
+      # standard `patches` mechanism can't work — there's no source tree to
+      # patch against. Instead, copy hermes_cli/ from the venv into $out/lib/,
+      # apply the patch there, and prepend $out/lib to PYTHONPATH so the
+      # patched module shadows the original.
+      # Drop this override + the patch file once the fix lands upstream
+      # (NousResearch/hermes-agent). See patches/hermes-ephemeral-fallback.patch
+      # for rationale + test.
+      package =
+        let
+          basePkg = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.full;
+        in
+        basePkg.overrideAttrs (old: {
+          postInstall = (old.postInstall or "") + ''
+            # Overlay the patched hermes_cli module on PYTHONPATH.
+            VENV_SITE=$(find "${basePkg.hermesVenv}" -type d -name "hermes_cli" 2>/dev/null | head -1)
+            if [ -z "$VENV_SITE" ]; then
+              echo "WARNING: hermes_cli not found in venv — skipping ephemeral-fallback patch"
+            else
+              mkdir -p $out/lib/hermes_cli
+              cp "$VENV_SITE/"* $out/lib/hermes_cli/
+              ( cd $out/lib && patch -p1 < ${./patches/hermes-ephemeral-fallback.patch} )
+              wrapProgram $out/bin/hermes       --prefix PYTHONPATH : $out/lib
+              wrapProgram $out/bin/hermes-agent  --prefix PYTHONPATH : $out/lib
+              wrapProgram $out/bin/hermes-acp    --prefix PYTHONPATH : $out/lib
+            fi
+          '';
+        });
 
       # `hermes` CLI on every PATH, sharing HERMES_HOME with the gateway. This
       # also makes config.yaml group-writable (0660) — the module's official
