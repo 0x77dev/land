@@ -253,11 +253,91 @@ in
         # is an attribute set and deep-merges with local private provider bridges.
         # This is deliberately manual-only: assertions below fail evaluation if
         # an Ollama/custom provider is reintroduced into automatic fallbacks.
-        providers.Ollama = {
-          api = ollamaBaseUrl;
-          api_key = "ollama";
-          transport = "chat_completions";
-          discover_models = true;
+        #
+        # Vercel AI Gateway is also one account/key, but Hermes needs one row per
+        # wire protocol so SDK-specific request shapes stay correct: OpenAI Chat
+        # Completions and Responses use /v1, while Anthropic Messages must stop
+        # before the SDK appends /v1/messages. The token lives only in
+        # hermesSecretEnv as AI_GATEWAY_API_KEY.
+        providers = {
+          Ollama = {
+            api = ollamaBaseUrl;
+            api_key = "ollama";
+            transport = "chat_completions";
+            discover_models = true;
+          };
+
+          vercel-ai-gateway-chat = {
+            name = "Vercel AI Gateway (OpenAI Chat Completions)";
+            api = "https://ai-gateway.vercel.sh/v1";
+            key_env = "AI_GATEWAY_API_KEY";
+            transport = "chat_completions";
+            default_model = "openai/gpt-5.5";
+            discover_models = true;
+            models = {
+              "openai/gpt-5.5" = {
+                context_length = 1000000;
+              };
+              "openai/gpt-5.5-pro" = {
+                context_length = 1000000;
+              };
+              "openai/gpt-5.4" = {
+                context_length = 1050000;
+              };
+              "openai/gpt-5-mini" = {
+                context_length = 400000;
+              };
+              "google/gemini-2.5-pro" = {
+                context_length = 1048576;
+              };
+            };
+          };
+
+          vercel-ai-gateway-responses = {
+            name = "Vercel AI Gateway (OpenAI Responses)";
+            api = "https://ai-gateway.vercel.sh/v1";
+            key_env = "AI_GATEWAY_API_KEY";
+            transport = "codex_responses";
+            default_model = "openai/gpt-5.5";
+            discover_models = true;
+            models = {
+              "openai/gpt-5.5" = {
+                context_length = 1000000;
+              };
+              "openai/gpt-5.5-pro" = {
+                context_length = 1000000;
+              };
+              "openai/gpt-5.4" = {
+                context_length = 1050000;
+              };
+              "openai/gpt-5-mini" = {
+                context_length = 400000;
+              };
+            };
+          };
+
+          vercel-ai-gateway-anthropic = {
+            name = "Vercel AI Gateway (Anthropic Messages)";
+            api = "https://ai-gateway.vercel.sh";
+            key_env = "AI_GATEWAY_API_KEY";
+            transport = "anthropic_messages";
+            default_model = "anthropic/claude-sonnet-4.6";
+            discover_models = false;
+            models = {
+              "anthropic/claude-sonnet-4.6" = {
+                context_length = 1000000;
+              };
+              "anthropic/claude-opus-4.8" = {
+                context_length = 1000000;
+              };
+              "anthropic/claude-fable-5" = {
+                context_length = 1000000;
+              };
+              "anthropic/claude-haiku-4.5" = {
+                context_length = 200000;
+              };
+            };
+          };
         };
         auxiliary = {
           # Pin every Hermes auxiliary task to DeepSeek V4 Flash on OpenCode Go
