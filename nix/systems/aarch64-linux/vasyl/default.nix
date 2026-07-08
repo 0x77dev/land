@@ -229,13 +229,13 @@ in
       extraPlugins = [ outboundApprovalPlugin ];
 
       settings = {
-        # Declared default: the private OpenAI-compatible route is named only as
-        # `stealth` here. Its endpoint, real upstream model, and credential live
-        # in Hermes' mutable local config/auth store so the public flake never
-        # exposes more than the routing alias.
+        # Primary route: Vercel AI Gateway via the OpenAI Responses transport.
+        # This keeps the default on GPT-5.5 while giving Hermes one account/key
+        # for OpenAI-compatible, Anthropic, and Gemini gateway models below.
         model = {
-          provider = "stealth";
-          default = "stealth";
+          provider = "vercel-ai-gateway-responses";
+          default = "openai/gpt-5.5";
+          context_length = 1000000;
         };
         fallback_providers = [
           {
