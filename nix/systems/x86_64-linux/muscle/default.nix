@@ -164,7 +164,16 @@
           };
         in
         {
-          user.databases = [ { settings = mutter-settings; } ];
+          user.databases = [
+            {
+              settings = mutter-settings // {
+                "org/gnome/shell".enabled-extensions = [
+                  "appindicatorsupport@rgcjonas.gmail.com"
+                  "tailscale@joaophi.github.com" # Tailscale in quick settings
+                ];
+              };
+            }
+          ];
           gdm.databases = [ { settings = mutter-settings; } ];
         };
     };
@@ -320,7 +329,11 @@
       };
     };
 
-    tailscale.enable = true;
+    # Operator lets the quick-settings extension toggle Tailscale without sudo.
+    tailscale = {
+      enable = true;
+      extraSetFlags = [ "--operator=mykhailo" ];
+    };
 
     # LAN Ollama peer to Spark. Muscle has 2x RTX 6000 Ada GPUs (48 GB each),
     # so the pull set stays shared and vetted against that smaller VRAM budget.
@@ -500,6 +513,7 @@
       gnome-tweaks
       gnome-extension-manager
       gnomeExtensions.appindicator
+      gnomeExtensions.tailscale-qs
     ];
 
     variables = {
