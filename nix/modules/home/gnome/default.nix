@@ -41,12 +41,10 @@ in
   };
 
   config = mkIf cfg.enable {
-    # PaperWM for the scrolling workflow; Tiling Assistant for Raycast-style
-    # halves/quarters keybindings.
-    home.packages = with pkgs.gnomeExtensions; [
-      paperwm
-      tiling-assistant
-    ];
+    # Tiling Shell: Windows 11-grade snap assistant (drag to top edge for
+    # the layout picker, screen edges for halves/quarters) with
+    # FancyZones-style per-monitor custom layouts.
+    home.packages = [ pkgs.gnomeExtensions.tiling-shell ];
 
     # Ghostty is the terminal: TERMINAL for launchers/scripts that honor it.
     home.sessionVariables.TERMINAL = "ghostty";
@@ -77,11 +75,7 @@ in
     dconf.settings = {
       "org/gnome/shell" = {
         favorite-apps = cfg.favoriteApps;
-        enabled-extensions = [
-          "paperwm@paperwm.github.com"
-          "tiling-assistant@leleat-on-github"
-        ]
-        ++ cfg.extensions;
+        enabled-extensions = [ "tilingshell@ferrarodomenico.com" ] ++ cfg.extensions;
       };
 
       # Keyboard layout priority: English (US) → Ukrainian → Russian.
@@ -108,6 +102,11 @@ in
         switch-input-source = [ "<Control>space" ];
         switch-input-source-backward = [ "<Shift><Control>space" ];
         close = [ "<Super>q" ];
+        # Throw windows across monitors (ultrawide <-> portrait).
+        move-to-monitor-left = [ "<Shift><Super>Left" ];
+        move-to-monitor-right = [ "<Shift><Super>Right" ];
+        move-to-monitor-up = [ "<Shift><Super>Up" ];
+        move-to-monitor-down = [ "<Shift><Super>Down" ];
       };
 
       # Screenshots on the Cmd+Shift+3/4 pattern.
@@ -135,42 +134,129 @@ in
         binding = "<Control><Alt>t";
       };
 
-      # Raycast window management, same chords as on macOS:
-      # Ctrl+Alt+arrows = halves, Ctrl+Alt+ASDF = quarters,
-      # Ctrl+Alt+Return = maximize.
-      "org/gnome/shell/extensions/tiling-assistant" = {
-        enable-tiling-popup = false;
-        tile-left-half = [ "<Control><Alt>Left" ];
-        tile-right-half = [ "<Control><Alt>Right" ];
-        tile-top-half = [ "<Control><Alt>Up" ];
-        tile-bottom-half = [ "<Control><Alt>Down" ];
-        tile-topleft-quarter = [ "<Control><Alt>a" ];
-        tile-topright-quarter = [ "<Control><Alt>s" ];
-        tile-bottomleft-quarter = [ "<Control><Alt>d" ];
-        tile-bottomright-quarter = [ "<Control><Alt>f" ];
-        tile-maximize = [ "<Control><Alt>Return" ];
-      };
-
-      # PaperWM navigation: Super+arrows move focus, Ctrl+Super+arrows
-      # move windows.
-      "org/gnome/shell/extensions/paperwm" = {
-        show-window-position-bar = false;
-        # Keep the launcher out of the tiled scroll: vicinae lives on the
-        # floating scratch layer, so it pops over windows like Raycast.
-        winprops = [
-          (builtins.toJSON {
-            wm_class = "vicinae";
-            scratch_layer = true;
-          })
+      # Windows 11-style tiling: drag to the top edge for the snap-layout
+      # picker, screen edges for halves/quarters, snap assist suggests
+      # windows for the remaining space. Ctrl+Alt+arrows move the focused
+      # window between tiles of the active layout; Shift+Ctrl+Alt+arrows
+      # span multiple tiles; Ctrl+Alt+Return untiles.
+      "org/gnome/shell/extensions/tilingshell" = {
+        enable-tiling-system = true;
+        enable-snap-assist = true;
+        active-screen-edges = true;
+        top-edge-maximize = false;
+        enable-move-keybindings = true;
+        move-window-left = [ "<Control><Alt>Left" ];
+        move-window-right = [ "<Control><Alt>Right" ];
+        move-window-up = [ "<Control><Alt>Up" ];
+        move-window-down = [ "<Control><Alt>Down" ];
+        span-window-left = [ "<Shift><Control><Alt>Left" ];
+        span-window-right = [ "<Shift><Control><Alt>Right" ];
+        span-window-up = [ "<Shift><Control><Alt>Up" ];
+        span-window-down = [ "<Shift><Control><Alt>Down" ];
+        untile-window = [ "<Control><Alt>Return" ];
+        cycle-layouts = [ "<Control><Alt>l" ];
+        # FancyZones-style layouts: pick per monitor from the panel
+        # indicator. Thirds and quarters for the ultrawide, stacked thirds
+        # for the portrait panel, plus a centered-focus ultrawide layout.
+        layouts-json = builtins.toJSON [
+          {
+            id = "Halves";
+            tiles = [
+              {
+                x = 0;
+                y = 0;
+                width = 0.5;
+                height = 1;
+                groups = [ 1 ];
+              }
+              {
+                x = 0.5;
+                y = 0;
+                width = 0.5;
+                height = 1;
+                groups = [ 1 ];
+              }
+            ];
+          }
+          {
+            id = "Thirds";
+            tiles =
+              map
+                (i: {
+                  x = i / 3.0;
+                  y = 0;
+                  width = 1 / 3.0;
+                  height = 1;
+                  groups = [ 1 ];
+                })
+                [
+                  0
+                  1
+                  2
+                ];
+          }
+          {
+            id = "Quarters";
+            tiles =
+              map
+                (i: {
+                  x = i / 4.0;
+                  y = 0;
+                  width = 0.25;
+                  height = 1;
+                  groups = [ 1 ];
+                })
+                [
+                  0
+                  1
+                  2
+                  3
+                ];
+          }
+          {
+            id = "Center Focus";
+            tiles = [
+              {
+                x = 0;
+                y = 0;
+                width = 0.25;
+                height = 1;
+                groups = [ 1 ];
+              }
+              {
+                x = 0.25;
+                y = 0;
+                width = 0.5;
+                height = 1;
+                groups = [ 1 ];
+              }
+              {
+                x = 0.75;
+                y = 0;
+                width = 0.25;
+                height = 1;
+                groups = [ 1 ];
+              }
+            ];
+          }
+          {
+            id = "Stacked Thirds";
+            tiles =
+              map
+                (i: {
+                  x = 0;
+                  y = i / 3.0;
+                  width = 1;
+                  height = 1 / 3.0;
+                  groups = [ 1 ];
+                })
+                [
+                  0
+                  1
+                  2
+                ];
+          }
         ];
-      };
-      "org/gnome/shell/extensions/paperwm/keybindings" = {
-        switch-left = [ "<Super>Left" ];
-        switch-right = [ "<Super>Right" ];
-        switch-up-workspace = [ "<Super>Up" ];
-        switch-down-workspace = [ "<Super>Down" ];
-        move-left = [ "<Control><Super>Left" ];
-        move-right = [ "<Control><Super>Right" ];
       };
     };
   };
