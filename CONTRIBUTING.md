@@ -201,34 +201,21 @@ nix flake check
 
 ### GitHub Actions
 
-GitHub Actions provides two workflows:
+`ci.yml` derives its native build matrix and output evaluation targets
+from `flake.nix` via `lib.automation.githubActions`, builds the declared
+check and dev shell closures, evaluates every declared system and home
+output, builds each host closure on its own runner, and pushes results
+to `land.cachix.org`.
 
-- `ci.yml` derives its native build matrix and output evaluation targets
-  from `flake.nix` via `lib.automation.githubActions`, then builds the
-  declared check and dev shell closures plus evaluates every declared
-  system and home output.
-- `security.yml` runs weekly security automation with OpenSSF Scorecard
-  plus `vulnix` scanning against the native flake closures inferred from
-  declared outputs.
-
-Both workflows pin actions to immutable commit SHAs and use minimal
-permissions by default.
-
-### Renovate
-
-Dependency updates are managed by `renovate.json5`.
-
-- Schedule: daily (`before 5am`, `America/New_York`)
-- Scope: Nix flake inputs, GitHub Actions, and comment-annotated custom
-  pinned versions matched by regex managers
-- Automerge: enabled for non-major updates after required protected-branch
-  checks pass
-- Major updates: require manual review via the dependency dashboard
-
-Repository settings should also enable GitHub auto-merge and protect the
-default branch with the GitHub Actions CI status checks emitted by the
-workflow (`check / aarch64-darwin`, `check / aarch64-linux`, and
+The workflow pins actions to immutable commit SHAs and uses minimal
+permissions by default. The default branch is protected by the emitted
+status checks (`check / aarch64-darwin`, `check / aarch64-linux`, and
 `check / x86_64-linux`).
+
+Dependency updates are manual: `nix flake update` for inputs and version
+bumps in-tree for pinned packages. Spelling is checked by
+[typos](https://github.com/crate-ci/typos) via the pre-commit hooks, with
+exceptions kept minimal in `_typos.toml`.
 
 ## Adding Packages
 

@@ -4,10 +4,6 @@ on:
   workflow_run:
     workflows:
       - ci
-      - security
-      - codeql
-      - dependency-graph
-      - renovate-nix-hash
     types:
       - completed
 

@@ -183,16 +183,10 @@ when you want to force a Linux-target build onto the remote builder.
 
 ## Automation
 
-GitHub Actions validates the flake on both Linux and Darwin, pushes
-successful CI builds to `land.cachix.org`, and runs weekly security
-checks with OpenSSF Scorecard plus `vulnix` across the native flake
-closures inferred from declared outputs.
-
-Dependency updates are managed daily with Renovate. Non-major GitHub
-Actions, Nix, and flake lock maintenance updates are configured for
-automerge after the protected-branch CI checks pass, while
-comment-annotated custom pinned versions can be tracked through regex
-managers in [`renovate.json5`].
+GitHub Actions validates the flake on both Linux and Darwin, building
+every declared system and home closure and pushing successful builds to
+`land.cachix.org`. Dependencies are updated manually with
+`nix flake update`.
 
 AI-enabled Home Manager profiles configure the terminal agent stack managed in
 [`nix/modules/home/ai/`]. OpenCode is the agent runtime, with global skills and
@@ -225,7 +219,6 @@ See [CONTRIBUTING.md][contributing] for conventions.
 [commits]: https://git.sr.ht/~dev0x77/land/log
 [contributing]: /CONTRIBUTING.md
 [wtfpl]: /LICENSE
-[`renovate.json5`]: /renovate.json5
 [`nix/modules/home/ai/`]: /nix/modules/home/ai/
 
 <!-- Technology Links -->
