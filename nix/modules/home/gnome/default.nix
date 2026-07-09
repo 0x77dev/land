@@ -41,8 +41,12 @@ in
   };
 
   config = mkIf cfg.enable {
-    # PaperWM: scrollable-tiling window management, managed declaratively.
-    home.packages = [ pkgs.gnomeExtensions.paperwm ];
+    # PaperWM for the scrolling workflow; Tiling Assistant for Raycast-style
+    # halves/quarters keybindings.
+    home.packages = with pkgs.gnomeExtensions; [
+      paperwm
+      tiling-assistant
+    ];
 
     # Ghostty is the terminal: TERMINAL for launchers/scripts that honor it.
     home.sessionVariables.TERMINAL = "ghostty";
@@ -73,7 +77,11 @@ in
     dconf.settings = {
       "org/gnome/shell" = {
         favorite-apps = cfg.favoriteApps;
-        enabled-extensions = [ "paperwm@paperwm.github.com" ] ++ cfg.extensions;
+        enabled-extensions = [
+          "paperwm@paperwm.github.com"
+          "tiling-assistant@leleat-on-github"
+        ]
+        ++ cfg.extensions;
       };
 
       # Keyboard layout priority: English (US) → Ukrainian → Russian.
@@ -117,7 +125,8 @@ in
       };
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/vicinae" = {
         name = "Vicinae";
-        command = "vicinae toggle";
+        # Absolute path: gsd spawns commands without the login shell PATH.
+        command = "${config.home.profileDirectory}/bin/vicinae toggle";
         binding = "<Super>space";
       };
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/terminal" = {
@@ -126,9 +135,24 @@ in
         binding = "<Control><Alt>t";
       };
 
-      # PaperWM navigation kept close to Raycast/macOS window management:
-      # Super+arrows move focus, Ctrl+Super+arrows move windows,
-      # Ctrl+Alt+Return toggles full width (Raycast's maximize chord).
+      # Raycast window management, same chords as on macOS:
+      # Ctrl+Alt+arrows = halves, Ctrl+Alt+ASDF = quarters,
+      # Ctrl+Alt+Return = maximize.
+      "org/gnome/shell/extensions/tiling-assistant" = {
+        enable-tiling-popup = false;
+        tile-left-half = [ "<Control><Alt>Left" ];
+        tile-right-half = [ "<Control><Alt>Right" ];
+        tile-top-half = [ "<Control><Alt>Up" ];
+        tile-bottom-half = [ "<Control><Alt>Down" ];
+        tile-topleft-quarter = [ "<Control><Alt>a" ];
+        tile-topright-quarter = [ "<Control><Alt>s" ];
+        tile-bottomleft-quarter = [ "<Control><Alt>d" ];
+        tile-bottomright-quarter = [ "<Control><Alt>f" ];
+        tile-maximize = [ "<Control><Alt>Return" ];
+      };
+
+      # PaperWM navigation: Super+arrows move focus, Ctrl+Super+arrows
+      # move windows.
       "org/gnome/shell/extensions/paperwm" = {
         show-window-position-bar = false;
       };
@@ -139,7 +163,6 @@ in
         switch-down-workspace = [ "<Super>Down" ];
         move-left = [ "<Control><Super>Left" ];
         move-right = [ "<Control><Super>Right" ];
-        toggle-maximize-width = [ "<Control><Alt>Return" ];
       };
     };
   };
