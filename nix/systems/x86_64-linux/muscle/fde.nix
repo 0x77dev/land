@@ -103,6 +103,19 @@
       content = {
         type = "gpt";
         partitions = {
+          # GPUDirect Storage scratch: cuFile's true DMA path (NVMe -> GPU)
+          # requires XFS/ext4 with O_DIRECT and *no* dm-crypt underneath, so
+          # this one partition stays unencrypted. Datasets/model weights
+          # only — nothing confidential.
+          scratch = {
+            size = "1T";
+            content = {
+              type = "filesystem";
+              format = "xfs";
+              mountpoint = "/scratch";
+              mountOptions = [ "noatime" ];
+            };
+          };
           data = {
             size = "100%";
             content = {

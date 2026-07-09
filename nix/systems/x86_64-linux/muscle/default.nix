@@ -48,6 +48,9 @@
       # Run IRQ handlers as threads so rtkit-boosted audio threads can
       # preempt them — near-RT audio without a PREEMPT_RT kernel.
       "threadirqs"
+      # GPUDirect Storage: NVIDIA requires the IOMMU off or in passthrough
+      # for peer-to-peer DMA between NVMe and GPU; pt keeps VFIO isolation.
+      "iommu=pt"
     ];
     consoleLogLevel = 3;
     loader = {
@@ -103,6 +106,9 @@
       modesetting.enable = true;
       powerManagement.enable = true;
       powerManagement.finegrained = false;
+      # Keeps GPU state initialized; required for fast GPUDirect Storage
+      # (P2PDMA) driver bring-up.
+      nvidiaPersistenced = true;
     };
     nvidia-container-toolkit.enable = true;
     graphics = {
@@ -133,6 +139,8 @@
   nixpkgs.config = {
     allowUnfree = true;
     cudaSupport = true;
+    # Latest CUDA package set nixpkgs ships (default is 12.9).
+    cudaVersion = "13.3";
   };
 
   qt = {
@@ -528,6 +536,19 @@
       </monitors>
     ''}"
   ];
+
+  # GPUDirect Storage (cuFile): the modern NVMe P2PDMA path — upstream NVMe
+  # driver + CONFIG_PCI_P2PDMA (already =y in the CachyOS kernel), no
+  # nvidia-fs.ko or MOFED needed. True GDS needs O_DIRECT on ext4/XFS with
+  # no dm-crypt in the path; everything else transparently falls back to
+  # compat (bounce-buffer) mode.
+  environment.etc."cufile.json".text = builtins.toJSON {
+    properties = {
+      allow_compat_mode = true;
+      use_pci_p2pdma = true;
+    };
+    fs.generic.posix_unaligned_writes = false;
+  };
 
   environment = {
     gnome.excludePackages = with pkgs; [
