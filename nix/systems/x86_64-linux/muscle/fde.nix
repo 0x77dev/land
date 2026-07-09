@@ -1,22 +1,31 @@
 # Full-disk-encryption target for the reinstall. NOT imported yet — swap
 # the `./disko-config.nix` import for `./fde.nix` when executing.
 #
-# Layout: two disks, both LUKS2 under TPM2 auto-unlock.
-#   Crucial T500 2TB   -> system: btrfs (subvolumes, zstd, autoscrub)
-#   Samsung PM9A3 7.6TB -> /home (XFS) + /var/lib/docker (XFS, pquota)
+# Layout:
+#   Crucial T500 2TB    -> /scratch: the whole disk as unencrypted XFS for
+#                          GPUDirect Storage. Both NVMes negotiate Gen4 x4,
+#                          so the T500 wins as scratch by having the higher
+#                          burst read rate and, decisively, a dedicated
+#                          controller with zero competing system IO.
+#                          (True GDS DMA requires XFS/ext4 + O_DIRECT and
+#                          no dm-crypt underneath.)
+#   Samsung PM9A3 7.6TB -> everything else: LUKS2 + btrfs (fully btrfs
+#                          system: root, nix, home, docker, log, swap as
+#                          subvolumes), zstd:1 compression, async discard.
+#                          The PM9A3's datacenter QoS and endurance suit
+#                          the always-on system + home role.
 #
 # Runbook:
+#   0. Copy anything precious off the current root (the PM9A3 is
+#      reformatted; the T500's old Windows install dies too).
 #   1. Swap the import in default.nix: ./disko-config.nix -> ./fde.nix.
 #   2. `nixos-anywhere --flake .#muscle root@muscle` (disko formats and
-#      prompts for LUKS passphrases; the Windows install on the T500 dies).
-#   3. First boot: enroll both volumes into the TPM (PCR 7 is stable with
-#      Secure Boot + measured UKIs):
-#        for p in /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4-part2 \
-#                 /dev/disk/by-id/nvme-SAMSUNG_MZQL27T6HBLA-00A07_S6CKNN0X600716-part1; do
-#          systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 "$p"
-#        done
-#   4. Restore anything wanted from the old root (it lived on the PM9A3,
-#      now reformatted — hence do step 0: copy anything precious first).
+#      prompts for the LUKS passphrase).
+#   3. First boot: enroll the system volume into the TPM (PCR 7 is stable
+#      with Secure Boot + measured UKIs):
+#        systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 \
+#          /dev/disk/by-id/nvme-SAMSUNG_MZQL27T6HBLA-00A07_S6CKNN0X600716-part2
+#   4. Restore /home data.
 { lib, ... }:
 {
   # systemd in the initrd: required for TPM2 LUKS unlock.
@@ -26,7 +35,7 @@
   swapDevices = lib.mkForce [ ];
 
   # Btrfs upkeep: monthly scrub for checksummed self-healing, weekly TRIM
-  # (allowDiscards is set on both LUKS volumes).
+  # (allowDiscards is set on the LUKS volume; async discard on the mounts).
   services.btrfs.autoScrub = {
     enable = true;
     interval = "monthly";
@@ -35,9 +44,30 @@
   services.fstrim.enable = true;
 
   disko.devices.disk = {
-    system = {
+    scratch = {
       type = "disk";
       device = "/dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4";
+      content = {
+        type = "gpt";
+        partitions.scratch = {
+          size = "100%";
+          content = {
+            type = "filesystem";
+            format = "xfs";
+            mountpoint = "/scratch";
+            mountOptions = [
+              "noatime"
+              "nodiratime"
+              "largeio"
+            ];
+          };
+        };
+      };
+    };
+
+    system = {
+      type = "disk";
+      device = "/dev/disk/by-id/nvme-SAMSUNG_MZQL27T6HBLA-00A07_S6CKNN0X600716";
       content = {
         type = "gpt";
         partitions = {
@@ -60,113 +90,53 @@
                 allowDiscards = true;
                 bypassWorkqueues = true;
               };
-              content = {
-                type = "btrfs";
-                extraArgs = [ "-f" ];
-                subvolumes = {
-                  "@root" = {
-                    mountpoint = "/";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
-                  "@nix" = {
-                    mountpoint = "/nix";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
-                  "@log" = {
-                    mountpoint = "/var/log";
-                    mountOptions = [
-                      "compress=zstd"
-                      "noatime"
-                    ];
-                  };
-                  "@swap" = {
-                    mountpoint = "/swap";
-                    swap.swapfile.size = "128G";
+              content =
+                let
+                  fast = [
+                    "compress=zstd:1"
+                    "noatime"
+                    "discard=async"
+                  ];
+                in
+                {
+                  type = "btrfs";
+                  extraArgs = [ "-f" ];
+                  subvolumes = {
+                    "@root" = {
+                      mountpoint = "/";
+                      mountOptions = fast;
+                    };
+                    "@nix" = {
+                      mountpoint = "/nix";
+                      mountOptions = fast;
+                    };
+                    "@home" = {
+                      mountpoint = "/home";
+                      mountOptions = fast;
+                    };
+                    "@log" = {
+                      mountpoint = "/var/log";
+                      mountOptions = fast;
+                    };
+                    # Container write paths hate CoW: no copy-on-write (and
+                    # therefore no compression/checksums) for docker's
+                    # overlay2 store.
+                    "@docker" = {
+                      mountpoint = "/var/lib/docker";
+                      mountOptions = [
+                        "nodatacow"
+                        "noatime"
+                        "discard=async"
+                      ];
+                    };
+                    "@swap" = {
+                      mountpoint = "/swap";
+                      swap.swapfile.size = "128G";
+                    };
                   };
                 };
-              };
             };
           };
-        };
-      };
-    };
-
-    data = {
-      type = "disk";
-      device = "/dev/disk/by-id/nvme-SAMSUNG_MZQL27T6HBLA-00A07_S6CKNN0X600716";
-      content = {
-        type = "gpt";
-        partitions = {
-          # GPUDirect Storage scratch: cuFile's true DMA path (NVMe -> GPU)
-          # requires XFS/ext4 with O_DIRECT and *no* dm-crypt underneath, so
-          # this one partition stays unencrypted. Datasets/model weights
-          # only — nothing confidential.
-          scratch = {
-            size = "1T";
-            content = {
-              type = "filesystem";
-              format = "xfs";
-              mountpoint = "/scratch";
-              mountOptions = [ "noatime" ];
-            };
-          };
-          data = {
-            size = "100%";
-            content = {
-              type = "luks";
-              name = "cryptdata";
-              settings = {
-                allowDiscards = true;
-                bypassWorkqueues = true;
-              };
-              content = {
-                type = "lvm_pv";
-                vg = "data";
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-
-  # One LUKS layer, two XFS volumes: /home gets the bulk, docker gets a
-  # dedicated XFS volume with project quotas (what overlay2 wants for
-  # per-container storage limits). Docker's default data-root
-  # (/var/lib/docker) therefore lives on XFS, not btrfs.
-  disko.devices.lvm_vg.data = {
-    type = "lvm_vg";
-    lvs = {
-      docker = {
-        size = "512G";
-        content = {
-          type = "filesystem";
-          format = "xfs";
-          mountpoint = "/var/lib/docker";
-          mountOptions = [
-            "noatime"
-            "pquota"
-          ];
-        };
-      };
-      home = {
-        size = "100%FREE";
-        content = {
-          type = "filesystem";
-          format = "xfs";
-          mountpoint = "/home";
-          mountOptions = [
-            "noatime"
-            "nodiratime"
-            "inode64"
-            "largeio"
-          ];
         };
       };
     };
