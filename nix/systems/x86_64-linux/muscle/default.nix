@@ -452,6 +452,10 @@
   users.users.mykhailo = {
     isNormalUser = true;
     description = "Mykhailo Marynenko";
+    # Bootstrap fresh installs with an unlocked account so OpenSSH accepts
+    # the declared YubiKey keys and GDM can authenticate. This is only used
+    # when the account is first created; `passwd` changes survive rebuilds.
+    initialHashedPassword = "$y$j9T$17soTVTd3hBR8VE6rWLI41$Q4m8f6vbmE.00WlGlbbAfM651OtyJYfmKreDT6EMcU7";
     extraGroups = [
       "wheel"
       "docker"
