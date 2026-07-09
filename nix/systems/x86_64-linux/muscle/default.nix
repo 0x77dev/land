@@ -268,6 +268,9 @@
       ];
     };
     fish.enable = true;
+
+    # GNOME's lightweight mail client (Superhuman stays the mailto default).
+    geary.enable = true;
   };
 
   services = {
@@ -326,6 +329,20 @@
     };
 
     pcscd.enable = true;
+
+    # Hardened printing: CUPS bound to localhost only, no shared queues, no
+    # network browsing/discovery, web interface off. This also makes the
+    # GNOME Settings printing panel unlockable (it needs cups running).
+    printing = {
+      enable = true;
+      startWhenNeeded = true;
+      listenAddresses = [ "localhost:631" ];
+      browsing = false;
+      browsed.enable = false; # no network printer discovery daemon
+      defaultShared = false;
+      webInterface = false;
+      openFirewall = false;
+    };
 
     # USB4/Thunderbolt device authorization (CalDigit TS5+ dock). GNOME's
     # Thunderbolt settings panel talks to bolt; enroll the dock once and its

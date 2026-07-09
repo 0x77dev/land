@@ -32,8 +32,14 @@ in
     # rich for creative work.
     home.packages =
       (with pkgs.${namespace}; [ tx-02-variable ])
-      # Apple Color Emoji (Linux only; macOS already has it natively).
-      ++ optional pkgs.stdenv.isLinux pkgs.${namespace}.apple-color-emoji
+      # Apple system fonts + Color Emoji (Linux only; macOS has them natively).
+      ++ optionals pkgs.stdenv.isLinux (
+        with pkgs.${namespace};
+        [
+          apple-fonts
+          apple-color-emoji
+        ]
+      )
       ++ (with pkgs; [
         # The entire Google Fonts library (thousands of families): Inter,
         # IBM Plex, Source Sans/Serif, EB Garamond, Crimson, Playfair, Lora,
@@ -74,16 +80,22 @@ in
       enable = true;
       # macOS-like rendering: rely on high-DPI + grayscale smoothing rather
       # than aggressive hinting and subpixel tricks.
+      # Apple typography everywhere, exactly like macOS: SF Pro for UI,
+      # New York for serif, SF Mono for code, Apple Color Emoji.
       defaultFonts = {
         sansSerif = [
+          "SF Pro Text"
+          "SF Pro Display"
           "Inter"
           "Noto Sans"
         ];
         serif = [
+          "New York"
           "Source Serif 4"
           "Noto Serif"
         ];
         monospace = [
+          "SF Mono"
           "TX-02"
           "JetBrains Mono"
         ];

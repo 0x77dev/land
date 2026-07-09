@@ -19,7 +19,6 @@ in
       [
         irssi # IRC
         tg # Telegram
-        iamb # Matrix TUI
         cinny-desktop # Matrix GUI
       ]
       # discord/slack have no aarch64-linux builds; gate them to x86_64-linux and Darwin.
@@ -33,7 +32,5 @@ in
             discord
             slack
           ];
-
-    programs.aerc.enable = true;
   };
 }

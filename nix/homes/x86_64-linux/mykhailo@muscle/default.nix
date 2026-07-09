@@ -123,7 +123,10 @@ in
         icon-theme = "Adwaita";
         color-scheme = "prefer-dark";
         accent-color = "blue";
-        monospace-font-name = "Hack 10";
+        # Apple typography, same roles as macOS.
+        font-name = "SF Pro Display 10";
+        document-font-name = "SF Pro Text 10";
+        monospace-font-name = "SF Mono 10";
       };
 
       "org/gnome/desktop/background" = wallpaper // {
