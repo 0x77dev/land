@@ -40,6 +40,35 @@ let
     cdi = "zi";
   };
 
+  # $EDITOR shim that decides per invocation instead of per machine: SSH and
+  # headless contexts get nvim; a real local GUI session gets Cursor (when
+  # installed). Everything that respects EDITOR/VISUAL (git, kubectl,
+  # crontab, ...) goes through this.
+  edit = pkgs.writeShellScriptBin "edit" ''
+    if [ -n "''${SSH_CONNECTION-}" ] || [ -n "''${SSH_TTY-}" ]; then
+      exec nvim "$@"
+    fi
+
+    ${
+      if isDarwin then
+        # A local (non-SSH) shell on macOS always has a GUI session.
+        "gui=1"
+      else
+        ''
+          gui=""
+          if [ -n "''${WAYLAND_DISPLAY-}" ] || [ -n "''${DISPLAY-}" ]; then
+            gui=1
+          fi
+        ''
+    }
+
+    if [ -n "$gui" ] && command -v cursor >/dev/null 2>&1; then
+      exec cursor --wait "$@"
+    fi
+
+    exec nvim "$@"
+  '';
+
   commonAbbreviations = {
     g = "git";
     ga = "git add";
@@ -67,6 +96,7 @@ in
     };
 
     home.packages = with pkgs; [
+      edit
       bat
       btop
       coreutils
@@ -113,7 +143,6 @@ in
         shellAliases = commonAliases // commonAbbreviations;
         initExtra = ''
           export PATH="${exportedPath}:$PATH"
-          eval "$(${pkgs.zoxide}/bin/zoxide init bash)"
         '';
       };
 
@@ -127,18 +156,20 @@ in
         '';
         initContent = ''
           export PATH="${exportedPath}:$PATH"
-          eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
         '';
       };
 
       fish = {
         enable = true;
+        # fish 4.8 dropped share/fish/tools/create_manpage_completions.py,
+        # breaking home-manager's build-time man-page completion generation.
+        # fish falls back to parsing man pages at runtime, so nothing is lost.
+        generateCompletions = false;
         shellAliases = commonAliases;
         shellAbbrs = commonAbbreviations;
         interactiveShellInit = ''
           set fish_greeting
           ${concatMapStringsSep "\n" (p: "fish_add_path -m ${p}") commonPaths}
-          ${pkgs.zoxide}/bin/zoxide init fish | source
         '';
         plugins = [
           {
@@ -172,12 +203,9 @@ in
 
       tmux.enable = true;
 
-      zoxide = {
-        enable = true;
-        enableBashIntegration = false;
-        enableFishIntegration = false;
-        enableZshIntegration = false;
-      };
+      # Shell integrations (init hooks in bash/zsh/fish) are emitted by
+      # home-manager; no hand-rolled `zoxide init` lines needed.
+      zoxide.enable = true;
 
       starship = {
         enable = true;

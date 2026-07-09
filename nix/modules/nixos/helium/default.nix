@@ -9,15 +9,10 @@ with lib;
 let
   cfg = config.programs.helium;
   onePasswordOrigins = [
-    # cspell:disable-next-line
     "hjlinigoblmkhjejkmbegnoaljkphmgo"
-    # cspell:disable-next-line
     "gejiddohjgogedgjnonbofjigllpkmbf"
-    # cspell:disable-next-line
     "khgocmkkpikpnmmkgmdnfckapcdkgfaf"
-    # cspell:disable-next-line
     "aeblfdkhhhdcdjpifhhbdiojplfjncoa"
-    # cspell:disable-next-line
     "dppgmdbiimibapkepcbdbmkaabgiofem"
   ];
 

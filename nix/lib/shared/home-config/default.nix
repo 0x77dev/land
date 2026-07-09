@@ -5,8 +5,10 @@ _:
     stateVersion = lib.mkDefault "25.05";
     packages = lib.mkDefault [ ];
     sessionVariables = {
-      EDITOR = lib.mkDefault "cursor --wait";
-      VISUAL = lib.mkDefault "cursor --wait";
+      # `edit` (shell module) dispatches per invocation: nvim over SSH or in
+      # headless contexts, Cursor in a local GUI session.
+      EDITOR = lib.mkDefault "edit";
+      VISUAL = lib.mkDefault "edit";
     };
   };
 

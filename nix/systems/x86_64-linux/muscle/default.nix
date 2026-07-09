@@ -12,7 +12,7 @@
 
   networking = {
     hostName = "muscle";
-    domain = "clubhouse.osv.computer";
+    domain = "osv.computer";
     useDHCP = lib.mkForce true;
   };
 
@@ -35,7 +35,7 @@
     # https://github.com/xddxdd/nix-cachyos-kernel
     kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-lto-zen4;
     kernelParams = [
-      "video=DP-4:5120x1440@240"
+      "video=DP-5:5120x1440@240"
       "quiet"
       "loglevel=3"
       "rd.systemd.show_status=auto"
@@ -127,12 +127,62 @@
 
   qt = {
     enable = true;
-    platformTheme = "kde";
-    style = "breeze";
+    platformTheme = "gnome";
+    style = "adwaita-dark";
   };
 
   programs = {
-    dconf.enable = true;
+    dconf = {
+      enable = true;
+      # Both panels are QD-OLED with VESA DisplayHDR True Black 400 (400 nits
+      # full-frame reference); tell mutter so HDR tone mapping is correct in
+      # both the user session and the gdm greeter.
+      profiles =
+        let
+          mkLuminance =
+            connector: vendor: product: serial:
+            lib.gvariant.mkTuple [
+              connector
+              vendor
+              product
+              serial
+              (lib.gvariant.mkUint32 1)
+              400.0
+            ];
+          output-luminance = [
+            (mkLuminance "DP-5" "SAM" "Odyssey G95SC" "H1AK500000")
+            (mkLuminance "DP-1" "AUS" "XG32UCDS" "T7LMQV013415")
+          ];
+          mutter-settings."org/gnome/mutter" = {
+            inherit output-luminance;
+            # VRR is still experimental in GNOME 49; fractional scaling for
+            # the 4K panel needs scale-monitor-framebuffer.
+            experimental-features = [
+              "variable-refresh-rate"
+              "scale-monitor-framebuffer"
+            ];
+          };
+        in
+        {
+          user.databases = [
+            {
+              settings = mutter-settings // {
+                "org/gnome/shell".enabled-extensions = [
+                  "appindicatorsupport@rgcjonas.gmail.com"
+                  "tailscale@joaophi.github.com" # Tailscale in quick settings
+                ];
+              };
+            }
+          ];
+          gdm.databases = [ { settings = mutter-settings; } ];
+        };
+    };
+
+    nautilus-open-any-terminal = {
+      enable = true;
+      terminal = "ghostty";
+    };
+
     nix-ld.enable = true;
 
     appimage = {
@@ -154,7 +204,6 @@
       package = pkgs.steam.override {
         extraPkgs =
           pkgs': with pkgs'; [
-            # cspell:words libxcursor libxi libxinerama libxscrnsaver
             libxcursor
             libxi
             libxinerama
@@ -178,7 +227,7 @@
         general = {
           renice = 10;
           softrealtime = "auto";
-          inhibit_screensaver = 0; # KDE handles this
+          inhibit_screensaver = 0; # GNOME handles this
         };
         # GPU clock offsets via nvidia-settings don't work on Wayland
         # NVIDIA driver handles boost clocks automatically
@@ -208,7 +257,6 @@
     chromium = {
       enable = true;
       extensions = [
-        # cspell:disable-next-line
         "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
         "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
       ];
@@ -227,12 +275,9 @@
       ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
     '';
 
-    # KDE Plasma 6 with Wayland
-    desktopManager.plasma6.enable = true;
-    displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
-    };
+    # Full GNOME on Wayland (gdm defaults to Wayland).
+    desktopManager.gnome.enable = true;
+    displayManager.gdm.enable = true;
 
     pipewire = {
       enable = true;
@@ -260,8 +305,18 @@
 
     pcscd.enable = true;
 
-    # Firmware updates via LVFS.
-    fwupd.enable = true;
+    # USB4/Thunderbolt device authorization (CalDigit TS5+ dock). GNOME's
+    # Thunderbolt settings panel talks to bolt; enroll the dock once and its
+    # accessories (USB, network, audio) connect automatically after that.
+    hardware.bolt.enable = true;
+
+    # Firmware updates via LVFS. Only the signed stable remote is used;
+    # disable Passim P2P metadata sharing to keep the update path
+    # vendor -> LVFS -> this host only.
+    fwupd = {
+      enable = true;
+      daemonSettings.P2pPolicy = "nothing";
+    };
 
     time-client = {
       enable = true;
@@ -272,7 +327,11 @@
       };
     };
 
-    tailscale.enable = true;
+    # Operator lets the quick-settings extension toggle Tailscale without sudo.
+    tailscale = {
+      enable = true;
+      extraSetFlags = [ "--operator=mykhailo" ];
+    };
 
     # LAN Ollama peer to Spark. Muscle has 2x RTX 6000 Ada GPUs (48 GB each),
     # so the pull set stays shared and vetted against that smaller VRAM budget.
@@ -336,7 +395,77 @@
 
   fonts.fontconfig.enable = true;
 
+  # Make the gdm greeter drive both QD-OLEDs at their full capability instead
+  # of a 60Hz SDR fallback: native mode at max refresh, VRR, 10-bit, and
+  # BT.2100 (HDR) color. Samsung G95SC: 5120x1440@240 (48-240Hz VRR). ASUS
+  # XG32UCDS: 3840x2160@165 (48-165Hz VRR). Both are true 10-bit panels.
+  systemd.tmpfiles.rules = [
+    "L+ /run/gdm/.config/monitors.xml - - - - ${pkgs.writeText "gdm-monitors.xml" ''
+      <monitors version="2">
+        <configuration>
+          <layoutmode>physical</layoutmode>
+          <logicalmonitor>
+            <x>0</x>
+            <y>0</y>
+            <scale>1</scale>
+            <primary>yes</primary>
+            <monitor>
+              <monitorspec>
+                <connector>DP-5</connector>
+                <vendor>SAM</vendor>
+                <product>Odyssey G95SC</product>
+                <serial>H1AK500000</serial>
+              </monitorspec>
+              <mode>
+                <width>5120</width>
+                <height>1440</height>
+                <rate>239.999</rate>
+                <ratemode>variable</ratemode>
+              </mode>
+              <maxbpc>10</maxbpc>
+              <colormode>bt2100</colormode>
+            </monitor>
+          </logicalmonitor>
+          <!--
+            Physically pivoted 90 degrees (bottom edge on the left); "left"
+            matches KWin's previous Rotated90. VRR stays off here: the
+            portrait panel is for reading, and OLED VRR flicker is worse
+            than the zero benefit.
+          -->
+          <logicalmonitor>
+            <x>5120</x>
+            <y>0</y>
+            <scale>1.5</scale>
+            <transform>
+              <rotation>left</rotation>
+            </transform>
+            <monitor>
+              <monitorspec>
+                <connector>DP-1</connector>
+                <vendor>AUS</vendor>
+                <product>XG32UCDS</product>
+                <serial>T7LMQV013415</serial>
+              </monitorspec>
+              <mode>
+                <width>3840</width>
+                <height>2160</height>
+                <rate>164.991</rate>
+              </mode>
+              <maxbpc>10</maxbpc>
+              <colormode>bt2100</colormode>
+            </monitor>
+          </logicalmonitor>
+        </configuration>
+      </monitors>
+    ''}"
+  ];
+
   environment = {
+    gnome.excludePackages = with pkgs; [
+      yelp
+      epiphany # Helium is the default browser
+    ];
+
     systemPackages = with pkgs; [
       # System monitoring
       nvtopPackages.full
@@ -378,14 +507,11 @@
       xdg-utils
       dconf-editor
 
-      # KDE apps
-      kdePackages.dolphin
-      kdePackages.ark
-      kdePackages.kcalc
-      kdePackages.spectacle
-      kdePackages.gwenview
-      kdePackages.konsole
-      kdePackages.kate
+      # GNOME extras
+      gnome-tweaks
+      gnome-extension-manager
+      gnomeExtensions.appindicator
+      gnomeExtensions.tailscale-qs
     ];
 
     variables = {
@@ -400,13 +526,13 @@
 
   networking.firewall.enable = false;
 
-  # Set Chromium as default browser (system-wide)
+  # Set Helium as default browser (system-wide)
   xdg.mime.defaultApplications = {
-    "text/html" = "chromium-browser.desktop";
-    "x-scheme-handler/http" = "chromium-browser.desktop";
-    "x-scheme-handler/https" = "chromium-browser.desktop";
-    "x-scheme-handler/about" = "chromium-browser.desktop";
-    "x-scheme-handler/unknown" = "chromium-browser.desktop";
+    "text/html" = "helium.desktop";
+    "x-scheme-handler/http" = "helium.desktop";
+    "x-scheme-handler/https" = "helium.desktop";
+    "x-scheme-handler/about" = "helium.desktop";
+    "x-scheme-handler/unknown" = "helium.desktop";
   };
 
   nix = {

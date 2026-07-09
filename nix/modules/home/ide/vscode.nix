@@ -13,93 +13,74 @@ let
     {
       name = "colab";
       publisher = "google";
-      # renovate: datasource=vscode-marketplace depName=google/colab versioning=semver
       version = "0.1.7";
       hash = "sha256-wAvmXccgIEfw9Q84F/ozJwvzo26OvehdrTy3DqKu5e8=";
     }
     {
       name = "parquet-visualizer";
       publisher = "lucien-martijn";
-      # renovate: datasource=vscode-marketplace depName=lucien-martijn/parquet-visualizer versioning=semver
       version = "0.31.1";
       hash = "sha256-LSL2zhg8vZXIV+wwMypC7OzTSIWmk1TP+4T280fyovU=";
     }
     {
       name = "motion-vscode-extension";
       publisher = "motion";
-      # renovate: datasource=vscode-marketplace depName=motion/motion-vscode-extension versioning=semver
       version = "5.3.0";
       hash = "sha256-mJJVA4DE8NGtODpy95iO9QXR2D/heJOMSDdLAeD0snk=";
     }
     {
       name = "vscode-jupyter-powertoys";
       publisher = "ms-toolsai";
-      # renovate: datasource=vscode-marketplace depName=ms-toolsai/vscode-jupyter-powertoys versioning=semver
       version = "0.1.1";
       hash = "sha256-5Tv0WrpQD1Lh2bZF3noC2pfyTHo95wQRhnnNtcMr4K4=";
     }
     {
       name = "angular-console";
       publisher = "nrwl";
-      # renovate: datasource=vscode-marketplace depName=nrwl/angular-console versioning=semver
       version = "18.82.0";
       hash = "sha256-KeJjyI8/3JHBa1VW+CdQtBaxP+3oaaXfiXCauxlHLv8=";
     }
     {
       name = "remote-kubernetes";
       publisher = "Okteto";
-      # renovate: datasource=vscode-marketplace depName=Okteto/remote-kubernetes versioning=semver
       version = "0.5.2";
       hash = "sha256-joiFeEQXjnyGIH583CCIZbqET2HKbVT+/1zD/b/AMtQ=";
     }
     {
       name = "vscode-opentofu";
       publisher = "opentofu";
-      # renovate: datasource=vscode-marketplace depName=opentofu/vscode-opentofu versioning=semver
       version = "0.6.0";
       hash = "sha256-BXzR1jmifawIIwA0RxnqVOGrpT5/gHV4lPIcYfqAaeM=";
     }
     {
       name = "bun-vscode";
       publisher = "oven";
-      # renovate: datasource=vscode-marketplace depName=oven/bun-vscode versioning=semver
       version = "0.0.32";
       hash = "sha256-VlruOHiF5/wVhVVW1rq6DEc90u3IwbxD/tpTXyphD+U=";
     }
     {
       name = "oxc-vscode";
       publisher = "oxc";
-      # renovate: datasource=vscode-marketplace depName=oxc/oxc-vscode versioning=semver
       version = "1.50.0";
       hash = "sha256-ZEL3nwq2nY776ZS6V+0r3+IAwH21vzwWpYM3zLj05sI=";
     }
     {
       name = "schemastore";
       publisher = "remcohaszing";
-      # renovate: datasource=vscode-marketplace depName=remcohaszing/schemastore versioning=semver
       version = "1.0.264";
       hash = "sha256-MYetpp5qzH7eg8Lsl1kAGgtn4+/jo0Q6gBQvZeLuHlg=";
     }
     {
       name = "opencode-v2";
       publisher = "sst-dev";
-      # renovate: datasource=vscode-marketplace depName=sst-dev/opencode-v2 versioning=semver
       version = "0.1.1";
       hash = "sha256-11a8JaishNyy6XkTeh6s36efdt1tSNYclOdkglx8x30=";
     }
     {
-      name = "code-spell-checker";
-      publisher = "streetsidesoftware";
-      # renovate: datasource=vscode-marketplace depName=streetsidesoftware/code-spell-checker versioning=semver
-      version = "4.0.31";
-      hash = "sha256-8F9lhHkr11XeFbVsArdVvNe6NADGkMFQJoWN0sntf5s=";
-    }
-    {
-      name = "code-spell-checker-cspell-bundled-dictionaries";
-      publisher = "streetsidesoftware";
-      # renovate: datasource=vscode-marketplace depName=streetsidesoftware/code-spell-checker-cspell-bundled-dictionaries versioning=semver
-      version = "2.0.12";
-      hash = "sha256-EPcuATssrZyGbRICTI59ogtauLryFLirh33ypkTszJk=";
+      name = "typos-vscode";
+      publisher = "tekumara";
+      version = "0.1.52";
+      hash = "sha256-o+AQDdToXTV/pUSt2zw19hf7nwbOb4gb9dlSsB7t32E=";
     }
   ];
 
@@ -243,7 +224,6 @@ in
             "terminal.integrated.smoothScrolling" = true;
             "editor.cursorSmoothCaretAnimation" = "on";
             "remote.SSH.remotePlatform" = {
-              "muscle.clubhouse.osv.computer" = "linux";
               "muscle.0x77.computer" = "linux";
               "muscle.osv.computer" = "linux";
               "*.coder" = "linux";

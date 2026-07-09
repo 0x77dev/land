@@ -8,7 +8,6 @@
 
 buildGoModule rec {
   pname = "gpsd-exporter";
-  # renovate: datasource=github-tags depName=gpsd-exporter packageName=natesales/gpsd-exporter versioning=semver
   version = "0.0.3";
 
   src = fetchFromGitHub {

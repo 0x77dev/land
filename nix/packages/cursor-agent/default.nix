@@ -26,7 +26,6 @@ stdenv.mkDerivation rec {
 
   sourceRoot = "dist-package";
 
-  # cspell:words libexec
   installPhase = ''
     runHook preInstall
 

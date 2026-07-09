@@ -16,31 +16,29 @@
 let
   pname = "helium";
 
-  # renovate: datasource=github-releases depName=helium packageName=imputnet/helium-linux versioning=loose
-  version = "0.13.3.1";
+  version = "0.14.4.1";
 
   linuxBase = "https://github.com/imputnet/helium-linux/releases/download/${version}";
   macosBase = "https://github.com/imputnet/helium-macos/releases/download/${version}";
 
-  # Per-system release artifacts. `passthru.sources` re-exports this so the
-  # `nix-rehash` script (driven by the Renovate digest workflow) can refresh
-  # every platform digest after a version bump, without a build.
+  # Per-system release artifacts; `passthru.sources` re-exports this so all
+  # platform digests can be refreshed after a version bump without a build.
   sources = {
     x86_64-linux = {
       url = "${linuxBase}/helium-${version}-x86_64_linux.tar.xz";
-      hash = "sha256-R/cGyWuBrLeFhucrpkRpQN9k/MWN3JlnwSufEsqVkmY=";
+      hash = "sha256-JBrXfwBc9gughP9tIRN6kD8pX4OQickyBV0tF+kDdmI=";
     };
     aarch64-linux = {
       url = "${linuxBase}/helium-${version}-arm64_linux.tar.xz";
-      hash = "sha256-DSlJxzRAFhTkTyYFyUrypf+leU+Sip2pkLtOuyIduzU=";
+      hash = "sha256-lRwfW3fPqmO35IN0AowLjN//p9AVKQmwwTDexhI7iHM=";
     };
     x86_64-darwin = {
       url = "${macosBase}/helium_${version}_x86_64-macos.dmg";
-      hash = "sha256-zZH/u/dx3Vuh4wiqMQ/E0kNT/Q4YsBrLfBRX13VEh1k=";
+      hash = "sha256-SXCaD6d7PHENXjDyQcmLy8pIr9GcMIi+MMj9/V4M5xg=";
     };
     aarch64-darwin = {
       url = "${macosBase}/helium_${version}_arm64-macos.dmg";
-      hash = "sha256-4SeQxbnd9nFtWvUOFPbEFgFs1LFongXaA02UI2qfdnA=";
+      hash = "sha256-OKg2e7OxiTfhtsZG/1fHhTlsUOn5Oba3GPy6m/kB7qU=";
     };
   };
 
@@ -89,7 +87,6 @@ let
     libglvnd
     libkrb5
     libpng
-    # cspell:words libx libxcomposite libxcursor libxdamage libxext libxfixes libxi libxrandr libxrender libxtst
     libx11
     libxcb
     libxcomposite

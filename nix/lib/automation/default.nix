@@ -149,14 +149,6 @@ in
   mkOutputs =
     { outputs }:
     let
-      nativeConfigurationTargets = lib.unique (
-        map (entry: (getConfigurationHandler entry.outputName).buildTarget entry.name) (
-          builtins.filter (entry: builtins.hasAttr entry.outputName outputs) (
-            getDeclaredSystemConfigurations ++ getDeclaredHomeConfigurations
-          )
-        )
-      );
-
       nativeConfigurationEvalTargets = lib.unique (
         map (entry: (getConfigurationHandler entry.outputName).evalTarget entry.name) (
           builtins.filter (entry: builtins.hasAttr entry.outputName outputs) (
@@ -164,19 +156,6 @@ in
           )
         )
       );
-
-      getNativeConfigurationTargets =
-        system:
-        builtins.filter (
-          target:
-          builtins.elem target (
-            map (entry: (getConfigurationHandler entry.outputName).buildTarget entry.name) (
-              builtins.filter (entry: entry.resolvedSystem == system) (
-                getDeclaredSystemConfigurations ++ getDeclaredHomeConfigurations
-              )
-            )
-          )
-        ) nativeConfigurationTargets;
 
       getNativeConfigurationEvaluationTargets =
         system:
@@ -224,28 +203,11 @@ in
         )
       );
 
-      getSecurityMatrix = system: {
-        name = "vulnix / ${system}";
-        os = runnerSystems.${system};
-        inherit system;
-        scanTargets = lib.unique (
-          getSystemOutputTargets outputs "checks" system
-          ++ getSystemOutputTargets outputs "devShells" system
-          ++ getSystemOutputTargets outputs "packages" system
-          ++ getNativeConfigurationTargets system
-        );
-      };
     in
     {
-      githubActions = {
-        ci = {
-          matrix = map getNativeRunnerMatrix (sortAttrNames runnerSystems);
-          inherit closureMatrix;
-        };
-
-        security = {
-          matrix = map getSecurityMatrix (sortAttrNames runnerSystems);
-        };
+      githubActions.ci = {
+        matrix = map getNativeRunnerMatrix (sortAttrNames runnerSystems);
+        inherit closureMatrix;
       };
     };
 }

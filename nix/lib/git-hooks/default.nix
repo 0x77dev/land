@@ -18,7 +18,7 @@ let
   baseConfig = {
     deadnix.enable = true;
     statix.enable = true;
-    cspell.enable = true;
+    typos.enable = true;
     markdownlint.enable = true;
     mdsh.enable = true;
     shellcheck.enable = true;

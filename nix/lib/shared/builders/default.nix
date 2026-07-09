@@ -2,7 +2,7 @@
 let
   # muscle (Threadripper 7985WX) is the lab's biggest CPU — the preferred
   # remote builder, including aarch64-linux via binfmt for large parallel jobs.
-  hostName = "muscle.clubhouse.osv.computer";
+  hostName = "muscle.osv.computer";
 
   # Plain form for `programs.ssh.knownHosts`.
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMA3wX5kRJoNtxY+pr2ccN7YerSEPvJ/5cK7zdQ2Wppv";
@@ -20,7 +20,6 @@ in
         "10.10.0.48"
         "muscle"
         "muscle.0x77.computer"
-        "muscle.osv.computer"
       ];
     };
 

@@ -439,7 +439,7 @@ in
         please let us know about your usecase and enforce it explicitly with
         `boot.loader.rpi.bootloader = "kernelboot-legacy-unsupported"` in your configuration.
 
-        This will ensure that your bootloader stays "kernelboot" even when the default booloader
+        This will ensure that your bootloader stays "kernelboot" even when the default bootloader
         will be changed to "kernel" (for selected boards currently using "kernelboot").
         The "-legacy-unsupported" suffix will silence this warning until the final deletion.
       '';

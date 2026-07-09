@@ -117,7 +117,6 @@
     chromium = {
       enable = true;
       extensions = [
-        # cspell:disable-next-line
         "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
         "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
       ];
