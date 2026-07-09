@@ -58,6 +58,11 @@
 
   environment.systemPackages = [ pkgs.sedutil ];
 
+  # /var/lib/docker sits on a nodatacow btrfs subvolume; run overlay2 on it
+  # explicitly (the auto-detected `btrfs` driver is deprecated and its
+  # per-layer subvolumes fight scrubs and quotas).
+  virtualisation.docker.daemon.settings.storage-driver = "overlay2";
+
   # Unlock the T500's OPAL locking range before /scratch mounts. The PIN is
   # a TPM2-sealed systemd credential (step 5 of the runbook); before it is
   # enrolled, or on an unowned drive, this exits cleanly and the mount
