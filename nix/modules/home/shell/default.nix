@@ -40,6 +40,35 @@ let
     cdi = "zi";
   };
 
+  # $EDITOR shim that decides per invocation instead of per machine: SSH and
+  # headless contexts get nvim; a real local GUI session gets Cursor (when
+  # installed). Everything that respects EDITOR/VISUAL (git, kubectl,
+  # crontab, ...) goes through this.
+  edit = pkgs.writeShellScriptBin "edit" ''
+    if [ -n "''${SSH_CONNECTION-}" ] || [ -n "''${SSH_TTY-}" ]; then
+      exec nvim "$@"
+    fi
+
+    ${
+      if isDarwin then
+        # A local (non-SSH) shell on macOS always has a GUI session.
+        "gui=1"
+      else
+        ''
+          gui=""
+          if [ -n "''${WAYLAND_DISPLAY-}" ] || [ -n "''${DISPLAY-}" ]; then
+            gui=1
+          fi
+        ''
+    }
+
+    if [ -n "$gui" ] && command -v cursor >/dev/null 2>&1; then
+      exec cursor --wait "$@"
+    fi
+
+    exec nvim "$@"
+  '';
+
   commonAbbreviations = {
     g = "git";
     ga = "git add";
@@ -67,6 +96,7 @@ in
     };
 
     home.packages = with pkgs; [
+      edit
       bat
       btop
       coreutils
