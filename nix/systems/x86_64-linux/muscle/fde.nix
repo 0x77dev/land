@@ -1,32 +1,46 @@
 # Full-disk-encryption target for the reinstall. NOT imported yet — swap
 # the `./disko-config.nix` import for `./fde.nix` when executing.
 #
-# Layout:
-#   Crucial T500 2TB    -> /scratch: the whole disk as unencrypted XFS for
-#                          GPUDirect Storage. Both NVMes negotiate Gen4 x4,
-#                          so the T500 wins as scratch by having the higher
-#                          burst read rate and, decisively, a dedicated
-#                          controller with zero competing system IO.
-#                          (True GDS DMA requires XFS/ext4 + O_DIRECT and
-#                          no dm-crypt underneath.)
-#   Samsung PM9A3 7.6TB -> everything else: LUKS2 + btrfs (fully btrfs
-#                          system: root, nix, home, docker, log, swap as
-#                          subvolumes), zstd:1 compression, async discard.
-#                          The PM9A3's datacenter QoS and endurance suit
-#                          the always-on system + home role.
+# Both NVMes are TCG OPAL 2.0 self-encrypting drives (verified with
+# `nvme sed discover`: locking supported, currently unowned). Encryption
+# strategy per volume:
+#
+#   Samsung PM9A3 (system, btrfs): LUKS2 *stacked on* the OPAL hardware
+#     locking range (`cryptsetup --hw-opal`). dm-crypt stays load-bearing —
+#     OPAL firmware alone has historically failed to bind passphrases to
+#     the media key (CVE-2018-12037/-12038) — while OPAL adds defence in
+#     depth and instant admin-PIN crypto-erase. Never `--hw-opal-only`.
+#
+#   Crucial T500 (/scratch, XFS): OPAL locking range *only*, managed with
+#     sedutil at boot — no dm layer at all, because GPUDirect Storage's
+#     direct NVMe->GPU DMA path does not survive device-mapper. This gives
+#     hardware encryption at rest without costing the GDS fast path.
 #
 # Runbook:
-#   0. Copy anything precious off the current root (the PM9A3 is
-#      reformatted; the T500's old Windows install dies too).
-#   1. Swap the import in default.nix: ./disko-config.nix -> ./fde.nix.
-#   2. `nixos-anywhere --flake .#muscle root@muscle` (disko formats and
-#      prompts for the LUKS passphrase).
-#   3. First boot: enroll the system volume into the TPM (PCR 7 is stable
-#      with Secure Boot + measured UKIs):
+#   0. Copy anything precious off both disks (everything is reformatted).
+#   1. Generate and escrow (1Password) two secrets:
+#        - OPAL admin PIN  -> /run/opal-admin.key   (one printable line)
+#        - scratch SID PIN -> used with sedutil below
+#   2. Swap the import in default.nix: ./disko-config.nix -> ./fde.nix,
+#      and place the admin PIN file on the installer at /run/opal-admin.key
+#      (nixos-anywhere: `--copy-file`).
+#   3. `nixos-anywhere --flake .#muscle root@muscle` — disko runs
+#      luksFormat --hw-opal, taking OPAL ownership of the PM9A3 with the
+#      admin PIN and prompting for the LUKS passphrase.
+#   4. First boot: TPM-enroll the system volume (PCR 7 is stable):
 #        systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 \
 #          /dev/disk/by-id/nvme-SAMSUNG_MZQL27T6HBLA-00A07_S6CKNN0X600716-part2
-#   4. Restore /home data.
-{ lib, ... }:
+#   5. Take scratch ownership and seal its PIN to the TPM:
+#        sedutil-cli --initialSetup <pin> /dev/nvme0n1
+#        sedutil-cli --enableLockingRange 0 <pin> /dev/nvme0n1
+#        printf '%s' '<pin>' | systemd-creds encrypt --with-key=tpm2 \
+#          --name=scratch-opal - /etc/credstore.encrypted/scratch-opal
+#      (Until step 5 the scratch service no-ops and /scratch mounts plain.)
+{
+  lib,
+  pkgs,
+  ...
+}:
 {
   # systemd in the initrd: required for TPM2 LUKS unlock.
   boot.initrd.systemd.enable = true;
@@ -34,14 +48,40 @@
   # Swap moves to a btrfs-native swapfile subvolume (below).
   swapDevices = lib.mkForce [ ];
 
-  # Btrfs upkeep: monthly scrub for checksummed self-healing, weekly TRIM
-  # (allowDiscards is set on the LUKS volume; async discard on the mounts).
+  # Btrfs upkeep: monthly scrub for checksummed self-healing, weekly TRIM.
   services.btrfs.autoScrub = {
     enable = true;
     interval = "monthly";
     fileSystems = [ "/" ];
   };
   services.fstrim.enable = true;
+
+  environment.systemPackages = [ pkgs.sedutil ];
+
+  # Unlock the T500's OPAL locking range before /scratch mounts. The PIN is
+  # a TPM2-sealed systemd credential (step 5 of the runbook); before it is
+  # enrolled, or on an unowned drive, this exits cleanly and the mount
+  # proceeds (range unlocked/not yet enabled).
+  systemd.services.scratch-opal-unlock = {
+    description = "Unlock OPAL locking range for /scratch";
+    wantedBy = [ "local-fs.target" ];
+    before = [ "scratch.mount" ];
+    unitConfig.DefaultDependencies = false;
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      LoadCredentialEncrypted = "scratch-opal:/etc/credstore.encrypted/scratch-opal";
+    };
+    script = ''
+      pin_file="$CREDENTIALS_DIRECTORY/scratch-opal"
+      [ -s "$pin_file" ] || exit 0
+      ${lib.getExe' pkgs.sedutil "sedutil-cli"} \
+        --setLockingRange 0 RW "$(cat "$pin_file")" /dev/nvme0n1 || true
+      ${lib.getExe' pkgs.sedutil "sedutil-cli"} \
+        --setMBRDone on "$(cat "$pin_file")" /dev/nvme0n1 || true
+    '';
+  };
+  fileSystems."/scratch".options = [ "x-systemd.requires=scratch-opal-unlock.service" ];
 
   disko.devices.disk = {
     scratch = {
@@ -90,6 +130,16 @@
                 allowDiscards = true;
                 bypassWorkqueues = true;
               };
+              # Stack dm-crypt on the OPAL hardware locking range. cryptsetup
+              # has no CLI flag for the OPAL admin PIN — luksFormat reads it
+              # from stdin when stdin is not a TTY, and disko splices these
+              # args verbatim into the shell command, so a redirection can
+              # ride along. The LUKS passphrase arrives via --key-file,
+              # leaving stdin free for the PIN.
+              extraFormatArgs = [
+                "--hw-opal"
+                "</run/opal-admin.key"
+              ];
               content =
                 let
                   fast = [
