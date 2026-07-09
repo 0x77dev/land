@@ -73,6 +73,18 @@ in
     vicinae = {
       enable = true;
       systemd.enable = true;
+      settings = {
+        # Match the system typography (fontconfig routes emoji to Apple
+        # Color Emoji) and follow GNOME's light/dark preference.
+        font.normal = {
+          family = "Inter";
+          size = 11;
+        };
+        theme = {
+          light.name = "vicinae-light";
+          dark.name = "vicinae-dark";
+        };
+      };
     };
 
     # Push-to-talk dictation: hold ScrollLock, speak, release. Vulkan build

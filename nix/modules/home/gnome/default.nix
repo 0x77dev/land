@@ -155,6 +155,14 @@ in
       # move windows.
       "org/gnome/shell/extensions/paperwm" = {
         show-window-position-bar = false;
+        # Keep the launcher out of the tiled scroll: vicinae lives on the
+        # floating scratch layer, so it pops over windows like Raycast.
+        winprops = [
+          (builtins.toJSON {
+            wm_class = "vicinae";
+            scratch_layer = true;
+          })
+        ];
       };
       "org/gnome/shell/extensions/paperwm/keybindings" = {
         switch-left = [ "<Super>Left" ];
