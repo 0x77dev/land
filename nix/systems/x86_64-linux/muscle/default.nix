@@ -134,24 +134,21 @@
   programs = {
     dconf = {
       enable = true;
-      # Both panels are QD-OLED with VESA DisplayHDR True Black 400 (400 nits
-      # full-frame reference); tell mutter so HDR tone mapping is correct in
-      # both the user session and the gdm greeter.
+      # The Samsung G95SC misreports HDR luminance, so pin its reference to
+      # 400 nits (True Black 400). The ASUS XG32UCDS carries accurate EDID
+      # luminance data (factory calibrated, ~1000 nits peak) — no override,
+      # or highlights get capped.
       profiles =
         let
-          mkLuminance =
-            connector: vendor: product: serial:
-            lib.gvariant.mkTuple [
-              connector
-              vendor
-              product
-              serial
+          output-luminance = [
+            (lib.gvariant.mkTuple [
+              "DP-5"
+              "SAM"
+              "Odyssey G95SC"
+              "H1AK500000"
               (lib.gvariant.mkUint32 1)
               400.0
-            ];
-          output-luminance = [
-            (mkLuminance "DP-5" "SAM" "Odyssey G95SC" "H1AK500000")
-            (mkLuminance "DP-1" "AUS" "XG32UCDS" "T7LMQV013415")
+            ])
           ];
           mutter-settings."org/gnome/mutter" = {
             inherit output-luminance;
