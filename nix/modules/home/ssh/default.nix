@@ -70,7 +70,7 @@ in
         };
 
         # Only forward to specific trusted servers
-        "tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer muscle.clubhouse.osv.computer beefy beefy.0x77.computer" =
+        "tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer beefy beefy.0x77.computer" =
           {
             ForwardAgent = true;
             # Forward the GPG agent's extra socket to the remote system
