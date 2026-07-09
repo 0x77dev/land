@@ -71,7 +71,11 @@
     description = "Unlock OPAL locking range for /scratch";
     wantedBy = [ "local-fs.target" ];
     before = [ "scratch.mount" ];
-    unitConfig.DefaultDependencies = false;
+    unitConfig = {
+      DefaultDependencies = false;
+      # No-op until the TPM2-sealed PIN is enrolled (runbook step 5).
+      ConditionPathExists = "/etc/credstore.encrypted/scratch-opal";
+    };
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -86,7 +90,7 @@
         --setMBRDone on "$(cat "$pin_file")" /dev/nvme0n1 || true
     '';
   };
-  fileSystems."/scratch".options = [ "x-systemd.requires=scratch-opal-unlock.service" ];
+  fileSystems."/scratch".options = [ "x-systemd.after=scratch-opal-unlock.service" ];
 
   disko.devices.disk = {
     scratch = {
