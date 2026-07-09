@@ -10,5 +10,7 @@ extend-exclude = [
 browseable = "browseable"
 
 [default.extend-words]
+# TeX Gyre Heros, the Helvetica-equivalent typeface.
+Heros = "Heros"
 # The MQTT broker (https://mosquitto.org), not the insect.
 mosquitto = "mosquitto"

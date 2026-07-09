@@ -24,36 +24,47 @@ in
   };
 
   config = mkIf cfg.enable {
-    # A typography set comparable to what macOS ships out of the box:
-    # UI sans (Inter ≈ SF Pro), workhorse serif/sans superfamilies, wide
-    # Unicode/CJK coverage, color emoji, and quality monospace — all with
-    # variable/OpenType features for creative work.
+    # A typography library matching (and beyond) what macOS ships: SF-class
+    # UI sans, the classic book/display faces macOS is known for (via their
+    # closest open counterparts), full Unicode/CJK/emoji coverage, and a deep
+    # monospace bench. Same set on every host, mac and Linux alike, so
+    # documents render identically. Everything is OpenType/variable-feature
+    # rich for creative work.
     home.packages =
       (with pkgs.${namespace}; [ tx-02-variable ])
       ++ (with pkgs; [
-        # UI / neo-grotesque
-        inter
-        # Superfamilies (sans, serif, mono, condensed)
-        ibm-plex
-        source-sans
-        source-serif
-        roboto
-        roboto-slab
-        # Bookish serifs
-        eb-garamond
-        libre-baskerville
-        crimson-pro
+        # The entire Google Fonts library (thousands of families): Inter,
+        # IBM Plex, Source Sans/Serif, EB Garamond, Crimson, Playfair, Lora,
+        # Spectral, Work Sans, Lexend, Geist, JetBrains Mono, Fira Code, ...
+        # Everything below adds only what this bundle does not carry.
+        google-fonts
+
+        # Helvetica Neue (Adobe's free LT Std release) — the macOS staple
+        helvetica-neue-lt-std
+
+        # macOS classics via their open equivalents: TeX Gyre covers
+        # Palatino (Pagella), Times (Termes), Helvetica (Heros), Bookman
+        # (Bonum), Century Schoolbook (Schola), Avant Garde (Adventor),
+        # Zapf Chancery (Chorus), Courier (Cursor).
+        gyre-fonts
+
         # Coverage: full Noto with CJK and color emoji
         noto-fonts
         noto-fonts-cjk-sans
         noto-fonts-cjk-serif
         noto-fonts-color-emoji
+
         # Metric-compatible replacements for Arial/Times/Courier documents
         liberation_ttf
-        # Monospace
-        jetbrains-mono
-        fira-code
+
+        # Monospace bench beyond Google Fonts (Menlo/Monaco/SF Mono class)
         hack-font
+        monaspace
+        commit-mono
+
+        # Icon/symbol fonts for design mockups and terminals
+        font-awesome
+        nerd-fonts.symbols-only
       ]);
 
     # Required to autoload fonts from packages

@@ -51,8 +51,15 @@
     ];
     consoleLogLevel = 3;
     loader = {
-      systemd-boot.enable = true;
+      # lanzaboote replaces systemd-boot and signs everything it installs
+      # with the sbctl keys in /var/lib/sbctl (created once with
+      # `sbctl create-keys`, enrolled with `sbctl enroll-keys --microsoft`).
+      systemd-boot.enable = lib.mkForce false;
       efi.canTouchEfiVariables = true;
+    };
+    lanzaboote = {
+      enable = true;
+      pkiBundle = "/var/lib/sbctl";
     };
     kernel.sysctl = {
       # Memory management
@@ -378,6 +385,14 @@
     rtkit.enable = true;
     sudo.wheelNeedsPassword = false;
 
+    # TPM 2.0 userspace: PKCS#11, TCTI env, and the tss group. Used by
+    # systemd-cryptenroll for LUKS auto-unlock once the disk is encrypted.
+    tpm2 = {
+      enable = true;
+      pkcs11.enable = true;
+      tctiEnvironment.enable = true;
+    };
+
     # Realtime scheduling and locked memory for audio work (JACK/pro-audio
     # clients); rtkit handles PipeWire itself.
     pam.loginLimits = [
@@ -429,6 +444,7 @@
       "kvm"
       "input" # voxtype's evdev push-to-talk hotkey
       "ydotool" # voxtype typing fallback on GNOME
+      "tss" # TPM 2.0 access via the TCTI environment
       "gamemode" # Required for GameMode CPU governor changes
     ];
     shell = pkgs.fish;
@@ -549,6 +565,9 @@
       wl-clipboard
       xdg-utils
       dconf-editor
+
+      # Secure Boot key management (lanzaboote signs with /var/lib/sbctl)
+      sbctl
 
       # GNOME extras
       gnome-tweaks

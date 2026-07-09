@@ -90,6 +90,12 @@
 
     # Push-to-talk voice-to-text.
     voxtype.url = "github:peteonrails/voxtype";
+
+    # UEFI Secure Boot via signed UKIs (sbctl keys).
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -222,9 +228,11 @@
               hermes-agent.nixosModules.default
             ];
 
-            # Vicinae's input-server wrapper (global hotkey capture).
+            # Vicinae's input-server wrapper (global hotkey capture) and
+            # lanzaboote for UEFI Secure Boot with sbctl-managed keys.
             muscle.modules = with inputs; [
               vicinae.nixosModules.default
+              lanzaboote.nixosModules.lanzaboote
             ];
           };
         };
