@@ -143,7 +143,6 @@ in
         shellAliases = commonAliases // commonAbbreviations;
         initExtra = ''
           export PATH="${exportedPath}:$PATH"
-          eval "$(${pkgs.zoxide}/bin/zoxide init bash)"
         '';
       };
 
@@ -157,18 +156,20 @@ in
         '';
         initContent = ''
           export PATH="${exportedPath}:$PATH"
-          eval "$(${pkgs.zoxide}/bin/zoxide init zsh)"
         '';
       };
 
       fish = {
         enable = true;
+        # fish 4.8 dropped share/fish/tools/create_manpage_completions.py,
+        # breaking home-manager's build-time man-page completion generation.
+        # fish falls back to parsing man pages at runtime, so nothing is lost.
+        generateCompletions = false;
         shellAliases = commonAliases;
         shellAbbrs = commonAbbreviations;
         interactiveShellInit = ''
           set fish_greeting
           ${concatMapStringsSep "\n" (p: "fish_add_path -m ${p}") commonPaths}
-          ${pkgs.zoxide}/bin/zoxide init fish | source
         '';
         plugins = [
           {
@@ -202,12 +203,9 @@ in
 
       tmux.enable = true;
 
-      zoxide = {
-        enable = true;
-        enableBashIntegration = false;
-        enableFishIntegration = false;
-        enableZshIntegration = false;
-      };
+      # Shell integrations (init hooks in bash/zsh/fish) are emitted by
+      # home-manager; no hand-rolled `zoxide init` lines needed.
+      zoxide.enable = true;
 
       starship = {
         enable = true;
