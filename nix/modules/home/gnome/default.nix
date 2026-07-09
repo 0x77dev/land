@@ -96,6 +96,17 @@ in
             ];
       };
 
+      # Workstation policy: never idle, suspend, hibernate, or dim from the
+      # desktop. The host also disables every systemd sleep target, so both
+      # layers agree.
+      "org/gnome/desktop/session".idle-delay = lib.gvariant.mkUint32 0;
+      "org/gnome/settings-daemon/plugins/power" = {
+        idle-dim = false;
+        sleep-inactive-ac-type = "nothing";
+        sleep-inactive-battery-type = "nothing";
+        power-button-action = "nothing";
+      };
+
       # macOS-compatible muscle memory: layout switching on Ctrl+Space,
       # Super+Q closes like Cmd+Q. Super+Space belongs to the launcher.
       "org/gnome/desktop/wm/keybindings" = {
