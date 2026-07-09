@@ -84,6 +84,12 @@
     };
     # CachyOS kernel with BORE scheduler
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+
+    # Raycast-style launcher. No nixpkgs follows: that would miss its cache.
+    vicinae.url = "github:vicinaehq/vicinae";
+
+    # Push-to-talk voice-to-text.
+    voxtype.url = "github:peteonrails/voxtype";
   };
 
   nixConfig = {
@@ -91,11 +97,13 @@
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
       "https://nixos-raspberrypi.cachix.org"
+      "https://vicinae.cachix.org"
     ];
     extra-trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+      "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
     ];
   };
 
@@ -213,8 +221,18 @@
               microvm.nixosModules.microvm
               hermes-agent.nixosModules.default
             ];
+
+            # Vicinae's input-server wrapper (global hotkey capture).
+            muscle.modules = with inputs; [
+              vicinae.nixosModules.default
+            ];
           };
         };
+
+        homes.users."mykhailo@muscle".modules = with inputs; [
+          vicinae.homeManagerModules.default
+          voxtype.homeManagerModules.default
+        ];
       };
 
       getSystemPackages =

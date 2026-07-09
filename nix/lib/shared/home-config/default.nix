@@ -23,6 +23,7 @@ _:
     cloud.enable = lib.mkDefault false;
     fonts.enable = lib.mkDefault false;
     ghostty.enable = lib.mkDefault false;
+    gnome.enable = lib.mkDefault false;
     git.enable = lib.mkDefault true;
     ide.enable = lib.mkDefault false;
     media.enable = lib.mkDefault false;

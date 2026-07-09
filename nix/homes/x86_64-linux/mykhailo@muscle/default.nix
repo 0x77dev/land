@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  inputs,
   namespace,
   ...
 }:
@@ -9,6 +10,11 @@ let
 in
 {
   home = shared.home // {
+    packages = with pkgs; [
+      telegram-desktop
+      spotify
+    ];
+
     # Consistent cursor everywhere, including Xwayland and Qt apps that read
     # XCURSOR_* instead of dconf.
     pointerCursor = {
@@ -26,6 +32,7 @@ in
     cloud.enable = true;
     fonts.enable = true;
     ghostty.enable = true;
+    gnome.enable = true;
     git.enable = true;
     ide.enable = true;
     media.enable = true;
@@ -45,6 +52,39 @@ in
 
   programs = {
     home-manager.enable = true;
+
+    # Screen recording / streaming with PipeWire capture.
+    obs-studio = {
+      enable = true;
+      plugins = with pkgs.obs-studio-plugins; [
+        obs-pipewire-audio-capture
+        obs-vkcapture
+      ];
+    };
+
+    # Raycast-style launcher on Super+Space (keybinding lives in the gnome
+    # module). The systemd user service keeps the daemon warm.
+    vicinae = {
+      enable = true;
+      systemd.enable = true;
+    };
+
+    # Push-to-talk dictation: hold ScrollLock, speak, release. Vulkan build
+    # runs large-v3-turbo fast on the RTX 6000 Ada.
+    voxtype = {
+      enable = true;
+      package = inputs.voxtype.packages.${pkgs.stdenv.hostPlatform.system}.vulkan;
+      model.name = "large-v3-turbo";
+      service.enable = true;
+      settings = {
+        whisper.language = "auto";
+        output = {
+          mode = "type";
+          fallback_to_clipboard = true;
+        };
+        output.notification.on_transcription = true;
+      };
+    };
   };
 
   # Appearance, kept declarative. Cursor/icon themes are pinned because the

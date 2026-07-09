@@ -45,6 +45,9 @@
       # Some games need split lock detection disabled
       "split_lock_detect=off"
       "amd-pstate=active"
+      # Run IRQ handlers as threads so rtkit-boosted audio threads can
+      # preempt them — near-RT audio without a PREEMPT_RT kernel.
+      "threadirqs"
     ];
     consoleLogLevel = 3;
     loader = {
@@ -182,6 +185,10 @@
 
     nix-ld.enable = true;
 
+    # uinput typing daemon: voxtype's output fallback on GNOME, where the
+    # wtype virtual-keyboard protocol isn't available.
+    ydotool.enable = true;
+
     appimage = {
       enable = true;
       binfmt = true;
@@ -279,16 +286,32 @@
     desktopManager.gnome.enable = true;
     displayManager.gdm.enable = true;
 
+    # Pro-audio grade PipeWire: 48kHz clock with a wide dynamic quantum
+    # (64-2048) so pro apps get ~1.3ms latency while desktop streams coalesce
+    # into efficient large buffers, and the highest-quality resampler for
+    # anything not running at the native rate.
     pipewire = {
       enable = true;
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
       jack.enable = true;
-      extraConfig.pipewire."context.properties" = {
-        "default.clock.rate" = 48000;
-        "default.clock.quantum" = 512;
-        "default.clock.min-quantum" = 512;
+      extraConfig = {
+        pipewire."10-clock"."context.properties" = {
+          "default.clock.rate" = 48000;
+          "default.clock.allowed-rates" = [
+            44100
+            48000
+            88200
+            96000
+            192000
+          ];
+          "default.clock.quantum" = 512;
+          "default.clock.min-quantum" = 64;
+          "default.clock.max-quantum" = 2048;
+        };
+        client."10-resample"."stream.properties"."resample.quality" = 10;
+        pipewire-pulse."10-resample"."stream.properties"."resample.quality" = 10;
       };
     };
 
@@ -354,6 +377,23 @@
   security = {
     rtkit.enable = true;
     sudo.wheelNeedsPassword = false;
+
+    # Realtime scheduling and locked memory for audio work (JACK/pro-audio
+    # clients); rtkit handles PipeWire itself.
+    pam.loginLimits = [
+      {
+        domain = "@audio";
+        item = "rtprio";
+        type = "-";
+        value = "95";
+      }
+      {
+        domain = "@audio";
+        item = "memlock";
+        type = "-";
+        value = "unlimited";
+      }
+    ];
   };
 
   systemd.sleep.settings.Sleep = {
@@ -387,13 +427,25 @@
       "video"
       "audio"
       "kvm"
-      "input"
+      "input" # voxtype's evdev push-to-talk hotkey
+      "ydotool" # voxtype typing fallback on GNOME
       "gamemode" # Required for GameMode CPU governor changes
     ];
     shell = pkgs.fish;
   };
 
-  fonts.fontconfig.enable = true;
+  fonts.fontconfig = {
+    enable = true;
+    # QD-OLED panels use a triangular subpixel layout, so classic RGB
+    # subpixel AA fringes; grayscale smoothing with slight hinting is the
+    # macOS-like (and correct) rendering here.
+    antialias = true;
+    hinting.style = "slight";
+    subpixel = {
+      rgba = "none";
+      lcdfilter = "none";
+    };
+  };
 
   # Make the gdm greeter drive both QD-OLEDs at their full capability instead
   # of a 60Hz SDR fallback: native mode at max refresh, VRR, 10-bit, and
