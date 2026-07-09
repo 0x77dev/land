@@ -11,8 +11,13 @@ with lib;
   time.timeZone = mkDefault "America/New_York";
   i18n.defaultLocale = mkDefault "en_US.UTF-8";
 
-  # Shell
-  programs.fish.enable = true;
+  # Shell. fish 4.8 dropped create_manpage_completions.py, breaking the
+  # build-time man-page completion generation; fish parses man pages at
+  # runtime anyway.
+  programs.fish = {
+    enable = true;
+    generateCompletions = mkDefault false;
+  };
   programs.helium.enable = mkDefault config.modules.graphical.enable;
 
   # Nixpkgs
