@@ -251,6 +251,9 @@
       ];
     };
 
+    # Policy source for Helium (no Chromium browser installed): the helium
+    # module reuses /etc/chromium policies and native-messaging hosts, so
+    # extensions declared here are force-installed into Helium.
     chromium = {
       enable = true;
       extensions = [
@@ -483,16 +486,7 @@
       # Gaming - Performance overlay (use with mangohud %command%)
       mangohud
 
-      # Gaming - Custom Proton versions
-      protonup-qt
-
-      # Gaming - Non-Steam launchers
-      heroic # Epic/GOG games
-      lutris # General game launcher
-      (prismlauncher.override { additionalPrograms = [ ffmpeg ]; }) # Minecraft launcher
-
       # Desktop apps
-      chromium
       pkgs.${namespace}.tx-02-variable
       gitFull
       vim

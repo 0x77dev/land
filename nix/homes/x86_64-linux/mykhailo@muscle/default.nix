@@ -47,11 +47,31 @@ in
     home-manager.enable = true;
   };
 
-  # GNOME reads cursor/icon themes from dconf; the prior KDE install left
-  # `breeze` set there, which is gone now and renders broken. Pin Adwaita.
-  dconf.settings."org/gnome/desktop/interface" = {
-    cursor-theme = "Adwaita";
-    icon-theme = "Adwaita";
-    color-scheme = "prefer-dark";
-  };
+  # Appearance, kept declarative. Cursor/icon themes are pinned because the
+  # prior KDE install left `breeze` in dconf, which renders broken in GNOME.
+  dconf.settings =
+    let
+      wallpaper = {
+        color-shading-type = "solid";
+        picture-options = "zoom";
+        picture-uri = "file:///run/current-system/sw/share/backgrounds/gnome/curvy-l.jxl";
+        primary-color = "#86b6ef";
+        secondary-color = "#000000";
+      };
+    in
+    {
+      "org/gnome/desktop/interface" = {
+        cursor-theme = "Adwaita";
+        icon-theme = "Adwaita";
+        color-scheme = "prefer-dark";
+        accent-color = "blue";
+        monospace-font-name = "Hack 10";
+      };
+
+      "org/gnome/desktop/background" = wallpaper // {
+        picture-uri-dark = "file:///run/current-system/sw/share/backgrounds/gnome/curvy-d.jxl";
+      };
+
+      "org/gnome/desktop/screensaver" = wallpaper;
+    };
 }
