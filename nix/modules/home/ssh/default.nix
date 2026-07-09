@@ -28,7 +28,7 @@ let
     else
       "/run/user/1000/gnupg/S.gpg-agent.ssh";
 
-  # Remote socket paths (on tomato/muscle - all Linux)
+  # Remote socket paths (Linux hosts)
   remoteAgentSocket = "/run/user/1000/gnupg/S.gpg-agent";
   remoteAgentSshSocket = "/run/user/1000/gnupg/S.gpg-agent.ssh";
 in
@@ -70,18 +70,17 @@ in
         };
 
         # Only forward to specific trusted servers
-        "tomato tomato.0x77.computer muscle muscle.0x77.computer muscle.osv.computer beefy beefy.0x77.computer" =
-          {
-            ForwardAgent = true;
-            # Forward the GPG agent's extra socket to the remote system
-            # Local: agent-extra-socket -> Remote: agent-socket (replaces remote agent)
-            # Local: agent-ssh-socket -> Remote: agent-ssh-socket (for SSH keys)
-            # GPG agent forwarding (for GPG operations: sign, decrypt, etc.)
-            RemoteForward = [
-              "${remoteAgentSocket} ${localAgentExtraSocket}"
-              "${remoteAgentSshSocket} ${localAgentSshSocket}"
-            ];
-          };
+        "muscle muscle.0x77.computer muscle.osv.computer beefy beefy.0x77.computer" = {
+          ForwardAgent = true;
+          # Forward the GPG agent's extra socket to the remote system
+          # Local: agent-extra-socket -> Remote: agent-socket (replaces remote agent)
+          # Local: agent-ssh-socket -> Remote: agent-ssh-socket (for SSH keys)
+          # GPG agent forwarding (for GPG operations: sign, decrypt, etc.)
+          RemoteForward = [
+            "${remoteAgentSocket} ${localAgentExtraSocket}"
+            "${remoteAgentSshSocket} ${localAgentSshSocket}"
+          ];
+        };
       };
     };
   };

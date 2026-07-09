@@ -30,7 +30,6 @@ Bootstrap new systems remotely with [nixos-anywhere][nixos-anywhere]:
 
 ```bash
 # NixOS systems (handles disk partitioning and installation)
-nixos-anywhere --flake .#tomato nixos@<host>
 nixos-anywhere --flake .#muscle nixos@<host>
 
 # Darwin requires manual initial setup (see below)
@@ -66,7 +65,7 @@ to mount the storage:
 
 ```bash
 # Rebuild a NixOS host (optionally over SSH with a remote build host)
-just nixos-rebuild tomato mykhailo@<host>
+just nixos-rebuild muscle mykhailo@<host>
 ```
 
 ### NixOS Bootstrap
@@ -139,16 +138,15 @@ free NGC API key from [ngc.nvidia.com](https://ngc.nvidia.com):
 
 ## Systems
 
-| Host     | Platform         | Role              | Specs                     |
-| -------- | ---------------- | ----------------- | ------------------------- |
-| `potato` | `aarch64-darwin` | Workstation       | M4 Max, 48GB              |
-| `tomato` | `x86_64-linux`   | Homelab / Cluster | MS-01, i9-13900H, 96GB    |
-| `spark`  | `aarch64-linux`  | AI/Compute        | NVIDIA DGX Spark (GB10)   |
-| `timey`  | `aarch64-linux`  | IoT/Edge/Time     | RPi 5, eMMC               |
-| `beefy`  | `aarch64-darwin` | Media             | M2 Ultra, 64GB            |
-| `muscle` | `x86_64-linux`   | AI/Compute        | TR 7985WX, 2x RTX6000 Ada |
-| `ghost`  | `x86_64-linux`   | Fun               | T480, 16GB                |
-| `vasyl`  | `aarch64-linux`  | AI Agent          | microVM on `spark`        |
+| Host     | Platform         | Role          | Specs                     |
+| -------- | ---------------- | ------------- | ------------------------- |
+| `potato` | `aarch64-darwin` | Workstation   | M4 Max, 48GB              |
+| `spark`  | `aarch64-linux`  | AI/Compute    | NVIDIA DGX Spark (GB10)   |
+| `timey`  | `aarch64-linux`  | IoT/Edge/Time | RPi 5, eMMC               |
+| `beefy`  | `aarch64-darwin` | Media         | M2 Ultra, 64GB            |
+| `muscle` | `x86_64-linux`   | AI/Compute    | TR 7985WX, 2x RTX6000 Ada |
+| `ghost`  | `x86_64-linux`   | Fun           | T480, 16GB                |
+| `vasyl`  | `aarch64-linux`  | AI Agent      | microVM on `spark`        |
 
 `vasyl` is a [microvm.nix][microvm-nix] guest built and deployed together with
 `spark`: rebuilding the host updates and restarts the VM. It runs
