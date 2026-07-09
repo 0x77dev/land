@@ -171,16 +171,8 @@
           };
         in
         {
-          user.databases = [
-            {
-              settings = mutter-settings // {
-                "org/gnome/shell".enabled-extensions = [
-                  "appindicatorsupport@rgcjonas.gmail.com"
-                  "tailscale@joaophi.github.com" # Tailscale in quick settings
-                ];
-              };
-            }
-          ];
+          # Shell extensions are enabled by home-manager (modules.home.gnome).
+          user.databases = [ { settings = mutter-settings; } ];
           gdm.databases = [ { settings = mutter-settings; } ];
         };
     };
@@ -463,15 +455,16 @@
     };
   };
 
-  # Make the gdm greeter drive both QD-OLEDs at their full capability instead
-  # of a 60Hz SDR fallback: native mode at max refresh, VRR, 10-bit, and
-  # BT.2100 (HDR) color. Samsung G95SC: 5120x1440@240 (48-240Hz VRR). ASUS
-  # XG32UCDS: 3840x2160@165 (48-165Hz VRR). Both are true 10-bit panels.
+  # Give the gdm greeter the exact display layout mutter persisted for the
+  # user session (an exact mirror of ~/.config/monitors.xml — configs the
+  # greeter's mutter can't match verbatim are silently rejected): Samsung
+  # G95SC primary at 5120x1440@240 HDR, ASUS XG32UCDS pivoted left at
+  # 4K@165, scale 1.25.
   systemd.tmpfiles.rules = [
     "L+ /run/gdm/.config/monitors.xml - - - - ${pkgs.writeText "gdm-monitors.xml" ''
       <monitors version="2">
         <configuration>
-          <layoutmode>physical</layoutmode>
+          <layoutmode>logical</layoutmode>
           <logicalmonitor>
             <x>0</x>
             <y>0</y>
@@ -488,24 +481,17 @@
                 <width>5120</width>
                 <height>1440</height>
                 <rate>239.999</rate>
-                <ratemode>variable</ratemode>
               </mode>
-              <maxbpc>10</maxbpc>
               <colormode>bt2100</colormode>
             </monitor>
           </logicalmonitor>
-          <!--
-            Physically pivoted 90 degrees (bottom edge on the left); "left"
-            matches KWin's previous Rotated90. VRR stays off here: the
-            portrait panel is for reading, and OLED VRR flicker is worse
-            than the zero benefit.
-          -->
           <logicalmonitor>
             <x>5120</x>
             <y>0</y>
-            <scale>1.5</scale>
+            <scale>1.25</scale>
             <transform>
               <rotation>left</rotation>
+              <flipped>no</flipped>
             </transform>
             <monitor>
               <monitorspec>
@@ -519,8 +505,6 @@
                 <height>2160</height>
                 <rate>164.991</rate>
               </mode>
-              <maxbpc>10</maxbpc>
-              <colormode>bt2100</colormode>
             </monitor>
           </logicalmonitor>
         </configuration>

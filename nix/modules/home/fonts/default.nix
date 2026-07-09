@@ -32,6 +32,8 @@ in
     # rich for creative work.
     home.packages =
       (with pkgs.${namespace}; [ tx-02-variable ])
+      # Apple Color Emoji (Linux only; macOS already has it natively).
+      ++ optional pkgs.stdenv.isLinux pkgs.${namespace}.apple-color-emoji
       ++ (with pkgs; [
         # The entire Google Fonts library (thousands of families): Inter,
         # IBM Plex, Source Sans/Serif, EB Garamond, Crimson, Playfair, Lora,
@@ -85,7 +87,10 @@ in
           "TX-02"
           "JetBrains Mono"
         ];
-        emoji = [ "Noto Color Emoji" ];
+        emoji = [
+          "Apple Color Emoji"
+          "Noto Color Emoji"
+        ];
       };
     };
 

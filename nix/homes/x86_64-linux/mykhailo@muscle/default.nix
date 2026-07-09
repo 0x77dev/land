@@ -32,7 +32,13 @@ in
     cloud.enable = true;
     fonts.enable = true;
     ghostty.enable = true;
-    gnome.enable = true;
+    gnome = {
+      enable = true;
+      extensions = [
+        "appindicatorsupport@rgcjonas.gmail.com"
+        "tailscale@joaophi.github.com" # Tailscale in quick settings
+      ];
+    };
     git.enable = true;
     ide.enable = true;
     media.enable = true;
