@@ -16,15 +16,13 @@
 let
   pname = "helium";
 
-  # renovate: datasource=github-releases depName=helium packageName=imputnet/helium-linux versioning=loose
   version = "0.14.4.1";
 
   linuxBase = "https://github.com/imputnet/helium-linux/releases/download/${version}";
   macosBase = "https://github.com/imputnet/helium-macos/releases/download/${version}";
 
-  # Per-system release artifacts. `passthru.sources` re-exports this so the
-  # `nix-rehash` script (driven by the Renovate digest workflow) can refresh
-  # every platform digest after a version bump, without a build.
+  # Per-system release artifacts; `passthru.sources` re-exports this so all
+  # platform digests can be refreshed after a version bump without a build.
   sources = {
     x86_64-linux = {
       url = "${linuxBase}/helium-${version}-x86_64_linux.tar.xz";
@@ -89,7 +87,6 @@ let
     libglvnd
     libkrb5
     libpng
-    # cspell:words libx libxcomposite libxcursor libxdamage libxext libxfixes libxi libxrandr libxrender libxtst
     libx11
     libxcb
     libxcomposite

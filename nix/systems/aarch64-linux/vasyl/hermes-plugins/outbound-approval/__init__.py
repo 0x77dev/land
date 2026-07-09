@@ -13,7 +13,6 @@ import logging
 import re
 from typing import Any, Mapping
 
-# cspell:words aerc bgws bntfy bxurl feishu jsonish mailgun mailx msmtp ntfy sendgrid twilio webhooks weixin xurl yuanbao
 
 logger = logging.getLogger(__name__)
 

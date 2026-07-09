@@ -204,7 +204,6 @@
       package = pkgs.steam.override {
         extraPkgs =
           pkgs': with pkgs'; [
-            # cspell:words libxcursor libxi libxinerama libxscrnsaver
             libxcursor
             libxi
             libxinerama
@@ -258,7 +257,6 @@
     chromium = {
       enable = true;
       extensions = [
-        # cspell:disable-next-line
         "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
         "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
       ];

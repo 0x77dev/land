@@ -1,0 +1,15 @@
+[files]
+extend-exclude = [
+  # ASCII-armored key material and third-party peering data, not prose.
+  "gpg/keys/*.asc",
+  "nix/systems/x86_64-linux/ipfs/peering/*.json",
+  "*.lock",
+]
+
+[default.extend-identifiers]
+# Samba's smb.conf option is genuinely spelled this way.
+browseable = "browseable"
+
+[default.extend-words]
+# The MQTT broker (https://mosquitto.org), not the insect.
+mosquitto = "mosquitto"
