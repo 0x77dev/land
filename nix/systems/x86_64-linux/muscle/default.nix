@@ -127,14 +127,8 @@
     };
   };
 
-  virtualisation.docker = {
-    enable = true;
-    daemon.settings = {
-      features = {
-        containerd-snapshotter = true;
-      };
-    };
-  };
+  # Docker 29 uses the containerd image store by default.
+  virtualisation.docker.enable = true;
 
   nixpkgs.config = {
     allowUnfree = true;
@@ -452,10 +446,10 @@
   users.users.mykhailo = {
     isNormalUser = true;
     description = "Mykhailo Marynenko";
-    # Bootstrap fresh installs with an unlocked account so OpenSSH accepts
-    # the declared YubiKey keys and GDM can authenticate. This is only used
-    # when the account is first created; `passwd` changes survive rebuilds.
-    initialHashedPassword = "$y$j9T$17soTVTd3hBR8VE6rWLI41$Q4m8f6vbmE.00WlGlbbAfM651OtyJYfmKreDT6EMcU7";
+    # Fresh key-only installs need an unlocked shadow entry or sshd rejects
+    # even valid authorized keys. Password SSH is disabled independently;
+    # set a local password with `passwd` after the first key login.
+    initialHashedPassword = "";
     extraGroups = [
       "wheel"
       "docker"
@@ -490,55 +484,7 @@
   # G95SC primary at 5120x1440@240 HDR, ASUS XG32UCDS pivoted left at
   # 4K@165, scale 1.25.
   systemd.tmpfiles.rules = [
-    "L+ /run/gdm/.config/monitors.xml - - - - ${pkgs.writeText "gdm-monitors.xml" ''
-      <monitors version="2">
-        <configuration>
-          <layoutmode>logical</layoutmode>
-          <logicalmonitor>
-            <x>0</x>
-            <y>0</y>
-            <scale>1</scale>
-            <primary>yes</primary>
-            <monitor>
-              <monitorspec>
-                <connector>DP-5</connector>
-                <vendor>SAM</vendor>
-                <product>Odyssey G95SC</product>
-                <serial>H1AK500000</serial>
-              </monitorspec>
-              <mode>
-                <width>5120</width>
-                <height>1440</height>
-                <rate>239.999</rate>
-              </mode>
-              <colormode>bt2100</colormode>
-            </monitor>
-          </logicalmonitor>
-          <logicalmonitor>
-            <x>5120</x>
-            <y>0</y>
-            <scale>1.25</scale>
-            <transform>
-              <rotation>left</rotation>
-              <flipped>no</flipped>
-            </transform>
-            <monitor>
-              <monitorspec>
-                <connector>DP-1</connector>
-                <vendor>AUS</vendor>
-                <product>XG32UCDS</product>
-                <serial>T7LMQV013415</serial>
-              </monitorspec>
-              <mode>
-                <width>3840</width>
-                <height>2160</height>
-                <rate>164.991</rate>
-              </mode>
-            </monitor>
-          </logicalmonitor>
-        </configuration>
-      </monitors>
-    ''}"
+    "L+ /run/gdm/.config/monitors.xml - - - - ${./monitors.xml}"
   ];
 
   # GPUDirect Storage (cuFile): the modern NVMe P2PDMA path — upstream NVMe

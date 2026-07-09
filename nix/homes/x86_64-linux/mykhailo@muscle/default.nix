@@ -105,6 +105,13 @@ in
     };
   };
 
+  # One canonical mutter layout, shared with GDM. Home Manager owns the user
+  # copy so a reinstall cannot fall back to an unrotated 60 Hz arrangement.
+  xdg.configFile."monitors.xml" = {
+    source = ../../../systems/x86_64-linux/muscle/monitors.xml;
+    force = true;
+  };
+
   # Appearance, kept declarative. Cursor/icon themes are pinned because the
   # prior KDE install left `breeze` in dconf, which renders broken in GNOME.
   dconf.settings =
