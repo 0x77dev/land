@@ -131,9 +131,14 @@
             content = {
               type = "luks";
               name = "cryptsystem";
+              # Create-time recovery key (nixos-anywhere --disk-encryption-keys
+              # places it); fed to luksFormat via process substitution so stdin
+              # stays free for the OPAL admin PIN below.
+              passwordFile = "/tmp/cryptsystem.key";
               settings = {
                 allowDiscards = true;
                 bypassWorkqueues = true;
+                crypttabExtraOpts = [ "tpm2-device=auto" ];
               };
               # Stack dm-crypt on the OPAL hardware locking range. cryptsetup
               # has no CLI flag for the OPAL admin PIN — luksFormat reads it

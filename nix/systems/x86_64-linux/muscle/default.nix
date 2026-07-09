@@ -7,7 +7,7 @@
 }:
 {
   imports = [
-    ./disko-config.nix
+    ./fde.nix
   ];
 
   networking = {
