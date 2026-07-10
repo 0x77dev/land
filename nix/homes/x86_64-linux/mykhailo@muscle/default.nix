@@ -106,6 +106,22 @@ in
     };
   };
 
+  # Zoom for Linux has no real dark mode. This enables its supported Qt
+  # system-theme integration while keeping zoomus.conf mutable for the app.
+  home.activation.zoomSystemTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    config_file="$HOME/.config/zoomus.conf"
+    if [ -f "$config_file" ]; then
+      if ${pkgs.gnugrep}/bin/grep -q '^useSystemTheme=' "$config_file"; then
+        run ${pkgs.gnused}/bin/sed -i 's/^useSystemTheme=.*/useSystemTheme=true/' "$config_file"
+      else
+        run ${pkgs.coreutils}/bin/printf '\nuseSystemTheme=true\n' >> "$config_file"
+      fi
+    else
+      run ${pkgs.coreutils}/bin/mkdir -p "$HOME/.config"
+      run ${pkgs.coreutils}/bin/printf '[General]\nuseSystemTheme=true\n' > "$config_file"
+    fi
+  '';
+
   # Appearance, kept declarative. Cursor/icon themes are pinned because the
   # prior KDE install left `breeze` in dconf, which renders broken in GNOME.
   dconf.settings =
