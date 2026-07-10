@@ -5,12 +5,6 @@
   namespace,
   ...
 }:
-let
-  # Newest complete CUDA set supported by nixpkgs on x86_64-linux; 13.3's
-  # CCCL package is explicitly marked unsupported. This also matches the
-  # CUDA 13.2 capability advertised by NVIDIA driver 595.84.
-  cuda = pkgs.cudaPackages_13_2;
-in
 {
   imports = [
     ./fde.nix
@@ -87,14 +81,6 @@ in
     };
     # Expose arm64 Linux builds to Darwin clients through NixOS binfmt support.
     binfmt.emulatedSystems = [ "aarch64-linux" ];
-    # NVIDIA's required OpenRM registration for upstream NVMe P2PDMA:
-    # static BAR1, write-combining disabled, and ForceP2P=0 for pre-Hopper
-    # GPUs (the RTX 6000 Ada is AD102). Upstream P2PDMA also cannot use
-    # NVMe multipathing.
-    extraModprobeConfig = ''
-      options nvme_core multipath=N
-      options nvidia NVreg_RegistryDwords="RMForceStaticBar1=1;ForceP2P=0;RmForceDisableIomapWC=1;"
-    '';
   };
 
   hardware = {
@@ -139,7 +125,8 @@ in
   nixpkgs.config = {
     allowUnfree = true;
     cudaSupport = true;
-    cudaVersion = "13.2";
+    # Latest CUDA package set nixpkgs ships (default is 12.9).
+    cudaVersion = "13.3";
   };
 
   qt = {
@@ -383,10 +370,7 @@ in
     # so the pull set stays shared and vetted against that smaller VRAM budget.
     ollama = {
       enable = true;
-      package = pkgs.ollama.override {
-        acceleration = "cuda";
-        cudaPackages = cuda;
-      };
+      package = pkgs.ollama-cuda;
       host = "0.0.0.0";
       loadModels = lib.${namespace}.shared.ollama.agentModels;
 
@@ -516,10 +500,6 @@ in
       allow_compat_mode = true;
       use_pci_p2pdma = true;
     };
-    block = {
-      nvme.use_pci_p2pdma = true;
-      nvmeof.use_pci_p2pdma = true;
-    };
     fs.generic.posix_unaligned_writes = false;
   };
 
@@ -537,10 +517,10 @@ in
       hwloc
 
       # CUDA
-      cuda.cudatoolkit
-      cuda.libcufile
-      cuda.gdrcopy
-      cuda.nccl
+      cudatoolkit
+      cudaPackages.libcufile
+      cudaPackages.gdrcopy
+      cudaPackages.nccl
 
       # Gaming - HDR support for gamescope
       # https://wiki.nixos.org/wiki/Steam#Gamescope_HDR
@@ -572,7 +552,7 @@ in
     ];
 
     variables = {
-      CUDA_PATH = "${cuda.cudatoolkit}";
+      CUDA_PATH = "${pkgs.cudatoolkit}";
     };
 
     # Session variables for Wayland/Electron apps
