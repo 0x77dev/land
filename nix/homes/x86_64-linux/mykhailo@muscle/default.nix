@@ -82,64 +82,8 @@ in
           size = 12;
         };
         theme = {
-          light.name = "adwaita-light";
-          dark.name = "adwaita-dark";
-        };
-      };
-      themes = {
-        adwaita-light = {
-          meta = {
-            version = 1;
-            name = "Adwaita Light";
-            variant = "light";
-            inherits = "vicinae-light";
-          };
-          colors = {
-            core = {
-              background = "#FAFAFA";
-              foreground = "#2E3436";
-              secondary_background = "#F6F5F4";
-              border = "#DEDDDA";
-              accent = "#3584E4";
-            };
-            accents = {
-              blue = "#3584E4";
-              green = "#33D17A";
-              magenta = "#C061CB";
-              orange = "#FF7800";
-              purple = "#9141AC";
-              red = "#E01B24";
-              yellow = "#F6D32D";
-              cyan = "#00A5A5";
-            };
-          };
-        };
-        adwaita-dark = {
-          meta = {
-            version = 1;
-            name = "Adwaita Dark";
-            variant = "dark";
-            inherits = "vicinae-dark";
-          };
-          colors = {
-            core = {
-              background = "#1E1E1E";
-              foreground = "#F6F5F4";
-              secondary_background = "#303030";
-              border = "#5E5C64";
-              accent = "#78AEED";
-            };
-            accents = {
-              blue = "#78AEED";
-              green = "#57E389";
-              magenta = "#DC8ADD";
-              orange = "#FFBE6F";
-              purple = "#C061CB";
-              red = "#FF7B63";
-              yellow = "#F8E45C";
-              cyan = "#33C7DE";
-            };
-          };
+          light.name = "libadwaita-light";
+          dark.name = "libadwaita-dark";
         };
       };
     };
@@ -179,7 +123,7 @@ in
         cursor-theme = "Adwaita";
         icon-theme = "Adwaita";
         color-scheme = "prefer-dark";
-        accent-color = "blue";
+        accent-color = "slate";
         # Apple typography, same roles as macOS.
         font-name = "SF Pro Display 12";
         document-font-name = "SF Pro Text 12";
