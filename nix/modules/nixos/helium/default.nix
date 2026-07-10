@@ -16,12 +16,26 @@ let
     "dppgmdbiimibapkepcbdbmkaabgiofem"
   ];
 
+  # https://chromewebstore.google.com/detail/vicinae-integration/kcmipingpfbohfjckomimmahknoddnke
+  vicinaeExtensionId = "kcmipingpfbohfjckomimmahknoddnke";
+
   onePasswordNativeMessagingHost = {
     name = "com.1password.1password";
     description = "1Password BrowserSupport";
     path = "/run/wrappers/bin/1Password-BrowserSupport";
     type = "stdio";
     allowed_origins = map (id: "chrome-extension://${id}/") onePasswordOrigins;
+  };
+
+  # NixOS does not get Vicinae's packaged system manifests; Helium reads the
+  # same /etc/chromium native-messaging path as Chromium.
+  # https://docs.vicinae.com/browser-extension
+  vicinaeNativeMessagingHost = package: {
+    name = "com.vicinae.vicinae";
+    description = "Vicinae Native Messaging Host";
+    path = "${package}/libexec/vicinae/vicinae-browser-link";
+    type = "stdio";
+    allowed_origins = [ "chrome-extension://${vicinaeExtensionId}/" ];
   };
 in
 {
@@ -54,6 +68,18 @@ in
         enabled.
       '';
     };
+
+    vicinaePackage = mkOption {
+      type = types.nullOr types.package;
+      default = null;
+      example = literalExpression "inputs.vicinae.packages.\${pkgs.stdenv.hostPlatform.system}.default";
+      description = ''
+        When set, register Vicinae's Chromium native-messaging host under
+        `/etc/chromium` so Helium can talk to the launcher. Force-install the
+        store extension via `programs.chromium.extensions` (id
+        `${vicinaeExtensionId}`).
+      '';
+    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -73,6 +99,12 @@ in
           mode = "0755";
         };
       };
+    })
+
+    (mkIf (cfg.vicinaePackage != null) {
+      environment.etc."chromium/native-messaging-hosts/com.vicinae.vicinae.json".text = builtins.toJSON (
+        vicinaeNativeMessagingHost cfg.vicinaePackage
+      );
     })
   ]);
 }

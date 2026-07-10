@@ -43,6 +43,9 @@ mkShell {
       inputs.nixos-anywhere.packages.${system}.nixos-anywhere
       just
       cachix
+      nvd
+      nh
+      nix-diff
       rpiboot
       zstd
       pv

@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   namespace,
   ...
 }:
@@ -259,8 +260,13 @@
       extensions = [
         "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
         "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
+        "kcmipingpfbohfjckomimmahknoddnke" # Vicinae Integration
       ];
     };
+
+    # Native-messaging host for the Vicinae browser extension (Helium reads
+    # /etc/chromium). https://docs.vicinae.com/browser-extension
+    helium.vicinaePackage = inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default;
     fish.enable = true;
 
     # GNOME's lightweight mail client (Superhuman stays the mailto default).

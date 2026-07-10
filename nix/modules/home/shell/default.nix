@@ -110,6 +110,9 @@ in
       fzf
       glow
       hwatch
+      nvd
+      nh
+      nix-diff
       starship
       tree
       watchexec
