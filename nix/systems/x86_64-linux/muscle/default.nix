@@ -478,37 +478,6 @@
     };
   };
 
-  # NixOS 26.05 gives GDM a transient DynamicUser home, which GDM recreates
-  # at every start; a monitors.xml symlink is therefore deleted before
-  # mutter reads it. Apply the exact same declarative layout through mutter's
-  # native DisplayConfig API once the greeter bus appears.
-  systemd.services.gdm-monitor-layout = {
-    description = "Apply the declarative GDM monitor layout";
-    after = [ "display-manager.service" ];
-    partOf = [ "display-manager.service" ];
-    wantedBy = [ "graphical.target" ];
-    serviceConfig.Type = "oneshot";
-    script = ''
-      for _ in $(${pkgs.coreutils}/bin/seq 1 60); do
-        uid="$(${pkgs.glibc.bin}/bin/getent passwd gdm-greeter | ${pkgs.coreutils}/bin/cut -d: -f3)"
-        bus="/run/user/$uid/bus"
-        if [ -n "$uid" ] && [ -S "$bus" ]; then
-          exec ${pkgs.util-linux}/bin/runuser -u gdm-greeter -- \
-            ${pkgs.coreutils}/bin/env DBUS_SESSION_BUS_ADDRESS="unix:path=$bus" \
-            ${lib.getExe' pkgs.mutter "gdctl"} set \
-              --layout-mode logical \
-              --logical-monitor --primary --x 0 --y 0 --scale 1 \
-                --monitor DP-5 --mode 5120x1440@239.999 --color-mode bt2100 \
-              --logical-monitor --right-of DP-5 --scale 1.25 --transform 90 \
-                --monitor DP-1 --mode 3840x2160@164.991
-        fi
-        ${pkgs.coreutils}/bin/sleep 0.5
-      done
-      echo "GDM user bus did not appear" >&2
-      exit 1
-    '';
-  };
-
   # GPUDirect Storage (cuFile): the modern NVMe P2PDMA path — upstream NVMe
   # driver + CONFIG_PCI_P2PDMA (already =y in the CachyOS kernel), no
   # nvidia-fs.ko or MOFED needed. True GDS needs O_DIRECT on ext4/XFS with
