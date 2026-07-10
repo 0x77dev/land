@@ -44,9 +44,6 @@
   # systemd in the initrd: required for TPM2 LUKS unlock.
   boot.initrd.systemd.enable = true;
 
-  # Swap moves to a btrfs-native swapfile subvolume (below).
-  swapDevices = lib.mkForce [ ];
-
   # Btrfs upkeep: monthly scrub for checksummed self-healing, weekly TRIM.
   services.btrfs.autoScrub = {
     enable = true;
