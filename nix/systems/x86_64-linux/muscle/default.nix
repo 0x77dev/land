@@ -421,6 +421,26 @@
     AllowHybridSleep = "no";
   };
 
+  # Belt and suspenders: mask every sleep target and make logind ignore all
+  # sleep/power/lid requests. GNOME independently has idle-delay=0 and every
+  # inactive-sleep action set to "nothing".
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
+    suspend-then-hibernate.enable = false;
+  };
+  services.logind.settings.Login = {
+    IdleAction = "ignore";
+    HandlePowerKey = "ignore";
+    HandleSuspendKey = "ignore";
+    HandleHibernateKey = "ignore";
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+  };
+
   powerManagement.enable = false;
 
   modules = {
