@@ -95,8 +95,8 @@ in
           "Noto Serif"
         ];
         monospace = [
+          "TX-02-Variable"
           "SF Mono"
-          "TX-02"
           "JetBrains Mono"
         ];
         emoji = [
