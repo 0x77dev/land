@@ -54,17 +54,16 @@
 
   environment.systemPackages = [ pkgs.sedutil ];
 
-  # Unlock the T500's OPAL locking range before /scratch mounts. The PIN is
-  # a TPM2-sealed systemd credential (step 5 of the runbook); before it is
-  # enrolled, or on an unowned drive, this exits cleanly and the mount
-  # proceeds (range unlocked/not yet enabled).
-  systemd.services.scratch-opal-unlock = {
-    description = "Unlock OPAL locking range for /scratch";
-    wantedBy = [ "local-fs.target" ];
-    before = [ "scratch.mount" ];
+  systemd.tmpfiles.rules = [ "d /scratch 0755 root root - -" ];
+
+  # Scratch is deliberately outside fstab/local-fs.target. It is a disposable
+  # performance cache, so OPAL or TPM failures must never affect boot. This
+  # best-effort service runs only after the real local filesystems are up.
+  systemd.services.scratch-opal-mount = {
+    description = "Unlock and mount the OPAL-protected GDS scratch disk";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "local-fs.target" ];
     unitConfig = {
-      DefaultDependencies = false;
-      # No-op until the TPM2-sealed PIN is enrolled (runbook step 5).
       ConditionPathExists = "/etc/credstore.encrypted/scratch-opal";
     };
     serviceConfig = {
@@ -83,14 +82,18 @@
       ${lib.getExe' pkgs.sedutil "sedutil-cli"} \
         --setMBRDone on "$(cat "$pin_file")" \
         /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4
+      ${pkgs.util-linux}/bin/partx -u \
+        /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4
+      ${pkgs.systemd}/bin/udevadm settle
+      ${pkgs.util-linux}/bin/mount -t xfs \
+        -o noatime,nodiratime,largeio \
+        /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4-part1 \
+        /scratch
+    '';
+    preStop = ''
+      ${pkgs.util-linux}/bin/umount /scratch
     '';
   };
-  # Scratch is a performance cache, never a boot-critical filesystem. A TPM
-  # policy or OPAL failure must not drop the workstation into emergency mode.
-  fileSystems."/scratch".options = [
-    "nofail"
-    "x-systemd.after=scratch-opal-unlock.service"
-  ];
 
   disko.devices.disk = {
     scratch = {
@@ -103,12 +106,6 @@
           content = {
             type = "filesystem";
             format = "xfs";
-            mountpoint = "/scratch";
-            mountOptions = [
-              "noatime"
-              "nodiratime"
-              "largeio"
-            ];
           };
         };
       };
