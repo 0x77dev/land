@@ -1,8 +1,7 @@
-# Full-disk-encryption target for the reinstall. NOT imported yet — swap
-# the `./disko-config.nix` import for `./fde.nix` when executing.
+# Active full-disk-encryption layout, installed 2026-07-09.
 #
 # Both NVMes are TCG OPAL 2.0 self-encrypting drives (verified with
-# `nvme sed discover`: locking supported, currently unowned). Encryption
+# `nvme sed discover`: locking supported). Encryption
 # strategy per volume:
 #
 #   Samsung PM9A3 (system, btrfs): LUKS2 *stacked on* the OPAL hardware
@@ -16,13 +15,12 @@
 #     direct NVMe->GPU DMA path does not survive device-mapper. This gives
 #     hardware encryption at rest without costing the GDS fast path.
 #
-# Runbook:
+# Recovery/reinstall runbook:
 #   0. Copy anything precious off both disks (everything is reformatted).
 #   1. Generate and escrow (1Password) two secrets:
 #        - OPAL admin PIN  -> /run/opal-admin.key   (one printable line)
 #        - scratch SID PIN -> used with sedutil below
-#   2. Swap the import in default.nix: ./disko-config.nix -> ./fde.nix,
-#      and place the admin PIN file on the installer at /run/opal-admin.key
+#   2. Place the admin PIN file on the installer at /run/opal-admin.key
 #      (nixos-anywhere: `--copy-file`).
 #   3. `nixos-anywhere --flake .#muscle root@muscle` — disko runs
 #      luksFormat --hw-opal, taking OPAL ownership of the PM9A3 with the
@@ -30,10 +28,11 @@
 #   4. First boot: TPM-enroll the system volume (PCR 7 is stable):
 #        systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 \
 #          /dev/disk/by-id/nvme-SAMSUNG_MZQL27T6HBLA-00A07_S6CKNN0X600716-part2
-#   5. Take scratch ownership and seal its PIN to the TPM:
+#   5. On a factory-reset T500, disable TCG Block SID in firmware, then
+#      take ownership and seal its PIN to PCR 7:
 #        sedutil-cli --initialSetup <pin> /dev/nvme0n1
-#        sedutil-cli --enableLockingRange 0 <pin> /dev/nvme0n1
 #        printf '%s' '<pin>' | systemd-creds encrypt --with-key=tpm2 \
+#          --tpm2-pcrs=7 \
 #          --name=scratch-opal - /etc/credstore.encrypted/scratch-opal
 #      (Until step 5 the scratch service no-ops and /scratch mounts plain.)
 {
@@ -80,9 +79,8 @@
       pin_file="$CREDENTIALS_DIRECTORY/scratch-opal"
       [ -s "$pin_file" ] || exit 0
       ${lib.getExe' pkgs.sedutil "sedutil-cli"} \
-        --setLockingRange 0 RW "$(cat "$pin_file")" /dev/nvme0n1 || true
-      ${lib.getExe' pkgs.sedutil "sedutil-cli"} \
-        --setMBRDone on "$(cat "$pin_file")" /dev/nvme0n1 || true
+        --setLockingRange 0 RW "$(cat "$pin_file")" \
+        /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4
     '';
   };
   fileSystems."/scratch".options = [ "x-systemd.after=scratch-opal-unlock.service" ];
