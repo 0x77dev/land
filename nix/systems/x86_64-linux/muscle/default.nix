@@ -83,14 +83,6 @@
     binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
 
-  swapDevices = [
-    {
-      device = "/var/lib/swapfile";
-      size = 256 * 1024;
-      discardPolicy = "once";
-    }
-  ];
-
   hardware = {
     enableRedistributableFirmware = true;
     infiniband.enable = true;
