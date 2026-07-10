@@ -78,6 +78,11 @@
       ${lib.getExe' pkgs.sedutil "sedutil-cli"} \
         --setLockingRange 0 RW "$(cat "$pin_file")" \
         /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4
+      # This drive enables OPAL's shadow MBR during initialSetup. Mark the
+      # pre-boot phase complete so the controller exposes the real GPT.
+      ${lib.getExe' pkgs.sedutil "sedutil-cli"} \
+        --setMBRDone on "$(cat "$pin_file")" \
+        /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4
     '';
   };
   # Scratch is a performance cache, never a boot-critical filesystem. A TPM
