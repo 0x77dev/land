@@ -80,7 +80,12 @@
         /dev/disk/by-id/nvme-CT2000T500SSD8_241047BE2CB4
     '';
   };
-  fileSystems."/scratch".options = [ "x-systemd.after=scratch-opal-unlock.service" ];
+  # Scratch is a performance cache, never a boot-critical filesystem. A TPM
+  # policy or OPAL failure must not drop the workstation into emergency mode.
+  fileSystems."/scratch".options = [
+    "nofail"
+    "x-systemd.after=scratch-opal-unlock.service"
+  ];
 
   disko.devices.disk = {
     scratch = {
