@@ -484,7 +484,8 @@
   # G95SC primary at 5120x1440@240 HDR, ASUS XG32UCDS pivoted left at
   # 4K@165, scale 1.25.
   systemd.tmpfiles.rules = [
-    "L+ /run/gdm/.config/monitors.xml - - - - ${./monitors.xml}"
+    "d /run/gdm/home/gdm-greeter/.config 0700 gdm-greeter nogroup - -"
+    "L+ /run/gdm/home/gdm-greeter/.config/monitors.xml - gdm-greeter nogroup - ${./monitors.xml}"
   ];
 
   # GPUDirect Storage (cuFile): the modern NVMe P2PDMA path — upstream NVMe
