@@ -180,6 +180,23 @@ in
           enableUpdateCheck = false;
           enableExtensionUpdateCheck = false;
           extensions = managedExtensions;
+          userTasks = {
+            version = "2.0.0";
+            tasks = [
+              {
+                label = "Agent: Pi";
+                type = "process";
+                command = lib.getExe pkgs.pi-coding-agent;
+                options.cwd = "\${workspaceFolder}";
+                problemMatcher = [ ];
+                presentation = {
+                  reveal = "always";
+                  focus = true;
+                  panel = "dedicated";
+                };
+              }
+            ];
+          };
           userSettings = {
             "editor.fontFamily" =
               "'${fonts.families.monospace}', '${fonts.families.monospaceFallback}', '${fonts.families.symbolsMonospace}', '${fonts.families.emoji}', monospace";

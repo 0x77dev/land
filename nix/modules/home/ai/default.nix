@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -17,6 +18,13 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    home.packages = with pkgs; [
+      claude-code
+      codex
+      cursor-cli
+      pi-coding-agent
+    ];
+
     home.sessionVariables = {
       OTEL_SDK_DISABLED = "true";
     };

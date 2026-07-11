@@ -8,6 +8,8 @@ extend-exclude = [
 [default.extend-identifiers]
 # Samba's smb.conf option is genuinely spelled this way.
 browseable = "browseable"
+# Helium's upstream reverse-domain profile identifier.
+imput = "imput"
 
 [default.extend-words]
 # TeX Gyre Heros, the Helvetica-equivalent typeface.

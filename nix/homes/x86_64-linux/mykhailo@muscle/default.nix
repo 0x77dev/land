@@ -81,10 +81,16 @@ in
 
   modules.home = shared.modules.home // {
     ai.enable = true;
-    browser.enable = true;
+    browser = {
+      enable = true;
+      # Chromium 150 compiles its experimental Rust JPEG XL decoder but leaves
+      # the runtime feature disabled by default.
+      commandLineArgs = [ "--enable-features=JXLImageFormat,WaylandWindowDecorations" ];
+    };
     cloud.enable = true;
     fonts.enable = true;
     ghostty.enable = true;
+    gnome-control-surfaces.enable = true;
     gnome = {
       enable = true;
       extensions = [

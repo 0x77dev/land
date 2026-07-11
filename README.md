@@ -3,6 +3,10 @@
 Declarative NixOS and nix-darwin infrastructure using Nix flakes, Home Manager,
 and Snowfall Lib.
 
+## Highlights
+
+- Helium packaging with store-backed Widevine integration on Linux.
+
 ## Quick start
 
 ```sh

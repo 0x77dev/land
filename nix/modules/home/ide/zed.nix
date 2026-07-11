@@ -42,14 +42,31 @@ in
     programs.zed-editor = {
       enable = true;
       package = pkgs.zed-editor;
+      extraPackages = with pkgs; [
+        bash-language-server
+        shellcheck
+        shfmt
+      ];
 
       # Merge managed values over user settings during activation while
       # preserving unrelated Zed state and settings.
       mutableUserSettings = true;
 
       extensions = [
+        "docker-compose"
+        "dockerfile"
+        "github-actions"
+        "github-dark-default"
+        "make"
+        "markdownlint"
         "nix"
         "oxc"
+        "python-requirements"
+        "terraform"
+        "toml"
+        "typos"
+        "vue"
+        "zig"
       ];
 
       userSettings = {
@@ -57,11 +74,7 @@ in
         base_keymap = "VSCode";
         vim_mode = false;
 
-        theme = {
-          mode = "system";
-          light = "One Light";
-          dark = "One Dark";
-        };
+        theme = "GitHub Dark Default";
         icon_theme = "Zed (Default)";
 
         ui_font_family = fonts.roles.body.family;
@@ -131,6 +144,29 @@ in
           metrics = false;
         };
 
+        agent_servers = {
+          claude-acp = {
+            type = "custom";
+            command = lib.getExe pkgs.claude-agent-acp;
+            args = [ ];
+          };
+          codex-acp = {
+            type = "custom";
+            command = lib.getExe pkgs.codex-acp;
+            args = [ ];
+          };
+          cursor = {
+            type = "custom";
+            command = lib.getExe pkgs.cursor-cli;
+            args = [ "acp" ];
+          };
+          opencode = {
+            type = "custom";
+            command = lib.getExe pkgs.opencode;
+            args = [ "acp" ];
+          };
+        };
+
         git = {
           disable_git = false;
           enable_status = true;
@@ -160,6 +196,10 @@ in
             ];
             formatter.language_server.name = "nixd";
           };
+          "Shell Script".formatter.external = {
+            command = lib.getExe pkgs.shfmt;
+            arguments = [ ];
+          };
         };
 
         lsp = {
@@ -177,6 +217,25 @@ in
           };
         };
       };
+
+      userKeymaps = [
+        {
+          context = "Workspace";
+          bindings.ctrl-alt-shift-a = "agent::ToggleNewThreadMenu";
+        }
+      ];
+
+      userTasks = [
+        {
+          label = "Agent: Pi";
+          command = lib.getExe pkgs.pi-coding-agent;
+          cwd = "$ZED_WORKTREE_ROOT";
+          use_new_terminal = true;
+          allow_concurrent_runs = false;
+          reveal = "always";
+          hide = "never";
+        }
+      ];
     };
   };
 }

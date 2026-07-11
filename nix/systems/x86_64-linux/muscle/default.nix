@@ -443,6 +443,7 @@
   powerManagement.enable = false;
 
   modules = {
+    elgato-light-control.enable = true;
     vscode-server.enable = true;
     observability.enable = true;
     security-tools.enable = true;

@@ -9,6 +9,8 @@ with lib;
 let
   cfg = config.modules.home.browser;
   inherit (config.programs) chromium;
+  heliumConfigDir = "net.imput.helium";
+  heliumConfigHome = "${config.xdg.configHome}/${heliumConfigDir}";
 
   # When pairing is on, inherit whatever the user already declared for
   # home-manager's `programs.chromium` so a single config drives both browsers.
@@ -37,7 +39,7 @@ let
   # Chromium conventions (policies + native messaging) are handled by the NixOS
   # `programs.helium` module.
   extensionFile = ext: {
-    name = "${config.xdg.configHome}/helium/External Extensions/${ext.id}.json";
+    name = "${heliumConfigHome}/External Extensions/${ext.id}.json";
     value.text = builtins.toJSON (
       if ext.crxPath != null then
         {
@@ -58,6 +60,13 @@ in
       default = pkgs.${namespace}.helium;
       defaultText = literalExpression "pkgs.${namespace}.helium";
       description = "The Helium package to install.";
+    };
+
+    widevinePackage = mkOption {
+      type = types.nullOr types.package;
+      default = if pkgs.stdenv.isLinux then pkgs.widevine-cdm else null;
+      defaultText = literalExpression "if pkgs.stdenv.isLinux then pkgs.widevine-cdm else null";
+      description = "Widevine CDM package exposed to Helium; set to null to disable.";
     };
 
     pairChromium = mkOption {
@@ -90,5 +99,15 @@ in
 
       file = mkIf pkgs.stdenv.isLinux (listToAttrs (map extensionFile extensions));
     };
+
+    # Helium builds Widevine in component mode, so Chromium discovers the
+    # immutable CDM through its per-profile component hint.
+    xdg.configFile."${heliumConfigDir}/WidevineCdm/latest-component-updated-widevine-cdm" =
+      mkIf (pkgs.stdenv.isLinux && cfg.widevinePackage != null)
+        {
+          text = builtins.toJSON {
+            Path = "${cfg.widevinePackage}/share/google/chrome/WidevineCdm";
+          };
+        };
   };
 }
