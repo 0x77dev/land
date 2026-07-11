@@ -362,6 +362,10 @@ in
   powerManagement.enable = false;
 
   modules = {
+    cachix-deploy = {
+      enable = true;
+      agentName = "spark";
+    };
     vscode-server.enable = true;
     observability.enable = true;
     security-tools.enable = true;
@@ -376,8 +380,7 @@ in
   # dedicated root-readable key (one-time: generate /root/.ssh/id_ed25519 on
   # spark, append its pubkey to mykhailo@muscle's authorized_keys — same
   # manual-key discipline as the NGC/Matrix secrets). A passwordless key is
-  # what makes the offload work unattended (e.g. nightly autoUpgrade), where
-  # the YubiKey-backed agent below is unavailable.
+  # what lets daemon-initiated builds offload without an interactive YubiKey.
   nix = {
     distributedBuilds = true;
     buildMachines = muscle.mkMachines {
@@ -386,22 +389,6 @@ in
     };
   };
   programs.ssh.knownHosts.muscle = muscle.knownHost;
-
-  # Nightly unattended upgrade: spark pulls the public land flake from GitHub and
-  # rebuilds itself (the 26.05 module adds `--refresh --flake` on its own). vasyl
-  # rides along — its `flake = self` attachment re-links and restarts the guest
-  # on switch, so no guest-side upgrade machinery is needed. allowReboot is on
-  # per Mykhailo: kernel/bootloader updates apply unattended, a brief Ollama
-  # interruption is accepted, and vasyl picks up new kernels on its restart
-  # regardless. Daily GC is already inherited from the shared nix-config.
-  system.autoUpgrade = {
-    enable = true;
-    flake = "github:0x77dev/land";
-    flags = [ "--print-build-logs" ];
-    dates = "04:00";
-    randomizedDelaySec = "45min";
-    allowReboot = true;
-  };
 
   snowfallorg.users.mykhailo = {
     create = true;

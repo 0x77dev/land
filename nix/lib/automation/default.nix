@@ -2,8 +2,8 @@
 let
   runnerSystems = {
     aarch64-linux = "ubuntu-24.04-arm";
-    x86_64-linux = "ubuntu-latest";
-    aarch64-darwin = "macos-latest";
+    x86_64-linux = "ubuntu-24.04";
+    aarch64-darwin = "macos-15";
   };
 
   systemsRoot = lib.snowfall.fs.get-snowfall-file "systems";
@@ -157,32 +157,26 @@ in
         )
       );
 
-      getNativeConfigurationEvaluationTargets =
-        system:
-        builtins.filter (
-          target:
-          builtins.elem target (
-            map (entry: (getConfigurationHandler entry.outputName).evalTarget entry.name) (
-              builtins.filter (entry: entry.resolvedSystem == system) (
-                getDeclaredSystemConfigurations ++ getDeclaredHomeConfigurations
-              )
-            )
-          )
-        ) nativeConfigurationEvalTargets;
-
       getNativeRunnerMatrix = system: {
         name = "check / ${system}";
         os = runnerSystems.${system};
         inherit system;
         buildTargets = lib.unique (
-          getSystemOutputTargets outputs "checks" system ++ getSystemOutputTargets outputs "devShells" system
+          builtins.filter (
+            target:
+            target != mkTarget [
+              "checks"
+              system
+              "pre-commit"
+            ]
+          ) (getSystemOutputTargets outputs "checks" system)
+          ++ getSystemOutputTargets outputs "devShells" system
         );
-        evalTargets = getNativeConfigurationEvaluationTargets system;
       };
 
       # One matrix entry per host so each closure builds in parallel on its
       # own runner. Bundling all hosts for an architecture into a single job
-      # causes timeouts (x86_64-linux: 10 closures > 120 min).
+      # causes timeouts.
       getClosureMatrixEntry =
         entry:
         let
@@ -207,7 +201,7 @@ in
     {
       githubActions.ci = {
         matrix = map getNativeRunnerMatrix (sortAttrNames runnerSystems);
-        inherit closureMatrix;
+        inherit closureMatrix nativeConfigurationEvalTargets;
       };
     };
 }

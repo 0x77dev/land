@@ -5,120 +5,266 @@ on:
     branches:
       - main
   pull_request:
+    branches:
+      - main
   merge_group:
+    types:
+      - checks_requested
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   prepare:
     name: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     outputs:
-      ci-matrix: ${{ steps.targets.outputs.ci-matrix }}
+      check-matrix: ${{ steps.targets.outputs.check-matrix }}
       closure-matrix: ${{ steps.targets.outputs.closure-matrix }}
+      evaluation-targets: ${{ steps.targets.outputs.evaluation-targets }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
         with:
-          extra_nix_config: |
+          extra-conf: |
             accept-flake-config = true
-            experimental-features = nix-command flakes
 
-      - name: Export flake-driven CI targets
+      - name: Validate and export flake-driven targets
         id: targets
         run: |
+          set -euo pipefail
+
+          check_matrix="$(
+            nix eval --json .#lib.automation.githubActions.ci.matrix | jq -c .
+          )"
+          closure_matrix="$(
+            nix eval --json .#lib.automation.githubActions.ci.closureMatrix | jq -c .
+          )"
+          evaluation_targets="$(
+            nix eval --json \
+              .#lib.automation.githubActions.ci.nativeConfigurationEvalTargets \
+              | jq -c .
+          )"
+
+          runner_is_allowed='
+            (.system == "x86_64-linux" and .os == "ubuntu-24.04") or
+            (.system == "aarch64-linux" and .os == "ubuntu-24.04-arm") or
+            (.system == "aarch64-darwin" and .os == "macos-15")
+          '
+
+          jq -e "
+            length == 3 and
+            ([.[].system] | unique | length) == 3 and
+            all(.[]; ${runner_is_allowed}) and
+            all(.[]; (.buildTargets | length) > 0)
+          " <<<"$check_matrix" >/dev/null
+
+          jq -e "
+            length > 0 and
+            all(.[]; ${runner_is_allowed}) and
+            all(.[]; (.systemBuildTargets | length) == 1) and
+            ([.[].systemBuildTargets[]] | length) ==
+              ([.[].systemBuildTargets[]] | unique | length)
+          " <<<"$closure_matrix" >/dev/null
+
+          closure_count="$(jq 'length' <<<"$closure_matrix")"
+          jq -e \
+            --argjson closure_count "$closure_count" \
+            '
+              length == $closure_count and
+              length == (unique | length)
+            ' \
+            <<<"$evaluation_targets" >/dev/null
+
           {
-            echo 'ci-matrix<<EOF'
-            nix eval --json .#lib.automation.githubActions.ci.matrix
+            echo 'check-matrix<<EOF'
+            echo "$check_matrix"
             echo 'EOF'
             echo 'closure-matrix<<EOF'
-            nix eval --json .#lib.automation.githubActions.ci.closureMatrix
+            echo "$closure_matrix"
+            echo 'EOF'
+            echo 'evaluation-targets<<EOF'
+            echo "$evaluation_targets"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
+
+  quality:
+    needs: prepare
+    if: ${{ always() }}
+    name: CI / quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Require a valid CI plan
+        env:
+          PREPARE_RESULT: ${{ needs.prepare.result }}
+        run: |
+          set -euo pipefail
+          test "$PREPARE_RESULT" = success
+
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
+        with:
+          extra-conf: |
+            accept-flake-config = true
+
+      - name: Evaluate the complete flake
+        env:
+          EVALUATION_TARGETS_JSON: ${{ needs.prepare.outputs.evaluation-targets }}
+        run: |
+          set -euo pipefail
+
+          targets=()
+          while IFS= read -r target; do
+            targets+=("$target")
+          done < <(jq -er '.[]' <<<"$EVALUATION_TARGETS_JSON")
+
+          test "${#targets[@]}" -gt 0
+          nix flake show --all-systems --json >/dev/null
+          nix flake check --all-systems --no-build --print-build-logs
+          for target in "${targets[@]}"; do
+            nix eval --raw "$target" >/dev/null
+          done
+
+      - name: Run formatting and linters
+        run: |
+          set -euo pipefail
+          nix build \
+            --fallback \
+            --no-link \
+            --print-build-logs \
+            .#checks.x86_64-linux.pre-commit
 
   checks:
     needs: prepare
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.prepare.outputs.ci-matrix) }}
+        include: ${{ fromJSON(needs.prepare.outputs.check-matrix) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
         with:
-          extra_nix_config: |
+          extra-conf: |
             accept-flake-config = true
-            experimental-features = nix-command flakes
 
-      - name: Configure Cachix
-        if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
+      - name: Push trusted builds to Cachix
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: land
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Build native checks and shell
-        # GitHub's aarch64 runners occasionally receive a corrupt upstream
-        # substitute; --fallback lets Nix build the affected derivation locally
-        # instead of failing the whole matrix on cache integrity noise.
-        run: nix build --fallback ${{ join(matrix.buildTargets, ' ') }}
-
-      - name: Evaluate native declared system and home outputs
+      - name: Build native checks, packages, and shell
+        env:
+          BUILD_TARGETS_JSON: ${{ toJSON(matrix.buildTargets) }}
         run: |
-          for target in ${{ join(matrix.evalTargets, ' ') }}; do
-            nix eval --raw "$target" >/dev/null
-          done
+          set -euo pipefail
+
+          targets=()
+          while IFS= read -r target; do
+            targets+=("$target")
+          done < <(jq -er '.[]' <<<"$BUILD_TARGETS_JSON")
+
+          test "${#targets[@]}" -gt 0
+          nix build \
+            --fallback \
+            --no-link \
+            --print-build-logs \
+            "${targets[@]}"
 
   closures:
     needs: prepare
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.prepare.outputs.closure-matrix) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@96951a368ba55167b55f1c916f7d416bac6505fe
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
         with:
-          extra_nix_config: |
+          extra-conf: |
             accept-flake-config = true
-            experimental-features = nix-command flakes
 
-      - name: Configure Cachix
-        if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: cachix/cachix-action@3ba601ff5bbb07c7220846facfa2cd81eeee15a1
+      - name: Push trusted builds to Cachix
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: land
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Build system closure
-        # Actually build the full system/home-manager closure (not just
-        # evaluate drvPath) so CI proves buildability and pushes substitutes
-        # to Cachix for hosts that cannot build locally (e.g. spark, a Pi).
-        # Each host builds on its own runner in parallel to avoid timeouts.
-        run: nix build --fallback ${{ join(matrix.systemBuildTargets, ' ') }}
+      - name: Build native system or home closure
+        env:
+          BUILD_TARGETS_JSON: ${{ toJSON(matrix.systemBuildTargets) }}
+        run: |
+          set -euo pipefail
+
+          targets=()
+          while IFS= read -r target; do
+            targets+=("$target")
+          done < <(jq -er '.[]' <<<"$BUILD_TARGETS_JSON")
+
+          test "${#targets[@]}" -eq 1
+          nix build \
+            --fallback \
+            --no-link \
+            --print-build-logs \
+            "${targets[@]}"
+
+  native-builds:
+    needs:
+      - prepare
+      - checks
+      - closures
+    if: ${{ always() }}
+    name: CI / native builds
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require every native build
+        env:
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          CLOSURES_RESULT: ${{ needs.closures.result }}
+          PREPARE_RESULT: ${{ needs.prepare.result }}
+        run: |
+          set -euo pipefail
+          test "$PREPARE_RESULT" = success
+          test "$CHECKS_RESULT" = success
+          test "$CLOSURES_RESULT" = success

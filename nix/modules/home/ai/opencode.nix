@@ -23,12 +23,6 @@ in
       enable = true;
 
       settings = {
-        instructions = [
-          ".cursor/rules/*.mdc"
-          "*.md"
-          "*.nix"
-          "nix/**/*.nix"
-        ];
         disabled_providers = [ "opencode" ];
         plugin = [ "@simonwjackson/opencode-direnv" ];
         snapshot = false;

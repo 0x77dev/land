@@ -199,19 +199,11 @@ nix flake check
 
 ### GitHub Actions
 
-`ci.yml` derives its native build matrix and output evaluation targets
-from `flake.nix` via `lib.automation.githubActions`, builds the declared
-check and dev shell closures, evaluates every declared system and home
-output, builds each host closure on its own runner, and pushes results
-to `land.cachix.org`.
+CI evaluates the complete flake and builds every package, shell, system, and
+home closure on a native GitHub-hosted runner. Flake inputs update through one
+validated pull request and use native auto-merge after required checks pass.
 
-The workflow pins actions to immutable commit SHAs and uses minimal
-permissions by default. The default branch is protected by the emitted
-status checks (`check / aarch64-darwin`, `check / aarch64-linux`, and
-`check / x86_64-linux`).
-
-Dependency updates are manual: `nix flake update` for inputs and version
-bumps in-tree for pinned packages. Spelling is checked by
+Spelling is checked by
 [typos](https://github.com/crate-ci/typos) via the pre-commit hooks, with
 exceptions kept minimal in `_typos.toml`.
 
@@ -284,5 +276,5 @@ Project-specific requirements:
 - Use `lib.land` namespace for custom functions
 - Modules named by concern, not implementation
 
-[Snowfall Lib]: /.cursor/rules/snowfall.mdc
+[Snowfall Lib]: https://snowfall.org/
 [nixpkgs-style]: https://github.com/NixOS/nixpkgs/blob/master/CONTRIBUTING.md

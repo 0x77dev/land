@@ -443,7 +443,12 @@
   powerManagement.enable = false;
 
   modules = {
+    cachix-deploy = {
+      enable = true;
+      agentName = "muscle";
+    };
     elgato-light-control.enable = true;
+    vr.enable = true;
     vscode-server.enable = true;
     observability.enable = true;
     security-tools.enable = true;

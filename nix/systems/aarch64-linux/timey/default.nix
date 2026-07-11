@@ -14,6 +14,11 @@
     (lib.mkAliasOptionModule [ "environment" "checkConfigurationOptions" ] [ "_module" "check" ])
   ];
 
+  modules.cachix-deploy = {
+    enable = true;
+    agentName = "timey";
+  };
+
   # Netdata claiming is broken on NixOS (read-only /etc/netdata)
   # time-server module provides netdata without cloud claiming
   modules.observability.enable = false;

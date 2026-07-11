@@ -37,6 +37,17 @@
       inputs.nixpkgs.follows = "unstable";
     };
 
+    cachix-deploy-flake = {
+      url = "github:cachix/cachix-deploy-flake/f363e7ba6661f0e342707b98224c85599fdfb1cc";
+      inputs = {
+        darwin.follows = "darwin";
+        disko.follows = "disko";
+        home-manager.follows = "home-manager";
+        nixos-anywhere.follows = "nixos-anywhere";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";

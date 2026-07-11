@@ -1,0 +1,149 @@
+name: update-flake-lock
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-flake-lock
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: >-
+      github.repository == '0x77dev/land' &&
+      github.ref == 'refs/heads/main'
+    name: Update flake.lock
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout the default branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
+        with:
+          extra-conf: |
+            accept-flake-config = true
+
+      - name: Update and validate the lock file
+        id: update
+        run: |
+          set -euo pipefail
+
+          require_lock_only() {
+            local status
+            status="$(git status --porcelain=v1 --untracked-files=all)"
+            if [[ "$status" != " M flake.lock" ]]; then
+              printf 'Expected only an unstaged flake.lock change:\n%s\n' \
+                "$status" >&2
+              exit 1
+            fi
+          }
+
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+          nix flake update
+
+          if test -z "$(git status --porcelain=v1 --untracked-files=all)"; then
+            exit 0
+          fi
+          require_lock_only
+
+          nix flake check \
+            --all-systems \
+            --no-build \
+            --no-write-lock-file \
+            --print-build-logs
+
+          require_lock_only
+
+          body_path="$RUNNER_TEMP/flake-update-pr.md"
+          {
+            echo "Updates all direct and transitive flake inputs as one batch."
+            echo
+            echo "### Lock change"
+            echo
+            echo '```text'
+            git diff --stat -- flake.lock
+            echo '```'
+            echo
+            echo "### Direct input revisions"
+            echo
+            echo '```text'
+            jq -r '
+              . as $lock
+              | $lock.nodes.root.inputs
+              | to_entries
+              | sort_by(.key)
+              | .[]
+              | (.value | if type == "string" then . else .[0] end) as $node
+              | ($lock.nodes[$node].locked // {}) as $locked
+              | [
+                  .key,
+                  ($locked.rev // $locked.ref // $locked.narHash // "unversioned")
+                ]
+              | @tsv
+            ' flake.lock
+            echo '```'
+            echo
+            echo "Validated with \`nix flake check --all-systems --no-build\`."
+            echo
+            echo "Source: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > "$body_path"
+
+          echo "body-path=$body_path" >> "$GITHUB_OUTPUT"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create a scoped GitHub App token
+        id: app-token
+        if: steps.update.outputs.changed == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.LAND_GITHUB_APP_CLIENT_ID }}
+          private-key: ${{ secrets.LAND_GITHUB_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open or update the flake update pull request
+        id: pull-request
+        if: steps.update.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          base: main
+          branch: automation/update-flake-lock
+          add-paths: flake.lock
+          commit-message: "chore(flake): update inputs"
+          title: "chore(flake): update inputs"
+          body-path: ${{ steps.update.outputs.body-path }}
+          sign-commits: true
+
+      - name: Enable native auto-merge
+        if: steps.pull-request.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_HEAD_SHA: ${{ steps.pull-request.outputs.pull-request-head-sha }}
+          PR_NUMBER: ${{ steps.pull-request.outputs.pull-request-number }}
+          PR_URL: ${{ steps.pull-request.outputs.pull-request-url }}
+        run: |
+          set -euo pipefail
+
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          [[ "$PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$PR_URL" = \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/$PR_NUMBER"
+
+          gh pr merge "$PR_URL" \
+            --auto \
+            --squash \
+            --match-head-commit "$PR_HEAD_SHA"

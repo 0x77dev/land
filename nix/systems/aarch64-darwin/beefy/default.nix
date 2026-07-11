@@ -12,6 +12,11 @@ in
   system.stateVersion = 6;
   system.primaryUser = userName;
 
+  modules.cachix-deploy = {
+    enable = true;
+    agentName = "beefy";
+  };
+
   networking = {
     hostName = "beefy";
     domain = "0x77.computer";

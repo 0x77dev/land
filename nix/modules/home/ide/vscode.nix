@@ -9,19 +9,57 @@ let
   cfg = config.modules.home.ide;
   fonts = config.modules.home.fonts.presentation;
   cursorPackage = pkgs.code-cursor;
+  cursorVscodeVersion = cursorPackage.vscodeVersion;
+  cursorPython = pkgs.python3.withPackages (
+    pythonPackages: with pythonPackages; [
+      ipykernel
+      jupyter
+      notebook
+    ]
+  );
+  jupyterExtension =
+    if pkgs.stdenv.hostPlatform.system == "x86_64-linux" then
+      pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+        nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+        buildInputs = [ (lib.getLib pkgs.stdenv.cc.cc) ];
+        mktplcRef = {
+          name = "jupyter";
+          publisher = "ms-toolsai";
+          version = "2025.9.1";
+          arch = "linux-x64";
+          hash = "sha256-v5WsVVbz23Dy+Bb7r3NerlUBNDWElL0yOH/oZjYicRk=";
+        };
+        postInstall = ''
+          rm -f \
+            "$out/$installPrefix/dist/node_modules/zeromq/prebuilds/linux-x64/node.napi.musl.node" \
+            "$out/$installPrefix/dist/node_modules/zeromqold/prebuilds/linux-x64/node.napi.musl.node"
+        '';
+      }
+    else
+      pkgs.vscode-extensions.ms-toolsai.jupyter;
+  parquetExtension = pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+    buildInputs = [ (lib.getLib pkgs.stdenv.cc.cc) ];
+    mktplcRef = {
+      name = "parquet-visualizer";
+      publisher = "lucien-martijn";
+      version = "0.31.1";
+      hash = "sha256-LSL2zhg8vZXIV+wwMypC7OzTSIWmk1TP+4T280fyovU=";
+    };
+  };
 
   marketplaceExtensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+    {
+      name = "nix-ide";
+      publisher = "jnoortheen";
+      version = "0.5.7";
+      hash = "sha256-6wIjuvMlA+mwg5gzctkfOAdaQLBy2K6YcV3kJxK3VOo=";
+    }
     {
       name = "colab";
       publisher = "google";
       version = "0.1.7";
       hash = "sha256-wAvmXccgIEfw9Q84F/ozJwvzo26OvehdrTy3DqKu5e8=";
-    }
-    {
-      name = "parquet-visualizer";
-      publisher = "lucien-martijn";
-      version = "0.31.1";
-      hash = "sha256-LSL2zhg8vZXIV+wwMypC7OzTSIWmk1TP+4T280fyovU=";
     }
     {
       name = "motion-vscode-extension";
@@ -52,12 +90,6 @@ let
       publisher = "opentofu";
       version = "0.6.0";
       hash = "sha256-BXzR1jmifawIIwA0RxnqVOGrpT5/gHV4lPIcYfqAaeM=";
-    }
-    {
-      name = "bun-vscode";
-      publisher = "oven";
-      version = "0.0.32";
-      hash = "sha256-VlruOHiF5/wVhVVW1rq6DEc90u3IwbxD/tpTXyphD+U=";
     }
     {
       name = "oxc-vscode";
@@ -95,14 +127,9 @@ let
       editorconfig.editorconfig
       github.github-vscode-theme
       github.vscode-github-actions
-      github.vscode-pull-request-github
-      jnoortheen.nix-ide
       mkhl.shfmt
-      ms-azuretools.vscode-docker
-      ms-kubernetes-tools.vscode-kubernetes-tools
       ms-python.debugpy
       ms-python.python
-      ms-toolsai.jupyter
       ms-toolsai.jupyter-renderers
       ms-toolsai.vscode-jupyter-cell-tags
       ms-toolsai.vscode-jupyter-slideshow
@@ -116,7 +143,23 @@ let
       yzhang.markdown-all-in-one
       ziglang.vscode-zig
     ])
+    ++ [
+      jupyterExtension
+      parquetExtension
+    ]
     ++ marketplaceExtensions;
+
+  managedExtensionSpecs = map (
+    extension:
+    let
+      id = extension.vscodeExtUniqueId;
+    in
+    {
+      source = "${extension}/share/vscode/extensions/${id}";
+      prefix = toLower id;
+      directory = "${toLower id}-${extension.version}";
+    }
+  ) managedExtensions;
 in
 {
   config = mkIf cfg.enable (
@@ -132,36 +175,144 @@ in
         "${userDir}/keybindings.json"
         "${userDir}/tasks.json"
       ];
+      extensionsDir = "${config.home.homeDirectory}/.cursor/extensions";
     in
     {
-      home.activation.materializeCursorConfigs = {
-        after = [ "linkGeneration" ];
-        before = [ ];
-        data = ''
-          materialize_file() {
-            local target="$1"
-            local backup_path="$1.backup"
-            local temp_file
+      assertions = [
+        {
+          assertion =
+            lib.versionAtLeast cursorVscodeVersion "1.105.0" && lib.versionOlder cursorVscodeVersion "1.106.0";
+          message = "Cursor extensions were validated for VS Code API 1.105.x; re-audit them for ${cursorVscodeVersion}.";
+        }
+      ];
 
-            if [[ ! -L "$target" ]]; then
-              return 0
-            fi
+      home = {
+        packages = with pkgs; [
+          cargo
+          cursorPython
+          kubectl
+          kubernetes-helm
+          rustc
+        ];
 
-            if [[ -v DRY_RUN ]]; then
-              verboseEcho "Would materialize $target"
-              return 0
-            fi
+        activation = {
+          # Cursor writes installation metadata and some extensions create runtime
+          # files in their own directory. Home Manager's mutable mode otherwise
+          # mixes writable state with read-only Nix-store symlinks.
+          installCursorExtensions = {
+            after = [ "linkGeneration" ];
+            before = [ ];
+            data = ''
+              extensions_dir=${lib.escapeShellArg extensionsDir}
 
-            temp_file="$(mktemp "$HOME/.hm-cursor-config.XXXXXX")"
-            cat "$target" > "$temp_file"
-            chmod 0644 "$temp_file"
-            mv "$temp_file" "$target"
-            rm -f "$backup_path"
-          }
-        ''
-        + lib.concatMapStringsSep "\n" (target: ''
-          materialize_file ${lib.escapeShellArg target}
-        '') mutableConfigTargets;
+              if [[ ! -v DRY_RUN ]]; then
+                ${pkgs.coreutils}/bin/mkdir -p "$extensions_dir"
+              fi
+
+              install_cursor_extension() {
+                local source="$1"
+                local directory="$2"
+                local prefix="$3"
+                local destination="$extensions_dir/$directory"
+                local marker="$destination/.home-manager-source"
+                local candidate
+                local temp
+                local target
+
+                for candidate in "$extensions_dir/$prefix"-*; do
+                  if [[ "$candidate" == "$destination" ]]; then
+                    continue
+                  elif [[ -L "$candidate" ]]; then
+                    target="$(${pkgs.coreutils}/bin/readlink "$candidate")"
+                    if [[ "$target" != /nix/store/* ]]; then
+                      continue
+                    fi
+                  elif [[ ! -f "$candidate/.home-manager-source" ]]; then
+                    continue
+                  fi
+
+                  if [[ -v DRY_RUN ]]; then
+                    verboseEcho "Would remove stale managed Cursor extension $candidate"
+                  else
+                    ${pkgs.coreutils}/bin/rm -rf "$candidate"
+                  fi
+                done
+
+                if [[ -L "$destination" ]]; then
+                  target="$(${pkgs.coreutils}/bin/readlink "$destination")"
+                  if [[ "$target" != /nix/store/* ]]; then
+                    return 0
+                  fi
+
+                  if [[ -v DRY_RUN ]]; then
+                    verboseEcho "Would replace immutable Cursor extension $directory"
+                    return 0
+                  fi
+
+                  ${pkgs.coreutils}/bin/rm -f "$destination"
+                elif [[ -d "$destination" ]]; then
+                  if [[ ! -f "$marker" || "$(<"$marker")" == "$source" ]]; then
+                    return 0
+                  fi
+
+                  if [[ -v DRY_RUN ]]; then
+                    verboseEcho "Would update managed Cursor extension $directory"
+                    return 0
+                  fi
+
+                  ${pkgs.coreutils}/bin/rm -rf "$destination"
+                elif [[ -e "$destination" ]]; then
+                  return 0
+                elif [[ -v DRY_RUN ]]; then
+                  verboseEcho "Would install writable Cursor extension $directory"
+                  return 0
+                fi
+
+                temp="$(${pkgs.coreutils}/bin/mktemp -d "$extensions_dir/.home-manager-extension.XXXXXX")"
+                ${pkgs.coreutils}/bin/cp -a --reflink=auto "$source"/. "$temp"/
+                ${pkgs.coreutils}/bin/chmod -R u+w "$temp"
+                printf '%s\n' "$source" > "$temp/.home-manager-source"
+                ${pkgs.coreutils}/bin/mv "$temp" "$destination"
+              }
+            ''
+            + concatMapStringsSep "\n" (extension: ''
+              install_cursor_extension \
+                ${lib.escapeShellArg extension.source} \
+                ${lib.escapeShellArg extension.directory} \
+                ${lib.escapeShellArg extension.prefix}
+            '') managedExtensionSpecs;
+          };
+
+          materializeCursorConfigs = {
+            after = [ "linkGeneration" ];
+            before = [ ];
+            data = ''
+              materialize_file() {
+                local target="$1"
+                local backup_path="$1.backup"
+                local temp_file
+
+                if [[ ! -L "$target" ]]; then
+                  return 0
+                fi
+
+                if [[ -v DRY_RUN ]]; then
+                  verboseEcho "Would materialize $target"
+                  return 0
+                fi
+
+                temp_file="$(mktemp "$HOME/.hm-cursor-config.XXXXXX")"
+                cat "$target" > "$temp_file"
+                chmod 0644 "$temp_file"
+                mv "$temp_file" "$target"
+                rm -f "$backup_path"
+              }
+            ''
+            + lib.concatMapStringsSep "\n" (target: ''
+              materialize_file ${lib.escapeShellArg target}
+            '') mutableConfigTargets;
+          };
+        };
       };
 
       programs.cursor = {
@@ -179,7 +330,9 @@ in
           enableMcpIntegration = true;
           enableUpdateCheck = false;
           enableExtensionUpdateCheck = false;
-          extensions = managedExtensions;
+          # Managed extensions are copied into Cursor's mutable directory by
+          # installCursorExtensions so Cursor can safely write runtime metadata.
+          extensions = [ ];
           userTasks = {
             version = "2.0.0";
             tasks = [
@@ -216,6 +369,7 @@ in
             "terminal.integrated.fontWeightBold" = toString fonts.adapters.integratedTerminal.boldWeight;
             "terminal.integrated.lineHeight" = fonts.adapters.integratedTerminal.lineHeight;
             "terminal.integrated.letterSpacing" = 0;
+            "extensions.autoUpdate" = false;
             "[javascript]"."editor.fontLigatures" = "'calt', 'liga', 'ss01'";
             "[python]"."editor.fontLigatures" = "'calt', 'liga', 'dlig'";
             "[rust]"."editor.fontLigatures" = true;
@@ -234,12 +388,23 @@ in
             "files.autoSave" = "afterDelay";
             "[nix]"."editor.defaultFormatter" = "jnoortheen.nix-ide";
             "nix.enableLanguageServer" = true;
-            "nix.serverPath" = "nixd";
+            "nix.serverPath" = lib.getExe pkgs.nixd;
             "nix.serverSettings" = {
               nixd = {
-                formatting.command = [ "nixfmt" ];
+                formatting.command = [ (lib.getExe pkgs.nixfmt) ];
               };
             };
+            "oxc.enable" = true;
+            "oxc.path.oxlint" = lib.getExe pkgs.oxlint;
+            "oxc.path.oxfmt" = lib.getExe pkgs.oxfmt;
+            "python.defaultInterpreterPath" = lib.getExe cursorPython;
+            "rust-analyzer.server.path" = lib.getExe pkgs.rust-analyzer;
+            "shellcheck.executablePath" = lib.getExe pkgs.shellcheck;
+            "shfmt.executablePath" = lib.getExe pkgs.shfmt;
+            "opentofu.languageServer.tofu.path" = lib.getExe pkgs.opentofu;
+            "zig.path" = lib.getExe pkgs.zig;
+            "zig.zls.enabled" = "on";
+            "zig.zls.path" = lib.getExe pkgs.zls;
             "editor.codeActionsOnSave"."source.fixAll" = "always";
             "workbench.colorCustomizations" = { };
             "workbench.list.smoothScrolling" = true;
@@ -257,7 +422,6 @@ in
             "window.autoDetectColorScheme" = true;
             "docker.extension.enableComposeLanguageServer" = false;
             "typescript.updateImportsOnFileMove.enabled" = "always";
-            "githubPullRequests.pullBranch" = "never";
             "[dockercompose]" = {
               "editor.insertSpaces" = true;
               "editor.tabSize" = 2;

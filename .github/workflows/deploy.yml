@@ -1,0 +1,226 @@
+name: deploy
+
+on:
+  workflow_run:
+    workflows:
+      - ci
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      plan_only:
+        description: Build and display the deployment plan without activating it
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cachix-deploy
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == github.event.repository.default_branch &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      )
+    name: plan
+    permissions:
+      actions: read
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      activate: ${{ steps.target.outputs.activate }}
+      sha: ${{ steps.target.outputs.sha }}
+    steps:
+      - name: Select deployment commit
+        id: target
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DISPATCH_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          PLAN_ONLY: ${{ inputs.plan_only }}
+          REF_NAME: ${{ github.ref_name }}
+          WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            sha="$WORKFLOW_RUN_SHA"
+            activate=true
+          else
+            sha="$DISPATCH_SHA"
+            if [[ "$PLAN_ONLY" == "true" ]]; then
+              activate=false
+            else
+              activate=true
+              if [[ "$REF_NAME" != "$DEFAULT_BRANCH" ]]; then
+                echo "::error::Activation is restricted to $DEFAULT_BRANCH"
+                exit 1
+              fi
+            fi
+          fi
+
+          echo "sha=$sha" >>"$GITHUB_OUTPUT"
+          echo "activate=$activate" >>"$GITHUB_OUTPUT"
+
+      - name: Checkout deployment commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ steps.target.outputs.sha }}
+
+      - name: Verify current default-branch commit
+        if: steps.target.outputs.activate == 'true'
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DEPLOY_SHA: ${{ steps.target.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${DEFAULT_BRANCH}" --jq '.object.sha')"
+          if [[ "$DEPLOY_SHA" != "$current_sha" ]]; then
+            echo "::error::Refusing stale deployment: $DEPLOY_SHA is not current $DEFAULT_BRANCH ($current_sha)"
+            exit 1
+          fi
+
+      - name: Verify CI for manual activation
+        if: >-
+          github.event_name == 'workflow_dispatch' &&
+          steps.target.outputs.activate == 'true'
+        env:
+          DEPLOY_SHA: ${{ steps.target.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${DEPLOY_SHA}&event=push&status=completed&per_page=100" |
+            jq -e --arg repository "$GITHUB_REPOSITORY" '
+              any(
+                .workflow_runs[];
+                .name == "ci" and
+                .conclusion == "success" and
+                .head_repository.full_name == $repository
+              )
+            ' >/dev/null || {
+              echo "::error::No successful ci push run found for $DEPLOY_SHA"
+              exit 1
+            }
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
+        with:
+          github-token: ""
+          extra-conf: |
+            accept-flake-config = true
+
+      - name: Build and display deployment plan
+        run: |
+          set -euo pipefail
+
+          spec="$(
+            nix build --fallback --no-link --print-out-paths \
+              --file nix/deploy/default.nix spec
+          )"
+          expected="$(nix eval --json --file nix/deploy/default.nix agentNames)"
+          rollout="$(nix eval --json --file nix/deploy/default.nix rollout)"
+
+          jq -e --argjson expected "$expected" '
+            (keys == ["agents"]) and
+            ((.agents | keys) == $expected) and
+            all(.agents[]; type == "string" and startswith("/nix/store/"))
+          ' "$spec" >/dev/null
+
+          jq -e --argjson expected "$expected" '
+            (([.[].agents[]] | sort) == $expected) and
+            (([.[].agents[]] | length) == ([.[].agents[]] | unique | length)) and
+            all(.[]; (.name | type) == "string" and (.agents | length) > 0)
+          ' <<<"$rollout" >/dev/null
+
+          jq -n --slurpfile spec "$spec" --argjson rollout "$rollout" \
+            '{ agents: $spec[0].agents, rollout: $rollout }'
+
+  deploy:
+    if: needs.plan.outputs.activate == 'true'
+    needs:
+      - plan
+    name: activate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    environment:
+      name: cachix-deploy
+    steps:
+      - name: Checkout verified commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Reverify current default-branch commit
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DEPLOY_SHA: ${{ needs.plan.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${DEFAULT_BRANCH}" --jq '.object.sha')"
+          if [[ "$DEPLOY_SHA" != "$current_sha" ]]; then
+            echo "::error::Refusing stale deployment: $DEPLOY_SHA is not current $DEFAULT_BRANCH ($current_sha)"
+            exit 1
+          fi
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
+        with:
+          github-token: ""
+          extra-conf: |
+            accept-flake-config = true
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: land
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build and push every target closure
+        id: spec
+        run: |
+          set -euo pipefail
+          spec="$(
+            nix build --fallback --no-link --print-out-paths \
+              --file nix/deploy/default.nix spec
+          )"
+          cachix push land "$spec"
+          echo "path=$spec" >>"$GITHUB_OUTPUT"
+
+      - name: Activate staged rollout
+        env:
+          CACHIX_ACTIVATE_TOKEN: ${{ secrets.CACHIX_ACTIVATE_TOKEN }}
+          SPEC: ${{ steps.spec.outputs.path }}
+        run: |
+          set -euo pipefail
+          rollout="$(nix eval --json --file nix/deploy/default.nix rollout)"
+
+          while IFS= read -r group; do
+            name="$(jq -r '.name' <<<"$group")"
+            mapfile -t agents < <(jq -r '.agents[]' <<<"$group")
+            args=()
+            for agent in "${agents[@]}"; do
+              args+=(--agent "$agent")
+            done
+
+            echo "::group::Activate $name (${agents[*]})"
+            cachix deploy activate "$SPEC" "${args[@]}"
+            echo "::endgroup::"
+          done < <(jq -c '.[]' <<<"$rollout")
