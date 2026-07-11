@@ -1,14 +1,66 @@
 {
+  config,
   lib,
   pkgs,
-  inputs,
   namespace,
   ...
 }:
 let
   shared = lib.${namespace}.shared.home-config { inherit lib; };
+  fonts = config.modules.home.fonts.presentation;
+  cohereModel = pkgs.${namespace}.voxtype-model-cohere-fp16;
+  vadModel = pkgs.${namespace}.voxtype-model-silero-vad;
+  vicinaePackage = pkgs.${namespace}.vicinae;
+  voxtypePackage = pkgs.${namespace}.voxtype;
+  astraGpus =
+    map
+      (domain: {
+        inherit domain;
+        bus = "00";
+        slot = "0";
+        vendorId = "10de";
+        productId = "26b1";
+      })
+      [
+        "0000:c1"
+        "0000:e1"
+      ];
+  vicinaeSettings = {
+    "$schema" = "https://vicinae.com/schemas/config.json";
+    font = {
+      rendering = "native";
+      normal = {
+        family = fonts.roles.body.family;
+        size = fonts.roles.body.size;
+      };
+    };
+    theme = {
+      light.name = "libadwaita-light";
+      dark.name = "libadwaita-dark";
+    };
+    providers = {
+      "@ShyAssassin/store.vicinae.vscode-recents" = {
+        preferences = {
+          vscodeFlavour = "Cursor";
+          windowPreference = "Default";
+        };
+        entrypoints.open-recents.alias = "code";
+      };
+      "@aiotter/store.raycast.nixpkgs-search".entrypoints.index.alias = "nix";
+    };
+  };
+  vicinaeSettingsFile = (pkgs.formats.json { }).generate "vicinae-settings.json" vicinaeSettings;
 in
 {
+  assertions = [
+    {
+      assertion =
+        voxtypePackage.upstreamVersion == "0.7.5"
+        && voxtypePackage.sourceRevision == "31b7f38c4e22c4ce75d6350945729e5db001cb9a";
+      message = "Voxtype source changed; re-audit the emitted config schema before updating this pin.";
+    }
+  ];
+
   home = shared.home // {
     packages = with pkgs; [
       telegram-desktop
@@ -37,6 +89,7 @@ in
       enable = true;
       extensions = [
         "appindicatorsupport@rgcjonas.gmail.com"
+        "monitor@astraext.github.io"
         "tailscale@joaophi.github.com" # Tailscale in quick settings
       ];
     };
@@ -57,6 +110,20 @@ in
     };
   };
 
+  gtk = {
+    enable = true;
+    font = {
+      name = "${fonts.roles.body.family} ${fonts.roles.body.style}";
+      size = fonts.roles.body.size;
+    };
+    theme.name = "Adwaita";
+    iconTheme.name = "Adwaita";
+    colorScheme = "dark";
+
+    # Libadwaita follows the color-scheme setting; do not inject GTK 4 CSS.
+    gtk4.theme = null;
+  };
+
   programs = {
     home-manager.enable = true;
 
@@ -73,37 +140,67 @@ in
     # module). The systemd user service keeps the daemon warm.
     vicinae = {
       enable = true;
-      systemd.enable = true;
-      settings = {
-        # Match GNOME/macOS typography; emoji resolves through fontconfig to
-        # Apple Color Emoji.
-        font.normal = {
-          family = "SF Pro Text";
-          size = 12;
-        };
-        theme = {
-          light.name = "libadwaita-light";
-          dark.name = "libadwaita-dark";
-        };
+      package = vicinaePackage;
+      settings = vicinaeSettings;
+      systemd = {
+        enable = true;
+        environment.VICINAE_OVERRIDES = toString vicinaeSettingsFile;
       };
     };
 
-    # Push-to-talk dictation: hold ScrollLock, speak, release. Vulkan build
-    # runs large-v3-turbo fast on the RTX 6000 Ada.
+    # Local, GPU-accelerated dictation. GNOME owns the Voice Command key
+    # binding; the resident daemon receives one state-aware toggle command.
     voxtype = {
       enable = true;
-      package = inputs.voxtype.packages.${pkgs.stdenv.hostPlatform.system}.vulkan;
-      model.name = "large-v3-turbo";
+      package = voxtypePackage;
       service.enable = true;
       settings = {
-        whisper.language = "auto";
+        # The pinned Home Manager module's engine enum predates Cohere;
+        # freeform settings are merged last into the generated TOML.
+        engine = "cohere";
+        state_file = "auto";
+        hotkey.enabled = false;
+        cohere = {
+          model = "${cohereModel}";
+          language = "en";
+          on_demand_loading = false;
+        };
+        parakeet.model = "parakeet-tdt-0.6b-v3";
+        moonshine = {
+          model = "moonshine-base";
+          quantized = false;
+        };
+        whisper = {
+          model = "large-v3";
+          language = "auto";
+          flash_attention = true;
+        };
+        vad = {
+          enabled = true;
+          backend = "whisper";
+          model = "${vadModel}/ggml-silero-vad.bin";
+          threshold = 0.5;
+          min_speech_duration_ms = 100;
+        };
+        osd = {
+          enabled = true;
+          frontend = "gtk4";
+        };
         output = {
           mode = "type";
-          fallback_to_clipboard = true;
+          driver_order = [
+            "ydotool"
+            "clipboard"
+          ];
+          wait_for_modifier_release = false;
         };
         output.notification.on_transcription = true;
       };
     };
+  };
+
+  systemd.user.services.voxtype = {
+    Service.Environment = "CUDA_VISIBLE_DEVICES=GPU-3b81ccee-ecb5-5617-58da-0ac7d35dd001";
   };
 
   # Appearance, kept declarative. Cursor/icon themes are pinned because the
@@ -120,14 +217,13 @@ in
     in
     {
       "org/gnome/desktop/interface" = {
-        cursor-theme = "Adwaita";
-        icon-theme = "Adwaita";
-        color-scheme = "prefer-dark";
-        accent-color = "slate";
-        # Apple typography, same roles as macOS.
-        font-name = "SF Pro Display 12";
-        document-font-name = "SF Pro Text 12";
-        monospace-font-name = "TX-02-Variable 12";
+        accent-color = "blue";
+        font-name = "${fonts.roles.body.family} ${fonts.roles.body.style} ${toString fonts.roles.body.size}";
+        document-font-name = "${fonts.roles.document.family} ${fonts.roles.document.style} ${toString fonts.roles.document.size}";
+        monospace-font-name = "${fonts.roles.monospace.family} ${fonts.roles.monospace.style} ${toString fonts.roles.monospace.size}";
+        font-antialiasing = "grayscale";
+        font-hinting = "slight";
+        text-scaling-factor = 1.05;
       };
 
       "org/gnome/desktop/background" = wallpaper // {
@@ -135,5 +231,89 @@ in
       };
 
       "org/gnome/desktop/screensaver" = wallpaper;
+
+      "org/gnome/shell/extensions/astra-monitor" = {
+        monitors-order = builtins.toJSON [
+          "processor"
+          "gpu"
+          "memory"
+          "network"
+          "sensors"
+          "storage"
+        ];
+        headers-height-override = 0;
+        explicit-zero = true;
+
+        processor-update = 1.5;
+        processor-header-show = true;
+        processor-header-percentage = true;
+        processor-header-graph = false;
+        processor-header-bars = false;
+        processor-header-bars-core = false;
+        processor-header-frequency = false;
+
+        gpu-update = 2.0;
+        gpu-main = builtins.toJSON (builtins.head astraGpus);
+        gpu-data = builtins.toJSON (map (gpu: gpu // { monitor = true; }) astraGpus);
+        gpu-header-show = true;
+        gpu-header-activity-bar = false;
+        gpu-header-activity-graph = false;
+        gpu-header-activity-percentage = true;
+        gpu-header-memory-bar = false;
+        gpu-header-memory-graph = false;
+        gpu-header-memory-percentage = false;
+
+        memory-update = 2.0;
+        memory-used = "total-available";
+        memory-header-show = true;
+        memory-header-percentage = true;
+        memory-header-value = false;
+        memory-header-free = false;
+        memory-header-graph = false;
+        memory-header-bars = false;
+
+        storage-update = 2.0;
+        storage-ignored-regex = "(?:loop|zram|ram).*";
+        storage-header-show = true;
+        storage-header-percentage = false;
+        storage-header-value = false;
+        storage-header-free = false;
+        storage-header-bars = false;
+        storage-header-io-bars = false;
+        storage-header-graph = false;
+        storage-header-io = false;
+
+        network-update = 1.5;
+        network-io-unit = "KiB/s";
+        network-ignored-regex = "(?:lo|docker.*|veth.*|virbr.*|br-.*)";
+        network-source-public-ipv4 = "";
+        network-source-public-ipv6 = "";
+        network-header-show = true;
+        network-header-bars = false;
+        network-header-graph = false;
+        network-header-io = true;
+        network-header-io-layout = "vertical";
+        network-header-io-figures = 3;
+
+        sensors-update = 3.0;
+        sensors-source = "hwmon";
+        sensors-header-show = true;
+        sensors-header-sensor1-show = true;
+        sensors-header-sensor1 = builtins.toJSON {
+          service = "hwmon";
+          path = [
+            "k10temp-{$14b0}"
+            "Tctl"
+            "input"
+          ];
+        };
+        sensors-header-sensor1-digits = 0;
+        sensors-header-sensor2-show = false;
+      };
     };
+
+  # Replace an older manually started daemon so declarative overrides are
+  # effective without rewriting Vicinae's mutable settings.json.
+  systemd.user.services.vicinae.Service.ExecStart =
+    lib.mkForce "${lib.getExe vicinaePackage} server --replace";
 }

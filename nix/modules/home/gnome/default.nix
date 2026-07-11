@@ -7,6 +7,7 @@
 with lib;
 let
   cfg = config.modules.home.gnome;
+  voxtypeEnabled = config.programs.voxtype.enable or false;
 
   superhumanIcon = pkgs.fetchurl {
     url = "https://superhumanstatic.com/super-funnel/main/public/images/v3/favicons/superhuman-apple-touch-icon.png";
@@ -126,12 +127,14 @@ in
         screenshot = [ "<Shift><Super>3" ];
       };
 
-      # Vicinae on Super+Space (Cmd+Space), Ghostty on Ctrl+Alt+T.
+      # Vicinae on Super+Space, Ghostty on Ctrl+Alt+T, and Voxtype on the
+      # standards-defined Voice Command media key when Voxtype is enabled.
       "org/gnome/settings-daemon/plugins/media-keys" = {
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/vicinae/"
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/terminal/"
-        ];
+        ]
+        ++ optional voxtypeEnabled "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/voxtype/";
       };
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/vicinae" = {
         name = "Vicinae";
@@ -144,131 +147,187 @@ in
         command = "ghostty";
         binding = "<Control><Alt>t";
       };
+      "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/voxtype" = {
+        name = "Voice dictation";
+        command = "${config.home.profileDirectory}/bin/voxtype record toggle";
+        binding = "XF86VoiceCommand";
+      };
 
       # Windows 11-style tiling: drag to the top edge for the snap-layout
       # picker, screen edges for halves/quarters, snap assist suggests
       # windows for the remaining space. Ctrl+Alt+arrows move the focused
       # window between tiles of the active layout; Shift+Ctrl+Alt+arrows
       # span multiple tiles; Ctrl+Alt+Return untiles.
-      "org/gnome/shell/extensions/tilingshell" = {
-        enable-tiling-system = true;
-        enable-snap-assist = true;
-        active-screen-edges = true;
-        top-edge-maximize = false;
-        enable-move-keybindings = true;
-        move-window-left = [ "<Control><Alt>Left" ];
-        move-window-right = [ "<Control><Alt>Right" ];
-        move-window-up = [ "<Control><Alt>Up" ];
-        move-window-down = [ "<Control><Alt>Down" ];
-        span-window-left = [ "<Shift><Control><Alt>Left" ];
-        span-window-right = [ "<Shift><Control><Alt>Right" ];
-        span-window-up = [ "<Shift><Control><Alt>Up" ];
-        span-window-down = [ "<Shift><Control><Alt>Down" ];
-        untile-window = [ "<Control><Alt>Return" ];
-        cycle-layouts = [ "<Control><Alt>l" ];
-        # FancyZones-style layouts: pick per monitor from the panel
-        # indicator. Thirds and quarters for the ultrawide, stacked thirds
-        # for the portrait panel, plus a centered-focus ultrawide layout.
-        layouts-json = builtins.toJSON [
-          {
-            id = "Halves";
-            tiles = [
-              {
-                x = 0;
-                y = 0;
-                width = 0.5;
-                height = 1;
-                groups = [ 1 ];
-              }
-              {
-                x = 0.5;
-                y = 0;
-                width = 0.5;
-                height = 1;
-                groups = [ 1 ];
-              }
-            ];
-          }
-          {
-            id = "Thirds";
-            tiles =
-              map
-                (i: {
-                  x = i / 3.0;
-                  y = 0;
-                  width = 1 / 3.0;
-                  height = 1;
-                  groups = [ 1 ];
-                })
-                [
-                  0
-                  1
-                  2
-                ];
-          }
-          {
-            id = "Quarters";
-            tiles =
-              map
-                (i: {
-                  x = i / 4.0;
-                  y = 0;
-                  width = 0.25;
-                  height = 1;
-                  groups = [ 1 ];
-                })
-                [
-                  0
-                  1
-                  2
-                  3
-                ];
-          }
-          {
-            id = "Center Focus";
-            tiles = [
-              {
-                x = 0;
-                y = 0;
-                width = 0.25;
-                height = 1;
-                groups = [ 1 ];
-              }
-              {
-                x = 0.25;
-                y = 0;
-                width = 0.5;
-                height = 1;
-                groups = [ 1 ];
-              }
-              {
-                x = 0.75;
-                y = 0;
-                width = 0.25;
-                height = 1;
-                groups = [ 1 ];
-              }
-            ];
-          }
-          {
-            id = "Stacked Thirds";
-            tiles =
-              map
-                (i: {
+      "org/gnome/shell/extensions/tilingshell" =
+        let
+          mkPortraitRows =
+            rowCount:
+            let
+              denominator = rowCount * 1.0;
+            in
+            {
+              id = "Portrait ${toString rowCount} Rows";
+              tiles = map (
+                row:
+                let
+                  y = row / denominator;
+                  nextY = (row + 1) / denominator;
+                in
+                {
                   x = 0;
-                  y = i / 3.0;
+                  inherit y;
                   width = 1;
-                  height = 1 / 3.0;
-                  groups = [ 1 ];
-                })
-                [
-                  0
-                  1
-                  2
+                  height = nextY - y;
+                  groups = [ ];
+                }
+              ) (lib.range 0 (rowCount - 1));
+            };
+        in
+        {
+          enable-tiling-system = true;
+          enable-snap-assist = true;
+          active-screen-edges = true;
+          top-edge-maximize = false;
+          enable-move-keybindings = true;
+          move-window-left = [ "<Control><Alt>Left" ];
+          move-window-right = [ "<Control><Alt>Right" ];
+          move-window-up = [ "<Control><Alt>Up" ];
+          move-window-down = [ "<Control><Alt>Down" ];
+          span-window-left = [ "<Shift><Control><Alt>Left" ];
+          span-window-right = [ "<Shift><Control><Alt>Right" ];
+          span-window-up = [ "<Shift><Control><Alt>Up" ];
+          span-window-down = [ "<Shift><Control><Alt>Down" ];
+          untile-window = [ "<Control><Alt>Return" ];
+          cycle-layouts = [ "<Control><Alt>l" ];
+          # The top-edge Snap Assistant and panel indicator share one global
+          # catalog. Tiling Shell only stores the active layout per
+          # workspace/monitor, so the portrait layouts also appear in the
+          # ultrawide's pickers.
+          layouts-json = builtins.toJSON (
+            [
+              {
+                id = "Halves";
+                tiles = [
+                  {
+                    x = 0;
+                    y = 0;
+                    width = 0.5;
+                    height = 1;
+                    groups = [ 1 ];
+                  }
+                  {
+                    x = 0.5;
+                    y = 0;
+                    width = 0.5;
+                    height = 1;
+                    groups = [ 1 ];
+                  }
                 ];
-          }
-        ];
-      };
+              }
+              {
+                id = "Thirds";
+                tiles =
+                  map
+                    (i: {
+                      x = i / 3.0;
+                      y = 0;
+                      width = 1 / 3.0;
+                      height = 1;
+                      groups = [ 1 ];
+                    })
+                    [
+                      0
+                      1
+                      2
+                    ];
+              }
+              {
+                id = "Quarters";
+                tiles =
+                  map
+                    (i: {
+                      x = i / 4.0;
+                      y = 0;
+                      width = 0.25;
+                      height = 1;
+                      groups = [ 1 ];
+                    })
+                    [
+                      0
+                      1
+                      2
+                      3
+                    ];
+              }
+              {
+                id = "Center Focus";
+                tiles = [
+                  {
+                    x = 0;
+                    y = 0;
+                    width = 0.25;
+                    height = 1;
+                    groups = [ 1 ];
+                  }
+                  {
+                    x = 0.25;
+                    y = 0;
+                    width = 0.5;
+                    height = 1;
+                    groups = [ 1 ];
+                  }
+                  {
+                    x = 0.75;
+                    y = 0;
+                    width = 0.25;
+                    height = 1;
+                    groups = [ 1 ];
+                  }
+                ];
+              }
+              {
+                id = "Stacked Thirds";
+                tiles =
+                  map
+                    (i: {
+                      x = 0;
+                      y = i / 3.0;
+                      width = 1;
+                      height = 1 / 3.0;
+                      groups = [ 1 ];
+                    })
+                    [
+                      0
+                      1
+                      2
+                    ];
+              }
+            ]
+            ++ map mkPortraitRows [
+              2
+              3
+              4
+              6
+            ]
+          );
+
+          # Mutter currently indexes the primary Samsung ultrawide first and
+          # the ASUS portrait display second. Tiling Shell persists only these
+          # volatile indexes, not EDID or connector identity, so unplugging or
+          # reordering displays can invalidate the mapping. Keep the
+          # ultrawide's two workspace selections and default the portrait
+          # display to 3 rows.
+          selected-layouts = [
+            [
+              "Stacked Thirds"
+              "Portrait 3 Rows"
+            ]
+            [
+              "Stacked Thirds"
+              "Portrait 3 Rows"
+            ]
+          ];
+        };
     };
   };
 }

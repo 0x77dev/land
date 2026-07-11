@@ -7,6 +7,7 @@
 with lib;
 let
   cfg = config.modules.home.ide;
+  fonts = config.modules.home.fonts.presentation;
   cursorPackage = pkgs.code-cursor;
 
   marketplaceExtensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
@@ -180,18 +181,23 @@ in
           enableExtensionUpdateCheck = false;
           extensions = managedExtensions;
           userSettings = {
-            "editor.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
-            "terminal.integrated.fontFamily" = "'TX-02-Variable', 'TX-02', monospace";
-            "editor.fontSize" = 16;
-            "editor.lineHeight" = 1.5;
-            "terminal.integrated.fontSize" = 12;
-            "editor.fontWeight" = "400";
-            "editor.fontVariations" = true;
+            "editor.fontFamily" =
+              "'${fonts.families.monospace}', '${fonts.families.monospaceFallback}', '${fonts.families.symbolsMonospace}', '${fonts.families.emoji}', monospace";
+            "terminal.integrated.fontFamily" =
+              "'${fonts.families.monospace}', '${fonts.families.monospaceFallback}', '${fonts.families.symbolsMonospace}', '${fonts.families.emoji}', monospace";
+            "editor.fontSize" = fonts.adapters.editor.size;
+            "editor.lineHeight" = fonts.adapters.editor.lineHeight;
+            "terminal.integrated.fontSize" = fonts.adapters.integratedTerminal.size;
+            "editor.fontWeight" = toString fonts.adapters.editor.weight;
+            # Explicit wght variations override token-level bold. CSS weight
+            # selects TX-02's named Medium face while preserving bold spans.
+            "editor.fontVariations" = false;
             "editor.renderWhitespace" = "boundary";
             "editor.renderControlCharacters" = true;
             "editor.fontLigatures" = "'calt', 'liga', 'dlig', 'ss01', 'ss02'";
-            "terminal.integrated.fontWeight" = "400";
-            "terminal.integrated.lineHeight" = 1.2;
+            "terminal.integrated.fontWeight" = toString fonts.adapters.integratedTerminal.weight;
+            "terminal.integrated.fontWeightBold" = toString fonts.adapters.integratedTerminal.boldWeight;
+            "terminal.integrated.lineHeight" = fonts.adapters.integratedTerminal.lineHeight;
             "terminal.integrated.letterSpacing" = 0;
             "[javascript]"."editor.fontLigatures" = "'calt', 'liga', 'ss01'";
             "[python]"."editor.fontLigatures" = "'calt', 'liga', 'dlig'";

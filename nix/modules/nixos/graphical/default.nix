@@ -43,4 +43,9 @@ in
       true only when hardware graphics and a display manager are enabled.
     '';
   };
+
+  config = mkIf config.modules.graphical.enable {
+    # The system session is the single Ozone policy owner for graphical hosts.
+    environment.sessionVariables.NIXOS_OZONE_WL = mkDefault "1";
+  };
 }

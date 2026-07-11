@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  namespace,
   inputs,
   ...
 }:
@@ -237,7 +236,6 @@
     hwloc
     libfido2
     opensc
-    pkgs.${namespace}.tx-02-variable
     vim
     xdg-utils
   ];

@@ -8,6 +8,7 @@
 with lib;
 let
   cfg = config.modules.home.ghostty;
+  fonts = config.modules.home.fonts.presentation;
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
   ghosttyPackage = if isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
 in
@@ -79,9 +80,15 @@ in
         };
       };
       settings = {
-        font-family = "TX-02-Variable";
-        font-variation = "wght=600";
-        font-size = 16;
+        font-family = [
+          fonts.families.monospace
+          fonts.families.monospaceFallback
+          fonts.families.symbolsMonospace
+          fonts.families.emoji
+        ];
+        font-variation = "wght=${toString fonts.adapters.ghostty.weight}";
+        font-variation-bold = "wght=${toString fonts.adapters.ghostty.boldWeight}";
+        font-size = fonts.adapters.ghostty.size;
         font-feature = "+calt,+liga";
         keybind = lib.optionals isDarwin [
           "super+d=new_split:down"
@@ -91,13 +98,10 @@ in
       };
     };
 
-    # Ensure TX-02 font is available
-    home.packages = [
-      ghosttyPackage
-      pkgs.${namespace}.tx-02-variable
-    ];
+    # Keep the terminal usable when this module is enabled without the shared
+    # font module; otherwise that module is the sole font-package owner.
+    home.packages = optional (!config.modules.home.fonts.enable) pkgs.${namespace}.tx-02-variable;
 
-    # Enable fontconfig to register fonts
     fonts.fontconfig.enable = true;
   };
 }

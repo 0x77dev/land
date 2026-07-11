@@ -437,7 +437,6 @@ in
       cudaPackages.nccl
 
       # Desktop apps
-      pkgs.${namespace}.tx-02-variable
       gitFull
       vim
       iperf3
@@ -451,9 +450,6 @@ in
     ];
 
     variables.CUDA_PATH = "${pkgs.cudatoolkit}";
-
-    # Wayland for Electron/Chromium apps
-    sessionVariables.NIXOS_OZONE_WL = "1";
   };
 
   system.stateVersion = "25.11";

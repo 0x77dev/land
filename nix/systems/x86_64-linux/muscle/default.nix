@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   namespace,
   ...
 }:
@@ -157,12 +156,6 @@
           ];
           mutter-settings."org/gnome/mutter" = {
             inherit output-luminance;
-            # VRR is still experimental in GNOME 49; fractional scaling for
-            # the 4K panel needs scale-monitor-framebuffer.
-            experimental-features = [
-              "variable-refresh-rate"
-              "scale-monitor-framebuffer"
-            ];
           };
         in
         {
@@ -266,7 +259,7 @@
 
     # Native-messaging host for the Vicinae browser extension (Helium reads
     # /etc/chromium). https://docs.vicinae.com/browser-extension
-    helium.vicinaePackage = inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    helium.vicinaePackage = pkgs.${namespace}.vicinae;
     fish.enable = true;
 
     # GNOME's lightweight mail client (Superhuman stays the mailto default).
@@ -475,7 +468,6 @@
       "video"
       "audio"
       "kvm"
-      "input" # voxtype's evdev push-to-talk hotkey
       "ydotool" # voxtype typing fallback on GNOME
       "tss" # TPM 2.0 access via the TCTI environment
       "gamemode" # Required for GameMode CPU governor changes
@@ -486,13 +478,34 @@
   fonts.fontconfig = {
     enable = true;
     # QD-OLED panels use a triangular subpixel layout, so classic RGB
-    # subpixel AA fringes; grayscale smoothing with slight hinting is the
-    # macOS-like (and correct) rendering here.
+    # subpixel AA fringes. Grayscale smoothing avoids color fringing on both
+    # this geometry and the rotated secondary display.
     antialias = true;
     hinting.style = "slight";
     subpixel = {
       rgba = "none";
       lcdfilter = "none";
+    };
+    # NixOS' aliases load after per-user Fontconfig files. Mirror the Home
+    # presentation roles here so DejaVu/Noto system defaults cannot win.
+    defaultFonts = {
+      sansSerif = [
+        "SF Pro Text"
+        "Symbols Nerd Font"
+      ];
+      serif = [
+        "New York Small"
+        "Symbols Nerd Font"
+      ];
+      monospace = [
+        "TX-02-Variable"
+        "SF Mono"
+        "Symbols Nerd Font Mono"
+      ];
+      emoji = [
+        "Apple Color Emoji"
+        "Noto Color Emoji"
+      ];
     };
   };
 
@@ -521,6 +534,8 @@
       btop
       fastfetch
       hwloc
+      libgtop
+      pciutils
 
       # CUDA
       cudatoolkit
@@ -536,7 +551,6 @@
       mangohud
 
       # Desktop apps
-      pkgs.${namespace}.tx-02-variable
       gitFull
       vim
       iperf3
@@ -554,16 +568,13 @@
       gnome-tweaks
       gnome-extension-manager
       gnomeExtensions.appindicator
+      gnomeExtensions.astra-monitor
       gnomeExtensions.tailscale-qs
     ];
 
     variables = {
       CUDA_PATH = "${pkgs.cudatoolkit}";
-    };
-
-    # Session variables for Wayland/Electron apps
-    sessionVariables = {
-      NIXOS_OZONE_WL = "1";
+      GI_TYPELIB_PATH = "/run/current-system/sw/lib/girepository-1.0";
     };
   };
 

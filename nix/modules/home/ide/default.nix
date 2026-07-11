@@ -11,6 +11,7 @@ in
 {
   imports = [
     ./vscode.nix
+    ./zed.nix
     ./neovim.nix
   ];
 

@@ -88,12 +88,6 @@ in
     home = {
       packages = [ finalPackage ];
 
-      # Match nixpkgs' Chromium wrapper convention: Ozone/Wayland is enabled
-      # only when this variable is present and a Wayland session exists.
-      sessionVariables = mkIf pkgs.stdenv.isLinux {
-        NIXOS_OZONE_WL = mkDefault "1";
-      };
-
       file = mkIf pkgs.stdenv.isLinux (listToAttrs (map extensionFile extensions));
     };
   };

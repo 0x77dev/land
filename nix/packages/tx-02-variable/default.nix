@@ -38,13 +38,11 @@ stdenvNoCC.mkDerivation rec {
       url = "https://cdn.0x77.dev/fonts/tx-02/TX-02-Variable.otf";
       hash = "sha256-Q9Iz3zODfh4PsY5j3TT7iwTJc9Z9y+SE2GTySNMkPc0=";
     })
+  ]
+  ++ lib.optionals isLinux [
     (fetchurl {
       url = "https://cdn.0x77.dev/fonts/tx-02/TX-02-Variable.ttf";
       hash = "sha256-7yA9u0FEnRGnabZEYWBmjg6OqP5GB1tPStiMgNeWXF4=";
-    })
-    (fetchurl {
-      url = "https://cdn.0x77.dev/fonts/tx-02/TX-02-Variable.woff2";
-      hash = "sha256-hsuuoTHpE7nqbdGuSV6k7umhsmzzAYyAqVpWBIhhekw=";
     })
   ];
 
@@ -114,10 +112,9 @@ stdenvNoCC.mkDerivation rec {
   installPhase = ''
     runHook preInstall
 
-    # Install original font files
+    # Expose one desktop format so fontconfig does not register duplicate
+    # variable instances. The TTF source is only used to generate PSF fonts.
     install -Dm644 -t $out/share/fonts/opentype ${builtins.elemAt srcs 0}
-    install -Dm644 -t $out/share/fonts/truetype ${builtins.elemAt srcs 1}
-    install -Dm644 -t $out/share/fonts/woff2 ${builtins.elemAt srcs 2}
 
     ${lib.optionalString isLinux ''
       # Install PSF console fonts (Linux only)
@@ -137,7 +134,7 @@ stdenvNoCC.mkDerivation rec {
       TX-02 Berkeley Mono™ Complete Font Package (Version 2.003)
 
       Includes:
-      - Variable fonts: OTF, TTF, WOFF2 (645 glyphs, variable weight/width/slant)
+      - Desktop variable font: OTF (645 glyphs, variable weight/width/slant)
       - Console fonts: PSF bitmap fonts (16pt, 20pt, 24pt, 32pt) - Linux only
 
       Desktop/Terminal Usage:
@@ -148,7 +145,7 @@ stdenvNoCC.mkDerivation rec {
         console.packages = [ pkgs.${namespace}.tx-02-variable ];
 
       Note: PSF console fonts are only generated on Linux platforms.
-            On Darwin/macOS, only the variable fonts (OTF/TTF/WOFF2) are included.
+            On Darwin/macOS, only the desktop OTF is included.
 
       Copyright 2022-2025. All Rights Reserved.
       Intellectual Property of U.S. Graphics Company, LLC.
