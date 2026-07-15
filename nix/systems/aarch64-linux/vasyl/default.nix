@@ -13,28 +13,40 @@ let
   hostAddress = "10.77.0.1";
   guestAddress = "10.77.0.2";
 
-  # Spark's Ollama endpoint stays available as an explicit `/model` choice, but
-  # it is not a runtime fallback: fallback routing and auxiliary work should stay
-  # on provider-backed models so local Spark/Muscle time is never silently
-  # consumed by an automatic retry path.
-  opencodeAuxiliaryModel = "deepseek-v4-flash";
+  # OpenAI's 2026-07-09 release data puts Luna at 74.6 on the Coding Agent
+  # Index and 51.2 on the broad Intelligence Index, while the Codex rate card
+  # charges one fifth of Sol's credits per token. That is the right quality /
+  # cost tier for bounded auxiliary calls; reasoning effort is raised only for
+  # fidelity- or safety-sensitive tasks below.
+  codexAuxiliaryModel = "gpt-5.6-luna";
+  mkCodexAuxiliary =
+    {
+      timeout,
+      reasoningEffort ? "low",
+    }:
+    {
+      provider = "openai-codex";
+      model = codexAuxiliaryModel;
+      inherit timeout;
+      # The pinned Hermes revision reads this wire-level form; newer revisions
+      # also accept the equivalent reasoning_effort shorthand.
+      extra_body.reasoning = {
+        enabled = true;
+        effort = reasoningEffort;
+      };
+    };
 
   # OpenAI Codex live catalog probe, 2026-07-15:
   # gpt-5.6-sol / terra / luna, gpt-5.5, gpt-5.4, and gpt-5.4-mini all report
-  # a 272K context window on the OAuth Codex backend. Sol is the primary; Terra
-  # and Luna are same-context sibling fallbacks; 5.5 is the previous stable
-  # large-context route; 5.4-mini is the speed-biased recovery option.
+  # a 272K context window on the OAuth Codex backend. Sol is the primary. Keep
+  # failover frontier-class: Terra scores 77.4 and GPT-5.5 scores 76.4 against
+  # Sol's 80 on the Coding Agent Index (55 / 54.8 / 58.9 respectively on the
+  # broad Intelligence Index). Luna and 5.4-mini are auxiliary tiers, not
+  # substitutes for the main agent's intelligence.
   codexFallbackModels = [
     "gpt-5.6-terra"
-    "gpt-5.6-luna"
     "gpt-5.5"
-    "gpt-5.4-mini"
   ];
-  mkOpencodeAuxiliary = timeout: {
-    provider = "opencode-go";
-    model = opencodeAuxiliaryModel;
-    inherit timeout;
-  };
   ollamaBaseUrl = "http://${hostAddress}:11434/v1";
 
   # VM-local secret env file — nothing secret in Nix, no secret-management
@@ -344,28 +356,34 @@ in
             };
           };
         };
-        auxiliary = {
-          # Pin every Hermes auxiliary task to DeepSeek V4 Flash on OpenCode Go
-          # instead of letting per-task defaults drift to auto, GPT-5.5, or local
-          # Ollama routes.
-          compression = mkOpencodeAuxiliary 240;
-          approval = {
-            provider = "stealth";
-            model = "stealth";
-            timeout = 30;
+        auxiliary =
+          let
+            cheap = timeout: mkCodexAuxiliary { inherit timeout; };
+            careful =
+              timeout:
+              mkCodexAuxiliary {
+                inherit timeout;
+                reasoningEffort = "medium";
+              };
+          in
+          {
+            # Luna is OpenAI's fastest/most-affordable GPT-5.6 tier and keeps the
+            # 272K text+image window. Low effort serves short labeling/drafting;
+            # medium is reserved for fidelity, structure, or safety judgments.
+            approval = careful 30;
+            compression = careful 240;
+            curator = careful 600;
+            kanban_decomposer = careful 180;
+            mcp = careful 30;
+            profile_describer = cheap 60;
+            skills_hub = cheap 30;
+            title_generation = cheap 30;
+            triage_specifier = careful 120;
+            vision = (careful 120) // {
+              download_timeout = 30;
+            };
+            web_extract = careful 360;
           };
-          curator = mkOpencodeAuxiliary 600;
-          kanban_decomposer = mkOpencodeAuxiliary 180;
-          mcp = mkOpencodeAuxiliary 30;
-          profile_describer = mkOpencodeAuxiliary 60;
-          skills_hub = mkOpencodeAuxiliary 30;
-          title_generation = mkOpencodeAuxiliary 30;
-          triage_specifier = mkOpencodeAuxiliary 120;
-          vision = (mkOpencodeAuxiliary 120) // {
-            download_timeout = 30;
-          };
-          web_extract = mkOpencodeAuxiliary 360;
-        };
         # High-ceiling mode for deep missions: let the parent agent run long
         # enough to plan, fan out, integrate, verify, and compact instead of
         # stopping mid-orchestration. Cost/safety guardrails remain in the
