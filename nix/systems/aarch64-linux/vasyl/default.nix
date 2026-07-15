@@ -18,11 +18,17 @@ let
   # on provider-backed models so local Spark/Muscle time is never silently
   # consumed by an automatic retry path.
   opencodeAuxiliaryModel = "deepseek-v4-flash";
-  opencodeFallbackModels = [
-    "deepseek-v4-pro"
-    "kimi-k2.7-code"
-    "kimi-k2.6"
-    "glm-5.1"
+
+  # OpenAI Codex live catalog probe, 2026-07-15:
+  # gpt-5.6-sol / terra / luna, gpt-5.5, gpt-5.4, and gpt-5.4-mini all report
+  # a 272K context window on the OAuth Codex backend. Sol is the primary; Terra
+  # and Luna are same-context sibling fallbacks; 5.5 is the previous stable
+  # large-context route; 5.4-mini is the speed-biased recovery option.
+  codexFallbackModels = [
+    "gpt-5.6-terra"
+    "gpt-5.6-luna"
+    "gpt-5.5"
+    "gpt-5.4-mini"
   ];
   mkOpencodeAuxiliary = timeout: {
     provider = "opencode-go";
@@ -232,24 +238,20 @@ in
       extraPlugins = [ outboundApprovalPlugin ];
 
       settings = {
-        # Primary route: Vercel AI Gateway via the OpenAI Responses transport.
-        # This keeps the default on GPT-5.5 while giving Hermes one account/key
-        # for OpenAI-compatible, Anthropic, and Gemini gateway models below.
+        # Primary route: OpenAI Codex subscription. The live Codex catalog probe
+        # on 2026-07-15 ranks gpt-5.6-sol first and reports a 272K context window
+        # for the 5.6 family on this OAuth backend. Keep automatic fallbacks on
+        # the same provider: same auth surface, same wire protocol, no surprise
+        # local Spark/Muscle consumption.
         model = {
-          provider = "vercel-ai-gateway-responses";
-          default = "openai/gpt-5.5";
-          context_length = 1000000;
+          provider = "openai-codex";
+          default = "gpt-5.6-sol";
+          context_length = 272000;
         };
-        fallback_providers = [
-          {
-            provider = "openai-codex";
-            model = "gpt-5.5";
-          }
-        ]
-        ++ map (model: {
-          provider = "opencode-go";
+        fallback_providers = map (model: {
+          provider = "openai-codex";
           inherit model;
-        }) opencodeFallbackModels;
+        }) codexFallbackModels;
         # Give Hermes' /model picker a named row for spark's Ollama endpoint
         # without owning `custom_providers`: that key is a list, so the NixOS
         # module's activation merge replaces runtime-added entries. `providers`
@@ -391,8 +393,11 @@ in
         privacy.redact_pii = true;
         compression = {
           enabled = true;
-          # Keep the explicit high-water policy; private route capacity details
-          # stay in Hermes' local config/auth state, not in this public flake.
+          # Codex OAuth reports 272K context for the selected 5.6 family and
+          # supporting fallback models. Keep a high-water trigger so long
+          # sessions use the window before summarizing; the legacy
+          # codex_gpt55_autoraise flag remains true for older fallback/manual
+          # gpt-5.5 sessions that rely on Hermes' route-specific override.
           threshold = 0.85;
           codex_gpt55_autoraise = true;
         };
