@@ -6,6 +6,7 @@ and Snowfall Lib.
 ## Highlights
 
 - Helium packaging with store-backed Widevine integration on Linux.
+- YubiKey-backed FIDO2 authentication for workstation login and sudo.
 
 ## Quick start
 

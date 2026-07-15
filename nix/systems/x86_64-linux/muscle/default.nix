@@ -86,6 +86,10 @@
   hardware = {
     enableRedistributableFirmware = true;
     infiniband.enable = true;
+    logitech.wireless = {
+      enable = true;
+      enableGraphical = true;
+    };
     cpu.amd.updateMicrocode = true;
     nvidia = {
       open = true;
@@ -267,6 +271,10 @@
   };
 
   services = {
+    # GNOME and the Bluetooth Battery Meter consume peripheral batteries from
+    # UPower, including Logitech HID++ devices exposed by the kernel driver.
+    upower.enable = lib.mkForce true;
+
     xserver = {
       enable = true;
       xkb.layout = "us";
@@ -385,7 +393,7 @@
 
   security = {
     rtkit.enable = true;
-    sudo.wheelNeedsPassword = false;
+    sudo.wheelNeedsPassword = true;
 
     # TPM 2.0 userspace: PKCS#11, TCTI env, and the tss group. Used by
     # systemd-cryptenroll for LUKS auto-unlock once the disk is encrypted.
@@ -421,8 +429,9 @@
   };
 
   # Belt and suspenders: mask every sleep target and make logind ignore all
-  # sleep/power/lid requests. GNOME independently has idle-delay=0 and every
-  # inactive-sleep action set to "nothing".
+  # sleep/power/lid requests. Locking or powering off the displays must not
+  # stop user processes or their systemd user manager. GNOME independently
+  # has idle-delay=0 and every inactive-sleep action set to "nothing".
   systemd.targets = {
     sleep.enable = false;
     suspend.enable = false;
@@ -432,6 +441,8 @@
   };
   services.logind.settings.Login = {
     IdleAction = "ignore";
+    KillUserProcesses = false;
+    UserStopDelaySec = "infinity";
     HandlePowerKey = "ignore";
     HandleSuspendKey = "ignore";
     HandleHibernateKey = "ignore";
@@ -448,6 +459,7 @@
       agentName = "muscle";
     };
     elgato-light-control.enable = true;
+    yubikey-pam.enable = true;
     vr.enable = true;
     vscode-server.enable = true;
     observability.enable = true;
@@ -463,6 +475,8 @@
   users.users.mykhailo = {
     isNormalUser = true;
     description = "Mykhailo Marynenko";
+    # Keep user services alive independently of the graphical login session.
+    linger = true;
     # Fresh key-only installs need an unlocked shadow entry or sshd rejects
     # even valid authorized keys. Password SSH is disabled independently;
     # set a local password with `passwd` after the first key login.

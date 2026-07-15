@@ -1,9 +1,10 @@
-_: final: prev:
+{ channels, ... }:
+final: _prev:
 let
   # Mirror nixpkgs' selectable acceleration variants while preserving this
   # overlay's stable package names. (`ignoreCollisions = true` is obsolete:
   # upstream now sets it on the CUDA package set's `cudaToolkit` buildEnv itself.)
-  mkOllama = acceleration: prev.ollama.override { inherit acceleration; };
+  mkOllama = acceleration: channels.unstable.ollama.override { inherit acceleration; };
 
   # Qwen3.6 can emit malformed/empty tool-call envelopes that make Ollama 0.24
   # return HTTP 500s (ollama/ollama#16383). Carry the unmerged parser fix once

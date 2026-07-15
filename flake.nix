@@ -63,11 +63,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixos-vscode-server = {
-      url = "github:nix-community/nixos-vscode-server";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nixos-anywhere = {
       url = "github:nix-community/nixos-anywhere";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -222,7 +217,6 @@
 
             nixos = with inputs; [
               disko.nixosModules.disko
-              nixos-vscode-server.nixosModules.default
               vpn-confinement.nixosModules.default
             ];
           };

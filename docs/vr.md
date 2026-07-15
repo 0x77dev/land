@@ -1,12 +1,19 @@
 # Vision Pro VR runbook
 
-`muscle` provides ALVR 20.14.1, Steam's NixOS FHS environment, 32-bit
-graphics, PipeWire, GameMode, and `vulkaninfo`. Nix does not own SteamVR,
-client trust, controller pairing, OpenVR/OpenXR runtime files, or ALVR's
-`session.json`.
+`muscle` provides nixpkgs ALVR 20.14.1 (`alvr-org/ALVR`
+`a9f6542fa507a841f40ab4f3fcb531427cd02550`), Steam's NixOS FHS
+environment, 32-bit graphics, PipeWire, GameMode, and `vulkaninfo`. The
+visionOS App Store 20.14.5 client embeds the same 20.14.1 protocol family at
+`e3fd448029c795b1b2d5835c84c6588bf01bae0d`.
 
 The baseline works with both M2 and M5 Vision Pro. Use HEVC 8-bit at 90 Hz;
 qualify M5-only AV1 or 120 Hz separately.
+
+ALVR 20.14.1 has no supported preset file or CLI import mechanism. Nix does
+not manage `~/.config/alvr/session.json`; dashboard settings, client trust,
+certificates, pairing, Steam manifests and beta selection, driver
+registration, and OpenVR/OpenXR runtime files all remain mutable and
+ALVR/Steam-owned.
 
 ## Network prerequisite
 
@@ -40,9 +47,9 @@ disabled.
    updating it.
 4. Install **ALVR 20.14.5** from the visionOS App Store. This client remains in
    the 20.14.1 host protocol family; do not substitute a v21/nightly host.
-5. Start `alvr_dashboard` from the normal GNOME session. Do not wrap it or
-   SteamVR in Gamescope, MangoHud, OBS capture, or another Vulkan layer during
-   qualification.
+5. Start `alvr_dashboard` from the normal GNOME session. Enter the recommended
+   profile below in the dashboard. Do not wrap it or SteamVR in Gamescope,
+   MangoHud, OBS capture, or another Vulkan layer during qualification.
 6. Use ALVR's installation controls to register the packaged driver and launch
    SteamVR. The dashboard registers its current immutable Nix store path and
    removes stale ALVR registrations when it launches SteamVR. Repeat this step
@@ -68,31 +75,50 @@ Pro, not to Linux:
 
 Start with ALVR's Quest 2 Touch emulation for broad SteamVR compatibility.
 Stock ALVR 20.14.1 does not provide the newer dedicated PSVR2 host profile, and
-the safe baseline intentionally has no custom fork. Expect Oculus labels and
-incomplete PSVR2 touch/proximity semantics. Verify both controllers in
-SteamVR's controller test before starting a game.
+the safe baseline intentionally has no custom fork. Controller poses retain
+the upstream client correction and server offset; sticks, face buttons,
+analog trigger/grip, and generic haptics map through the Quest profile.
+Adaptive triggers are unavailable, PS buttons may be reserved by visionOS,
+and dedicated touch/proximity semantics are incomplete. Expect Oculus labels
+and verify both controllers in SteamVR's controller test before starting a
+game.
 
 ## Diagnostic and target profiles
 
 Change one setting at a time and keep SteamVR global resolution at 100%.
 
-Initial transport smoke test:
+Enter this recommended daily profile in ALVR's dashboard:
+
+- HEVC Main 8-bit at explicit 90 Hz.
+- High resolution: 2592 pixels per eye, or 5184 combined, with aspect-derived
+  height; SteamVR global resolution remains user-owned at 100%.
+- Medium fixed foveation: 0.66 x 0.60 center, centered, with 6 x 6 edge ratios.
+- NVENC P3, low-latency tuning, temporal AQ, CBR rate control, no multipass,
+  weighted prediction, 10-bit, or HDR. ALVR 20.14.1's Linux encoder does not
+  forward the session multipass selector to FFmpeg.
+- Adaptive throughput 40-170 Mbit/s targeting 90% of measured throughput,
+  with 8 ms network and 30 ms decoder limits.
+- UDP, 1400-byte packets, maximum socket buffers, two video queue entries,
+  two buffering frames, and no DSCP.
+- PipeWire game audio on, microphone off; passthrough, face/body/hand tracking,
+  client foveation, async compute, and async reprojection off.
+- Quest 2 headset and Touch controller emulation with automatic mappings and
+  upstream pose offsets.
+
+For a conservative diagnostic run, use ALVR's built-in controls temporarily:
 
 - H.264 8-bit, 90 Hz, Medium resolution, 50-80 Mbit/s.
-- High fixed foveation and the fast encoder preset.
+- High fixed foveation and P1/Speed.
 - Microphone, HDR, 10-bit encoding, progressive mode, and extra overlays off.
 
-Daily acceptance target:
-
-- HEVC 8-bit, explicit 90 Hz.
-- High resolution, P3/Balanced encoder, Medium fixed foveation.
-- Adaptive 20-150 Mbit/s or a measured constant 120-150 Mbit/s.
-- UDP, packet size 1400, no DSCP override, at most two buffered frames.
-
-ALVR has a session-level `adapter_index`, but its Linux UI hides the setting.
-Leave index 0 unchanged until `vulkaninfo`, ALVR logs, and NVIDIA telemetry
-identify the GPU actually rendering and encoding. If it is wrong, adjust only
-ALVR's mutable session setting; never set global Vulkan or CUDA GPU variables.
+There is no custom profile switcher and Nix does not reassert dashboard
+changes. ALVR's `adapter_index` is Windows-only in this path. On Linux, ALVR
+encodes on the Vulkan device UUID captured from SteamVR. Current Vulkan GPU0 is
+`0000:c1:00.0`,
+`26ea6764-15b9-101f-f6dd-dcddb317519b`, which drives the primary Samsung.
+Confirm that UUID in ALVR logs and NVIDIA telemetry; there is no supported
+ALVR per-session Linux adapter selector. Never set global Vulkan, NVIDIA, or
+CUDA device variables.
 
 Safe diagnostics:
 
@@ -116,14 +142,14 @@ Before increasing quality, require:
 - At least 200 Mbit/s measured local throughput.
 - Median host latency at most 3 ms, p95 at most 5 ms, jitter at most 1 ms, and
   no packet loss during the test.
-- Server and client near 90 FPS, game-render p95 below 11.11 ms, encode below
-  5 ms, decode below 8 ms, and ALVR network latency normally below 5 ms.
+- Server and client near 90 FPS, game-render p95 below 11.11 ms, encode p95
+  below 9 ms, decode below 8 ms, and ALVR network latency normally below 5 ms.
 - A 30-minute native SteamVR session without disconnects, audio underruns,
   repeating latency spikes, or visible IDR recovery.
 - A 45-60 minute thermal run without falling to 45 or 30 FPS.
 
-Only then test lighter foveation, 180-210 Mbit/s, Ultra resolution, M5 AV1, 120
-Hz, microphone, or non-native VR injectors.
+Only then test lighter foveation, a higher adaptive ceiling, Ultra resolution,
+M5 AV1, 120 Hz, microphone, or non-native VR injectors.
 
 ## Rollback
 

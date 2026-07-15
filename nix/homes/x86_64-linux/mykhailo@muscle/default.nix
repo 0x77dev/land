@@ -8,6 +8,7 @@
 let
   shared = lib.${namespace}.shared.home-config { inherit lib; };
   fonts = config.modules.home.fonts.presentation;
+  batteryExtension = pkgs.gnomeExtensions.bluetooth-battery-meter;
   cohereModel = pkgs.${namespace}.voxtype-model-cohere-fp16;
   vadModel = pkgs.${namespace}.voxtype-model-silero-vad;
   vicinaePackage = pkgs.${namespace}.vicinae;
@@ -55,6 +56,12 @@ in
   assertions = [
     {
       assertion =
+        batteryExtension.extensionUuid == "Bluetooth-Battery-Meter@maniacx.github.com"
+        && batteryExtension.version == "45";
+      message = "Bluetooth Battery Meter changed; re-audit its GNOME metadata and schema.";
+    }
+    {
+      assertion =
         voxtypePackage.upstreamVersion == "0.7.5"
         && voxtypePackage.sourceRevision == "31b7f38c4e22c4ce75d6350945729e5db001cb9a";
       message = "Voxtype source changed; re-audit the emitted config schema before updating this pin.";
@@ -63,6 +70,7 @@ in
 
   home = shared.home // {
     packages = with pkgs; [
+      batteryExtension
       telegram-desktop
       spotify
       zoom-us
@@ -95,12 +103,14 @@ in
       enable = true;
       extensions = [
         "appindicatorsupport@rgcjonas.gmail.com"
+        batteryExtension.extensionUuid
         "monitor@astraext.github.io"
         "tailscale@joaophi.github.com" # Tailscale in quick settings
       ];
     };
     git.enable = true;
     ide.enable = true;
+    manufacturing.enable = true;
     media.enable = true;
     network.enable = true;
     nix.enable = true;
@@ -205,8 +215,28 @@ in
     };
   };
 
-  systemd.user.services.voxtype = {
-    Service.Environment = "CUDA_VISIBLE_DEVICES=GPU-3b81ccee-ecb5-5617-58da-0ac7d35dd001";
+  systemd.user.services = {
+    voxtype.Service.Environment = "CUDA_VISIBLE_DEVICES=GPU-3b81ccee-ecb5-5617-58da-0ac7d35dd001";
+
+    # Solaar must stay resident to restore Logitech settings after reconnects.
+    # Keep its management tray icon, but let GNOME's battery extension own the
+    # battery presentation instead of showing a second generic battery icon.
+    solaar = {
+      Unit = {
+        Description = "Solaar Logitech device manager";
+        After = [ "graphical-session.target" ];
+        PartOf = [ "graphical-session.target" ];
+      };
+      Service = {
+        ExecStart = "${lib.getExe pkgs.solaar} --window=hide --battery-icons=solaar";
+        Restart = "on-failure";
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
+
+    # Replace an older manually started daemon so declarative overrides are
+    # effective without rewriting Vicinae's mutable settings.json.
+    vicinae.Service.ExecStart = lib.mkForce "${lib.getExe vicinaePackage} server --replace";
   };
 
   # Appearance, kept declarative. Cursor/icon themes are pinned because the
@@ -230,6 +260,11 @@ in
         font-antialiasing = "grayscale";
         font-hinting = "slight";
         text-scaling-factor = 1.05;
+      };
+
+      "org/gnome/shell/extensions/Bluetooth-Battery-Meter" = {
+        enable-battery-level-text = true;
+        enable-upower-level-icon = true;
       };
 
       "org/gnome/desktop/background" = wallpaper // {
@@ -317,9 +352,4 @@ in
         sensors-header-sensor2-show = false;
       };
     };
-
-  # Replace an older manually started daemon so declarative overrides are
-  # effective without rewriting Vicinae's mutable settings.json.
-  systemd.user.services.vicinae.Service.ExecStart =
-    lib.mkForce "${lib.getExe vicinaePackage} server --replace";
 }

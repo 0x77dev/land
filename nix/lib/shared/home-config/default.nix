@@ -26,6 +26,7 @@ _:
     gnome.enable = lib.mkDefault false;
     git.enable = lib.mkDefault true;
     ide.enable = lib.mkDefault false;
+    manufacturing.enable = lib.mkDefault false;
     media.enable = lib.mkDefault false;
     mobile.enable = lib.mkDefault false;
     network.enable = lib.mkDefault false;

@@ -17,6 +17,7 @@ _final: _prev: {
     nixd
     talosctl
     nix-output-monitor
+    ollama
     wlx-overlay-s
     alvr
     monado

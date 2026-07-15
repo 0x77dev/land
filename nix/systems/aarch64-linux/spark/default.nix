@@ -7,6 +7,21 @@
 }:
 let
   muscle = lib.${namespace}.shared.builders.muscle;
+  system = pkgs.stdenv.hostPlatform.system;
+
+  # Keep the CUDA-enabled Python stack on one nixpkgs revision. Mixing stable
+  # Python package expressions with the unstable CUDA scope crosses renamed
+  # package attributes and produces evaluation warnings.
+  kokoroPkgs = import inputs.unstable {
+    inherit system;
+    config = {
+      inherit (pkgs.config)
+        allowUnfree
+        cudaCapabilities
+        cudaSupport
+        ;
+    };
+  };
 
   # Voice stack for vasyl (see ../vasyl): both ends serve OpenAI-compatible
   # one-shot endpoints — bound to all interfaces (LAN + Tailnet + the VM tap
@@ -35,7 +50,7 @@ let
   # the global cudaSupport/cudaCapabilities (see the dgx-spark module). The
   # from-source torch build is huge — it rides the muscle build offload
   # enabled under `nix` below instead of the Grace cores.
-  kokoroPython = pkgs.python3.withPackages (ps: [
+  kokoroPython = kokoroPkgs.python3.withPackages (ps: [
     ps.kokoro
     ps.fastapi
     ps.uvicorn
