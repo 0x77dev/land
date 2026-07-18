@@ -5,6 +5,15 @@
   namespace,
   ...
 }:
+let
+  aarch64Emulator = (lib.systems.elaborate { system = "aarch64-linux"; }).emulator pkgs;
+  aarch64BinfmtName = "qemu-aarch64-binfmt-P";
+  aarch64Binfmt = pkgs.wrapQemuBinfmtP aarch64BinfmtName aarch64Emulator;
+  aarch64BinfmtWrapper = pkgs.writeShellScriptBin aarch64BinfmtName ''
+    export QEMU_CPU=max,sve=off
+    exec ${aarch64Binfmt}/bin/${aarch64BinfmtName} "$@"
+  '';
+in
 {
   imports = [
     ./fde.nix
@@ -80,7 +89,16 @@
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
     # Expose arm64 Linux builds to Darwin clients through NixOS binfmt support.
-    binfmt.emulatedSystems = [ "aarch64-linux" ];
+    # Disable SVE so JITs do not select QEMU user-mode paths that can emit
+    # SIGILL (notably Node/V8 while building esbuild-wasm).
+    binfmt = {
+      emulatedSystems = [ "aarch64-linux" ];
+      registrations.aarch64-linux = {
+        interpreter = "${aarch64BinfmtWrapper}/bin/${aarch64BinfmtName}";
+        interpreterSandboxPath = toString aarch64BinfmtWrapper;
+        wrapInterpreterInShell = false;
+      };
+    };
   };
 
   hardware = {
@@ -271,6 +289,11 @@
   };
 
   services = {
+    cloudflare-warp = {
+      enable = true;
+      openFirewall = false;
+    };
+
     # GNOME and the Bluetooth Battery Meter consume peripheral batteries from
     # UPower, including Logitech HID++ devices exposed by the kernel driver.
     upower.enable = lib.mkForce true;

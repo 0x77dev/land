@@ -31,8 +31,14 @@ in
         experimental.openTelemetry = false;
         permission.skill."*" = "allow";
 
-        model = "openai/gpt-5.5";
-        small_model = "openai/gpt-5.4-mini";
+        model = "openai/gpt-5.6-sol";
+        small_model = "openai/gpt-5.6-luna";
+
+        provider.openai.models."gpt-5.6-sol".options = {
+          reasoningEffort = "medium";
+          serviceTier = "priority";
+        };
+        provider.openai.models."gpt-5.6-luna".options.reasoningEffort = "low";
       };
 
       context = ''

@@ -1,10 +1,10 @@
 # YubiKey PAM operations
 
 `muscle` accepts a registered YubiKey as an alternative to the local password
-for GDM login, screen unlock, and `sudo`. Authentication requires the FIDO2 PIN
-but not a touch. PAM checks silently for a registered authenticator and prompts
-for its PIN; if authentication is unavailable or fails, the normal password
-prompt remains available.
+for GDM login, screen unlock, `sudo`, and polkit-backed desktop authorization.
+Authentication requires the FIDO2 PIN but not a touch. PAM checks silently for
+a registered authenticator and prompts for its PIN; if authentication is
+unavailable or fails, the normal password prompt remains available.
 
 The credential mapping is host-local and must not be committed. PAM reads it as
 root from `/etc/u2f-mappings` using the host-specific relying-party ID
@@ -63,11 +63,14 @@ Test both branches before closing the root shell:
 sudo -k
 sudo true
 sudo -k
+pkexec /run/current-system/sw/bin/true
 ```
 
-The first run should accept the FIDO2 PIN without requiring a touch. For the
-second run, remove the YubiKey and verify that the account password succeeds.
-Then lock the GNOME session and test both paths there.
+The first `sudo` run should accept the FIDO2 PIN without requiring a touch. For
+the second run, remove the YubiKey and verify that the account password
+succeeds. Reinsert the key and verify that `pkexec` accepts its PIN, then remove
+it and repeat `pkexec` to test the password fallback. Finally, lock the GNOME
+session and test both paths there.
 
 GNOME Keyring remains password-encrypted. Password login supplies the account
 password to `pam_gnome_keyring` and unlocks the Login keyring automatically.

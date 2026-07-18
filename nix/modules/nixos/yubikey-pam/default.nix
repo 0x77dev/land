@@ -10,7 +10,7 @@ let
 in
 {
   options.modules.yubikey-pam = {
-    enable = lib.mkEnableOption "YubiKey FIDO2 authentication for GDM and sudo";
+    enable = lib.mkEnableOption "YubiKey FIDO2 authentication for login and privilege elevation";
 
     authFile = lib.mkOption {
       type = lib.types.str;
@@ -49,11 +49,28 @@ in
           control = "sufficient";
         };
 
+        # Polkit agents use this stack for pkexec and desktop authorization.
+        "polkit-1".u2f = {
+          enable = true;
+          control = "sufficient";
+        };
+
         sudo.u2f = {
           enable = true;
           control = "sufficient";
         };
       };
+    };
+
+    # The upstream helper is isolated from hidraw devices. nixpkgs relaxes
+    # this sandbox only for the global U2F switch, while this module enables
+    # U2F on selected PAM services instead.
+    systemd.services."polkit-agent-helper@".serviceConfig = {
+      PrivateDevices = false;
+      DeviceAllow = [
+        "/dev/urandom r"
+        "char-hidraw rw"
+      ];
     };
 
     services.gnome.gnome-keyring.enable = true;

@@ -63,7 +63,7 @@ in
     {
       assertion =
         voxtypePackage.upstreamVersion == "0.7.5"
-        && voxtypePackage.sourceRevision == "31b7f38c4e22c4ce75d6350945729e5db001cb9a";
+        && voxtypePackage.sourceRevision == "86666ab9ee681eb3d1e80ef1826affd8e11107e5";
       message = "Voxtype source changed; re-audit the emitted config schema before updating this pin.";
     }
   ];

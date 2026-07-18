@@ -57,7 +57,7 @@ jobs:
           fi
           require_lock_only
 
-          nix flake check \
+          nix flake check path:. \
             --all-systems \
             --no-build \
             --no-write-lock-file \

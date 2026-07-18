@@ -202,8 +202,7 @@ nix flake check
 CI evaluates the complete flake and builds every package, shell, system, and
 home closure on a native GitHub-hosted runner. Flake inputs update through one
 validated pull request and use native auto-merge after required checks pass.
-CodeQL analyzes GitHub Actions and Python on every change, then OpenSSF
-Scorecard publishes default-branch results after CodeQL succeeds.
+GitHub-managed CodeQL analyzes the repository independently of the flake CI.
 
 Spelling is checked by
 [typos](https://github.com/crate-ci/typos) via the pre-commit hooks, with

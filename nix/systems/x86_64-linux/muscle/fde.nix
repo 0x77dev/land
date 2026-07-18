@@ -22,12 +22,29 @@
 #          --flake .#muscle root@muscle
 #      This runs `luksFormat --hw-opal` and takes OPAL ownership of the
 #      PM9A3 without exposing either secret through the Nix store.
-#   3. First boot: TPM-enroll the system volume (PCR 7 is stable):
-#        systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 \
+#   3. Boot the installed generation once so Lanzaboote creates its managed
+#      PCR policy, then replace any static TPM enrollment with that policy:
+#        systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto \
+#          --tpm2-pcrlock=/var/lib/systemd/pcrlock.json \
 #          /dev/disk/by-id/nvme-SAMSUNG_MZQL27T6HBLA-00A07_S6CKNN0X600716-part2
+#      Keep the recovery passphrase: it is required if the TPM or measured
+#      boot policy is unavailable.
 _: {
   # systemd in the initrd: required for TPM2 LUKS unlock.
   boot.initrd.systemd.enable = true;
+
+  # Authorize the signed Linux boot generations through systemd-pcrlock's
+  # managed PCR 4 policy. Do not bind to PCR 7: Windows/firmware Secure Boot
+  # db/dbx updates legitimately change it and strand a static LUKS enrollment.
+  # Lanzaboote updates this policy as generations are installed, so kernel and
+  # initrd updates do not require re-enrollment.
+  boot.lanzaboote = {
+    configurationLimit = 8;
+    measuredBoot = {
+      enable = true;
+      pcrs = [ 4 ];
+    };
+  };
 
   # Btrfs upkeep: monthly scrub for checksummed self-healing, weekly TRIM.
   services.btrfs.autoScrub = {

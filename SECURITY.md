@@ -16,7 +16,5 @@ channel is established.
 
 ## Automation
 
-GitHub secret scanning, Dependabot security updates, CodeQL, OpenSSF Scorecard,
-and Nix closure vulnerability scans run from GitHub Actions. CI failure events are
-sent through an HMAC-signed Hermes webhook whose URL and secret live only in
-GitHub Actions secrets.
+GitHub secret scanning, Dependabot security updates, and GitHub-managed CodeQL
+run alongside the flake CI.
