@@ -79,10 +79,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Hermes owns both its official package and NixOS service module.
     hermes-agent = {
       url = "github:NousResearch/hermes-agent";
       inputs.nixpkgs.follows = "unstable";
     };
+
+    # Centrally maintained, daily-updated AI agent packages. Keep its pinned
+    # nixpkgs so Numtide's binary cache remains usable on our stable channel.
+    llm-agents.url = "github:numtide/llm-agents.nix";
 
     nixos-raspberrypi = {
       url = "github:nvmd/nixos-raspberrypi/main";
@@ -109,6 +114,7 @@
       "https://cache.nixos.org"
       "https://land.cachix.org"
       "https://nix-community.cachix.org"
+      "https://cache.numtide.com"
       "https://nixos-raspberrypi.cachix.org"
       "https://vicinae.cachix.org"
     ];
@@ -116,6 +122,7 @@
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "land.cachix.org-1:9KPti8Xi0UJ7eQof7b8VUzSYU5piFy6WVQ8MDTLOqEA="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
       "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
     ];
@@ -162,6 +169,197 @@
         };
       };
 
+      muscleLocalSystem = {
+        system = "x86_64-linux";
+        gcc = {
+          arch = "znver4";
+          tune = "znver4";
+        };
+      };
+
+      # localSystem covers Nixpkgs' C-family compiler wrappers. Extend the same
+      # host boundary to standard Rust and Go builders without overriding an
+      # explicit package target.
+      muscleNativeOverlay =
+        _final: prev:
+        let
+          inherit (inputs.nixpkgs) lib;
+          isNativeHost =
+            prev.stdenv.hostPlatform.system == "x86_64-linux"
+            && (prev.stdenv.hostPlatform.gcc.arch or null) == "znver4";
+          mapBuilderArgs =
+            transform: args:
+            if builtins.isFunction args then finalAttrs: transform (args finalAttrs) else transform args;
+          # Nixpkgs builders are callable attribute sets. Preserve their
+          # `.override` interface because CUDA and other package families replace
+          # builder dependencies such as stdenv before invoking them.
+          wrapBuilder =
+            transform: builder:
+            builder
+            // {
+              __functor = _self: args: builder (mapBuilderArgs transform args);
+              override = overrides: wrapBuilder transform (builder.override overrides);
+            };
+          addRustTarget =
+            args:
+            let
+              env = args.env or { };
+              nixRustFlags = toString (env.NIX_RUSTFLAGS or "");
+              maySetTarget = !(env ? RUSTFLAGS) && !(args ? RUSTFLAGS) && !(args ? NIX_RUSTFLAGS);
+            in
+            args
+            // {
+              env =
+                env
+                // lib.optionalAttrs maySetTarget {
+                  NIX_RUSTFLAGS =
+                    nixRustFlags + lib.optionalString (!lib.hasInfix "target-cpu" nixRustFlags) " -C target-cpu=znver4";
+                };
+            };
+          addGoTarget =
+            args:
+            let
+              env = args.env or { };
+            in
+            args
+            // {
+              env = env // lib.optionalAttrs (!(env ? GOAMD64) && !(args ? GOAMD64)) { GOAMD64 = "v4"; };
+            };
+        in
+        lib.optionalAttrs isNativeHost {
+          rustPlatform = prev.rustPlatform // {
+            buildRustPackage = wrapBuilder addRustTarget prev.rustPlatform.buildRustPackage;
+          };
+          buildGoModule = wrapBuilder addGoTarget prev.buildGoModule;
+        };
+
+      # Compatibility policy is separate from channel promotion. Every excluded
+      # package stays on the exact primary Nixpkgs revision; no failure silently
+      # changes its channel or version.
+      muscleCompatibilityOverlay =
+        _final: prev:
+        let
+          inherit (inputs.nixpkgs) lib;
+          isNativeHost =
+            prev.stdenv.hostPlatform.system == "x86_64-linux"
+            && (prev.stdenv.hostPlatform.gcc.arch or null) == "znver4";
+          genericPrimary = inputs.nixpkgs.legacyPackages.x86_64-linux;
+          # Keep Python packages in one coherent package set while excluding only
+          # their own C/Rust objects, avoiding duplicate module closures.
+          withoutNativeCodegen =
+            package:
+            package.overrideAttrs (old: {
+              env = (old.env or { }) // {
+                NIX_CFLAGS_COMPILE = toString (old.env.NIX_CFLAGS_COMPILE or "") + " -march=x86-64 -mtune=generic";
+                NIX_RUSTFLAGS = toString (old.env.NIX_RUSTFLAGS or "") + " -C target-cpu=x86-64";
+              };
+            });
+        in
+        lib.optionalAttrs isNativeHost {
+          # SciPy's native objects produce architecture-dependent optimizer,
+          # signal, and finite-difference results; only one scalar/vector
+          # comparison then needs its mathematically realistic 1e-12 tolerance.
+          # Cryptography's 4 TiB Argon2 failure test assumes Linux rejects virtual
+          # allocation, but permissive overcommit can OOM-kill the worker instead.
+          # Bound its address space so the MemoryError path remains tested. No
+          # test is skipped.
+          pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+            (
+              _pythonFinal: pythonPrev:
+              lib.optionalAttrs (pythonPrev.python.pythonVersion == "3.13") {
+                cryptography = pythonPrev.cryptography.overrideAttrs (old: {
+                  postPatch = (old.postPatch or "") + ''
+                    substituteInPlace tests/hazmat/primitives/test_argon2.py \
+                      --replace-fail $'import os\nimport sys' $'import os\nimport resource\nimport sys' \
+                      --replace-fail $'        with pytest.raises(MemoryError):\n            argon2.derive(b"password")' \
+                        $'        old_limit = resource.getrlimit(resource.RLIMIT_AS)\n        soft_limit = 1 << 40 if old_limit[0] == resource.RLIM_INFINITY else min(1 << 40, old_limit[0])\n        resource.setrlimit(resource.RLIMIT_AS, (soft_limit, old_limit[1]))\n        try:\n            with pytest.raises(MemoryError):\n                argon2.derive(b"password")\n        finally:\n            resource.setrlimit(resource.RLIMIT_AS, old_limit)'
+                  '';
+                });
+                scipy = (withoutNativeCodegen pythonPrev.scipy).overrideAttrs (old: {
+                  postPatch = (old.postPatch or "") + ''
+                    substituteInPlace scipy/differentiate/tests/test_differentiate.py \
+                      --replace-fail "xp_assert_close(res.df[i, :], ref.df, rtol=1e-14)" \
+                      "xp_assert_close(res.df[i, :], ref.df, rtol=1e-12)"
+                  '';
+                });
+              }
+            )
+          ];
+
+          # Cryptonite's Ed448 KAT fails under host code generation. Keep the
+          # signed-cache client closure from generic primary Nixpkgs.
+          inherit (genericPrimary) cachix;
+
+          # Runtime-dispatched libraries and architecture-neutral headers gain no
+          # useful installed payload from a host target. The generic closure also
+          # lets Valgrind execute a supported loader; consumers still compile the
+          # headers with the native package set.
+          inherit (genericPrimary)
+            openssl
+            rapidjson
+            simde
+            xsimd
+            ;
+
+          # These unchanged primary-channel recipes fail architecture-sensitive
+          # tests or diagnostics. Exclude their complete closures so tests and
+          # memory-safety diagnostics remain authoritative.
+          inherit (genericPrimary)
+            assimp
+            libtpms
+            openldap
+            swtpm
+            ;
+        };
+
+      # Snowfall preconstructs nixpkgs and injects it through `nixpkgs.pkgs`,
+      # which makes a host module's `nixpkgs.hostPlatform` ineffective. Muscle
+      # is the intentional package-set boundary: construct both stable and
+      # unstable with the same Zen 4 policy so promoted packages cannot bypass
+      # native compilation. Nix requires a gccarch-znver4-capable builder.
+      muscleNixosBuilder =
+        args:
+        let
+          channel = args.specialArgs.channel;
+          channelConfig = channel.config // {
+            allowUnfree = true;
+            cudaSupport = true;
+          };
+          muscleUnstablePkgs = import inputs.unstable {
+            localSystem = muscleLocalSystem;
+            overlays = [ muscleNativeOverlay ];
+            config = channelConfig;
+          };
+          musclePkgs = import channel.path {
+            localSystem = muscleLocalSystem;
+            overlays = [
+              (_final: prev: {
+                landNativeChannels = (prev.landNativeChannels or { }) // {
+                  unstable = muscleUnstablePkgs;
+                };
+              })
+              muscleNativeOverlay
+            ]
+            ++ channel.overlays
+            ++ [ muscleCompatibilityOverlay ];
+            config = channelConfig;
+          };
+        in
+        inputs.nixpkgs.lib.nixosSystem (
+          args
+          // {
+            specialArgs = args.specialArgs // {
+              format = "linux";
+            };
+            modules = args.modules ++ [
+              inputs.snowfall-lib.nixosModules.user
+              ({ lib, ... }: {
+                nixpkgs.pkgs = lib.mkForce musclePkgs;
+              })
+            ];
+          }
+        );
+
       # Generate base outputs
       baseOutputs = lib.mkFlake {
         inherit supportedSystems;
@@ -186,6 +384,12 @@
           nixos-raspberrypi.overlays.kernel-and-firmware
           nixos-raspberrypi.overlays.vendor-pkgs
           nix-cachyos-kernel.overlays.pinned
+          # Expose llm-agents' own pinned, cache-backed package set without
+          # rebuilding it against stable nixpkgs. The namespace also makes the
+          # package provenance explicit at every call site.
+          (final: _prev: {
+            llm-agents = llm-agents.packages.${final.stdenv.hostPlatform.system};
+          })
           # ariang's package-lock.json is v1 with a git URL for
           # angular-input-dropdown. npm ci in newer npm fails validating
           # sync. Wrap npm to substitute `npm ci` with `npm install`.
@@ -237,10 +441,13 @@
 
             # Vicinae's input-server wrapper (global hotkey capture) and
             # lanzaboote for UEFI Secure Boot with sbctl-managed keys.
-            muscle.modules = with inputs; [
-              vicinae.nixosModules.default
-              lanzaboote.nixosModules.lanzaboote
-            ];
+            muscle = {
+              builder = muscleNixosBuilder;
+              modules = with inputs; [
+                vicinae.nixosModules.default
+                lanzaboote.nixosModules.lanzaboote
+              ];
+            };
           };
         };
 
@@ -264,8 +471,66 @@
         )
       );
 
+      nativeOptimizationPolicyCheck =
+        let
+          muscle = baseOutputs.nixosConfigurations.muscle.pkgs;
+          ghost = baseOutputs.nixosConfigurations.ghost.pkgs;
+          generic = inputs.nixpkgs.legacyPackages.x86_64-linux;
+          inspectEnv =
+            package:
+            (package.overrideAttrs (old: {
+              passthru = (old.passthru or { }) // {
+                nativePolicyEnv = old.env or { };
+              };
+            })).nativePolicyEnv;
+          sameChannelExceptions = [
+            "assimp"
+            "cachix"
+            "libtpms"
+            "openldap"
+            "openssl"
+            "rapidjson"
+            "simde"
+            "swtpm"
+            "xsimd"
+          ];
+        in
+        assert lib.assertMsg (
+          muscle.stdenv.hostPlatform.gcc.arch == "znver4"
+          && muscle.landNativeChannels.unstable.stdenv.hostPlatform.gcc.arch == "znver4"
+        ) "Muscle's primary and unstable package sets must both target znver4";
+        assert lib.assertMsg (
+          (inspectEnv muscle.ripgrep).NIX_RUSTFLAGS == " -C target-cpu=znver4"
+          && (inspectEnv muscle.git-lfs).GOAMD64 == "v4"
+        ) "Muscle's standard Rust and Go builders must retain native targets";
+        assert lib.assertMsg (
+          !lib.hasInfix "znver4" (toString ((inspectEnv muscle.pkgsi686Linux.ripgrep).NIX_RUSTFLAGS or ""))
+          && ((inspectEnv muscle.pkgsi686Linux.git-lfs).GOAMD64 or null) != "v4"
+          && (muscle.pkgsi686Linux.stdenv.hostPlatform.gcc.arch or null) != "znver4"
+        ) "Muscle's native targets must not leak into the i686 package splice";
+        assert lib.assertMsg (
+          !(ghost ? landNativeChannels)
+          && (ghost.stdenv.hostPlatform.gcc.arch or null) != "znver4"
+          && ((inspectEnv ghost.ripgrep).NIX_RUSTFLAGS or null) == null
+          && ((inspectEnv ghost.git-lfs).GOAMD64 or null) == null
+        ) "Muscle's native targets must not leak into another x86_64 host";
+        assert lib.assertMsg (lib.all (
+          name: muscle.${name}.drvPath == generic.${name}.drvPath
+        ) sameChannelExceptions) "Native compatibility exceptions must stay on primary Nixpkgs";
+        assert lib.assertMsg (
+          muscle.cudaPackages.flags.cudaCapabilities == [ "8.9" ]
+          && (inspectEnv muscle.ollama-cuda).GOAMD64 == "v4"
+        ) "Muscle's CUDA and Ollama builds must target Ada and GOAMD64 v4";
+        generic.runCommand "native-optimization-policy" { } ''
+          touch "$out"
+        '';
+
+      nativePolicyChecks.x86_64-linux.native-optimization-policy = nativeOptimizationPolicyCheck;
+
       outputs = baseOutputs // {
-        checks = lib.recursiveUpdate (baseOutputs.checks or { }) namespacePackageChecks;
+        checks = lib.recursiveUpdate (baseOutputs.checks or { }) (
+          lib.recursiveUpdate namespacePackageChecks nativePolicyChecks
+        );
       };
 
       automation = outputs.lib.automation.mkOutputs { inherit outputs; };

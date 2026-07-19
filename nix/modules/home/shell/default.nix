@@ -101,7 +101,6 @@ in
       btop
       coreutils
       devenv
-      direnv
       eza
       fd
       ripgrep
@@ -113,11 +112,9 @@ in
       nvd
       nh
       nix-diff
-      starship
       tree
       watchexec
       yazi
-      zoxide
       httpie
       oha
       curl

@@ -147,22 +147,17 @@ in
         agent_servers = {
           claude-acp = {
             type = "custom";
-            command = lib.getExe pkgs.claude-agent-acp;
+            command = lib.getExe pkgs.llm-agents.claude-agent-acp;
             args = [ ];
           };
           codex-acp = {
             type = "custom";
-            command = lib.getExe pkgs.codex-acp;
+            command = lib.getExe pkgs.llm-agents.codex-acp;
             args = [ ];
-          };
-          cursor = {
-            type = "custom";
-            command = lib.getExe pkgs.cursor-cli;
-            args = [ "acp" ];
           };
           opencode = {
             type = "custom";
-            command = lib.getExe pkgs.opencode;
+            command = lib.getExe pkgs.llm-agents.opencode;
             args = [ "acp" ];
           };
         };
@@ -228,7 +223,7 @@ in
       userTasks = [
         {
           label = "Agent: Pi";
-          command = lib.getExe pkgs.pi-coding-agent;
+          command = lib.getExe pkgs.llm-agents.pi;
           cwd = "$ZED_WORKTREE_ROOT";
           use_new_terminal = true;
           allow_concurrent_runs = false;

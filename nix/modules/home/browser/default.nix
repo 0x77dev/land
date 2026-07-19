@@ -88,7 +88,7 @@ in
     extensions = mkOption {
       type = types.listOf (types.strMatching "[a-zA-Z]{32}");
       default = [ ];
-      example = [ "cjpalhdlnbpafiamejdnhcphjbkeiagm" ];
+      example = [ "hlepfoohegkhhmjieoechaddaejaokhf" ];
       description = "Extra Chrome Web Store extension IDs to force-install (Linux only).";
     };
   };

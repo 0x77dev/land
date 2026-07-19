@@ -72,16 +72,16 @@ let
 
     # Coding agents. These must be on both the system PATH and Hermes service
     # PATH so Vasyl can delegate from Matrix/API sessions without per-user npm
-    # installs or mutable ~/.local shims. Cursor ships two CLIs: `cursor` from
-    # the editor package and `cursor-agent`/`agent` from Cursor's agent bundle.
-    pkgs.aider-chat
-    pkgs.claude-code
+    # installs or mutable ~/.local shims. Every agent comes from Numtide's
+    # pinned, cache-backed package set; `code-cursor` is the editor, not an
+    # additional agent distribution.
     pkgs.code-cursor
-    codex
-    pkgs.land.cursor-agent
-    pkgs.gemini-cli
-    opencode
-    pkgs.qwen-code
+    pkgs.llm-agents.claude-code
+    pkgs.llm-agents.codex
+    pkgs.llm-agents.cursor-agent
+    pkgs.llm-agents.gemini-cli
+    pkgs.llm-agents.opencode
+    pkgs.llm-agents.qwen-code
 
     # Code search, diffs, and watch/bench/task runners. ast-grep (structural
     # search/rewrite) is agent-critical, so it is repeated here for the service

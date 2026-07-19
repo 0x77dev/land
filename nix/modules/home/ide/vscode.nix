@@ -339,7 +339,7 @@ in
               {
                 label = "Agent: Pi";
                 type = "process";
-                command = lib.getExe pkgs.pi-coding-agent;
+                command = lib.getExe pkgs.llm-agents.pi;
                 options.cwd = "\${workspaceFolder}";
                 problemMatcher = [ ];
                 presentation = {

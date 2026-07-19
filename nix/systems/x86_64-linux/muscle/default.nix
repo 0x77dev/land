@@ -114,7 +114,8 @@ in
       # Kernel-module driver must match the running kernel's ABI, so it is
       # pulled from `boot.kernelPackages` (the CachyOS kernel) rather than the
       # unstable overlay. Only NVIDIA userspace (CUDA, nvtop, container
-      # toolkit) is routed from unstable.
+      # toolkit) is routed from unstable. `stable` is the newest production
+      # branch; avoid the less mature `new_feature` branch on this workstation.
       package = config.boot.kernelPackages.nvidiaPackages.stable;
       nvidiaSettings = true;
       modesetting.enable = true;
@@ -143,13 +144,6 @@ in
 
   # Docker 29 uses the containerd image store by default.
   virtualisation.docker.enable = true;
-
-  nixpkgs.config = {
-    allowUnfree = true;
-    cudaSupport = true;
-    # Latest CUDA package set nixpkgs ships (default is 12.9).
-    cudaVersion = "13.3";
-  };
 
   qt = {
     enable = true;
@@ -263,6 +257,8 @@ in
         "-f" # fullscreen
         "--adaptive-sync"
         "--hdr-enabled"
+        "--expose-wayland" # let native Wayland games bypass Xwayland
+        "--force-grab-cursor" # keep the pointer inside the game across both displays
         "--mangoapp"
       ];
     };
@@ -273,9 +269,7 @@ in
     chromium = {
       enable = true;
       extensions = [
-        "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
         "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
-        "kcmipingpfbohfjckomimmahknoddnke" # Vicinae Integration
       ];
     };
 
@@ -580,6 +574,14 @@ in
       libgtop
       pciutils
 
+      # Current LLVM toolchain for interactive/native builds. Nixpkgs packages
+      # retain their package-tested stdenv compiler; the kernel already uses
+      # Clang ThinLTO, while globally replacing stdenv is unsupported and can
+      # regress or break packages without delivering a universal speedup.
+      llvmPackages_latest.clang
+      llvmPackages_latest.lld
+      mold
+
       # CUDA
       cudatoolkit
       cudaPackages.libcufile
@@ -618,6 +620,16 @@ in
     variables = {
       CUDA_PATH = "${pkgs.cudatoolkit}";
       GI_TYPELIB_PATH = "/run/current-system/sw/lib/girepository-1.0";
+
+      # Native project builds outside Nix derivations. CMake, Meson, Autotools,
+      # Python/Ruby extensions, and Node native addons consume CFLAGS/CXXFLAGS;
+      # Cargo and Go need their own architecture selectors.
+      CFLAGS = "-march=znver4 -mtune=znver4";
+      CXXFLAGS = "-march=znver4 -mtune=znver4";
+      FFLAGS = "-march=znver4 -mtune=znver4";
+      FCFLAGS = "-march=znver4 -mtune=znver4";
+      RUSTFLAGS = "-C target-cpu=znver4";
+      GOAMD64 = "v4";
     };
   };
 
@@ -636,9 +648,21 @@ in
     buildMachines = lib.mkForce [ ];
     distributedBuilds = lib.mkForce false;
     settings = {
+      # Balance many small derivations with parallel native builds across the
+      # 7985WX's 64 physical cores, without letting 128 jobs each claim every
+      # thread. Higher substitute concurrency keeps the CPU fed during large
+      # hardware-specific rebuilds that miss the generic binary cache.
+      max-jobs = lib.mkForce 32;
+      cores = lib.mkForce 4;
+      max-substitution-jobs = 32;
+      http-connections = 64;
+      download-buffer-size = 67108864; # 64 MiB per download
+      narinfo-cache-negative-ttl = lib.mkForce 3600;
+
       system-features = [
         "benchmark"
         "big-parallel"
+        "gccarch-znver4"
         "kvm"
         "nixos-test"
       ];

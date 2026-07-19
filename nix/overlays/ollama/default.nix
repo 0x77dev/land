@@ -1,10 +1,22 @@
 { channels, ... }:
-final: _prev:
+final: prev:
 let
+  isZnver4 =
+    prev.stdenv.hostPlatform.system == "x86_64-linux"
+    && (prev.stdenv.hostPlatform.gcc.arch or null) == "znver4";
+  unstable =
+    if isZnver4 && prev ? landNativeChannels then
+      prev.landNativeChannels.unstable
+    else
+      channels.unstable;
+
   # Mirror nixpkgs' selectable acceleration variants while preserving this
-  # overlay's stable package names. (`ignoreCollisions = true` is obsolete:
-  # upstream now sets it on the CUDA package set's `cudaToolkit` buildEnv itself.)
-  mkOllama = acceleration: channels.unstable.ollama.override { inherit acceleration; };
+  # overlay's stable package names. Muscle's znver4 package set also selects the
+  # sm_89 package variant so Ollama embeds only native RTX 6000 Ada device code.
+  # (`ignoreCollisions = true` is obsolete: upstream now sets it on the CUDA
+  # package set's `cudaToolkit` buildEnv itself.)
+  ollamaBase = if isZnver4 then unstable.pkgsForCudaArch.sm_89.ollama else unstable.ollama;
+  mkOllama = acceleration: ollamaBase.override { inherit acceleration; };
 
   # Qwen3.6 can emit malformed/empty tool-call envelopes that make Ollama 0.24
   # return HTTP 500s (ollama/ollama#16383). Carry the unmerged parser fix once

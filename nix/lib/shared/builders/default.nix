@@ -7,7 +7,7 @@ let
   # Plain form for `programs.ssh.knownHosts`.
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMA3wX5kRJoNtxY+pr2ccN7YerSEPvJ/5cK7zdQ2Wppv";
   # Base64 form for `nix.buildMachines.*.publicHostKey`.
-  publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1BM3dYNWtSSm9OdHhZK3ByMmNjTjdZZXJTRVB2Si81Y0s3emRRMldwcHYK";
+  publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1BM3dYNWtSSm9OdHhZK3ByMmNjTjdZZXJTRVB2Si81Y0s3emRRMldwcHYK"; # gitleaks:allow -- public SSH host key
 in
 {
   muscle = {

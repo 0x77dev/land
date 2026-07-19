@@ -21,6 +21,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.opencode = {
       enable = true;
+      package = pkgs.llm-agents.opencode;
 
       settings = {
         disabled_providers = [ "opencode" ];

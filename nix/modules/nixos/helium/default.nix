@@ -16,6 +16,15 @@ let
     "dppgmdbiimibapkepcbdbmkaabgiofem"
   ];
 
+  # Helium ships uBlock Origin as a component extension; forcing the Web Store
+  # copy through Chromium policy would create a second, conflicting instance.
+  ublockOriginExtensionId = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
+
+  # https://github.com/refined-github/refined-github#install
+  refinedGitHubExtensionId = "hlepfoohegkhhmjieoechaddaejaokhf";
+  # https://chromewebstore.google.com/detail/superhuman-mail/dcgcnpooblobhncpnddnhoendgbnglpn
+  superhumanExtensionId = "dcgcnpooblobhncpnddnhoendgbnglpn";
+  # Linux-only: its native-messaging host is supplied by the Vicinae package.
   # https://chromewebstore.google.com/detail/vicinae-integration/kcmipingpfbohfjckomimmahknoddnke
   vicinaeExtensionId = "kcmipingpfbohfjckomimmahknoddnke";
 
@@ -85,7 +94,21 @@ in
   config = mkIf cfg.enable (mkMerge [
     {
       environment.systemPackages = [ cfg.package ];
-      programs.chromium.enable = mkIf cfg.pairChromium (mkDefault true);
+      programs.chromium = mkIf cfg.pairChromium {
+        enable = mkDefault true;
+        extensions = [
+          refinedGitHubExtensionId
+          superhumanExtensionId
+        ]
+        ++ optional (cfg.vicinaePackage != null) vicinaeExtensionId;
+      };
+
+      assertions = [
+        {
+          assertion = !cfg.pairChromium || !elem ublockOriginExtensionId config.programs.chromium.extensions;
+          message = "Helium bundles uBlock Origin; do not force-install the duplicate Chromium extension.";
+        }
+      ];
     }
 
     (mkIf (cfg.enable1PasswordIntegration && config.programs._1password-gui.enable) {

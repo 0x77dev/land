@@ -120,7 +120,6 @@
     chromium = {
       enable = true;
       extensions = [
-        "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
         "aeblfdkhhhdcdjpifhhbdiojplfjncoa" # 1Password
       ];
     };

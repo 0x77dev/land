@@ -18,11 +18,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [
+    home.packages = with pkgs.llm-agents; [
       claude-code
       codex
-      cursor-cli
-      pi-coding-agent
+      cursor-agent
+      pi
     ];
 
     home.sessionVariables = {
