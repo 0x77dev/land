@@ -40,6 +40,16 @@ in
   networking = {
     hostName = "potato";
     domain = "0x77.computer";
+
+    # Keep automatic exceptions for Apple software while requiring explicit
+    # approval before downloaded applications can accept inbound traffic.
+    applicationFirewall = {
+      enable = true;
+      enableStealthMode = true;
+      blockAllIncoming = false;
+      allowSigned = true;
+      allowSignedApp = false;
+    };
   };
 
   snowfallorg.users.${userName} = {

@@ -54,6 +54,9 @@ in
       # Some games need split lock detection disabled
       "split_lock_detect=off"
       "amd-pstate=active"
+      # Avoid background compaction stalls on a mixed desktop/HPC workload;
+      # runtimes that benefit from THP can request it explicitly with madvise.
+      "transparent_hugepage=madvise"
       # Run IRQ handlers as threads so rtkit-boosted audio threads can
       # preempt them — near-RT audio without a PREEMPT_RT kernel.
       "threadirqs"
@@ -76,8 +79,9 @@ in
     kernel.sysctl = {
       # Memory management
       "vm.swappiness" = 10;
-      "vm.overcommit_memory" = 1;
-      "vm.overcommit_ratio" = 100;
+      # Use Linux's heuristic overcommit instead of promising arbitrary virtual
+      # allocations that can later force unrelated desktop processes to OOM.
+      "vm.overcommit_memory" = 0;
       "vm.max_map_count" = 2147483642;
       # le9uo: prevent page thrashing under memory pressure
       "vm.anon_min_ratio" = 15;
@@ -283,6 +287,10 @@ in
   };
 
   services = {
+    # Balance the GPU, NVMe, and 100 GbE interrupt queues across this host's
+    # 128 logical CPUs instead of allowing a few CPUs to become hotspots.
+    irqbalance.enable = true;
+
     cloudflare-warp = {
       enable = true;
       openFirewall = false;
@@ -438,23 +446,39 @@ in
     ];
   };
 
-  systemd.sleep.settings.Sleep = {
-    AllowSuspend = "no";
-    AllowHibernation = "no";
-    AllowSuspendThenHibernate = "no";
-    AllowHybridSleep = "no";
-  };
+  systemd = {
+    # Nix builds may consume idle capacity, but yield CPU and storage bandwidth
+    # to the desktop and experiments whenever they contend.
+    services.nix-daemon.serviceConfig = {
+      CPUWeight = 20;
+      IOWeight = 20;
+    };
 
-  # Belt and suspenders: mask every sleep target and make logind ignore all
-  # sleep/power/lid requests. Locking or powering off the displays must not
-  # stop user processes or their systemd user manager. GNOME independently
-  # has idle-delay=0 and every inactive-sleep action set to "nothing".
-  systemd.targets = {
-    sleep.enable = false;
-    suspend.enable = false;
-    hibernate.enable = false;
-    hybrid-sleep.enable = false;
-    suspend-then-hibernate.enable = false;
+    # Monitor user-session cgroups so systemd-oomd can contain a memory-pressure
+    # event before the kernel indiscriminately kills unrelated system services.
+    oomd = {
+      enable = true;
+      enableUserSlices = true;
+    };
+
+    sleep.settings.Sleep = {
+      AllowSuspend = "no";
+      AllowHibernation = "no";
+      AllowSuspendThenHibernate = "no";
+      AllowHybridSleep = "no";
+    };
+
+    # Belt and suspenders: mask every sleep target and make logind ignore all
+    # sleep/power/lid requests. Locking or powering off the displays must not
+    # stop user processes or their systemd user manager. GNOME independently
+    # has idle-delay=0 and every inactive-sleep action set to "nothing".
+    targets = {
+      sleep.enable = false;
+      suspend.enable = false;
+      hibernate.enable = false;
+      hybrid-sleep.enable = false;
+      suspend-then-hibernate.enable = false;
+    };
   };
   services.logind.settings.Login = {
     IdleAction = "ignore";
@@ -563,6 +587,11 @@ in
     gnome.excludePackages = with pkgs; [
       yelp
       epiphany # Helium is the default browser
+      # Ghostty is the only graphical terminal. Exclude both the current GNOME
+      # Console and its predecessor so GNOME package-set changes cannot restore
+      # a competing terminal in a future upgrade.
+      gnome-console
+      gnome-terminal
     ];
 
     systemPackages = with pkgs; [
@@ -574,10 +603,9 @@ in
       libgtop
       pciutils
 
-      # Current LLVM toolchain for interactive/native builds. Nixpkgs packages
-      # retain their package-tested stdenv compiler; the kernel already uses
-      # Clang ThinLTO, while globally replacing stdenv is unsupported and can
-      # regress or break packages without delivering a universal speedup.
+      # Current LLVM toolchain for interactive builds. Nixpkgs packages retain
+      # their package-tested stdenv compiler; globally replacing stdenv is
+      # unsupported and can regress or break packages.
       llvmPackages_latest.clang
       llvmPackages_latest.lld
       mold
@@ -620,49 +648,79 @@ in
     variables = {
       CUDA_PATH = "${pkgs.cudatoolkit}";
       GI_TYPELIB_PATH = "/run/current-system/sw/lib/girepository-1.0";
-
-      # Native project builds outside Nix derivations. CMake, Meson, Autotools,
-      # Python/Ruby extensions, and Node native addons consume CFLAGS/CXXFLAGS;
-      # Cargo and Go need their own architecture selectors.
-      CFLAGS = "-march=znver4 -mtune=znver4";
-      CXXFLAGS = "-march=znver4 -mtune=znver4";
-      FFLAGS = "-march=znver4 -mtune=znver4";
-      FCFLAGS = "-march=znver4 -mtune=znver4";
-      RUSTFLAGS = "-C target-cpu=znver4";
-      GOAMD64 = "v4";
     };
   };
 
-  networking.firewall.enable = false;
+  # Default-deny inbound traffic. KDE Connect discovery/data ports are exposed
+  # only on physical LAN interfaces, never on Tailscale, Docker, or future WAN
+  # links. Ollama's LAN API is similarly limited to the wired workstation LAN.
+  networking.firewall = {
+    enable = true;
+    interfaces = {
+      eno1np0 = {
+        allowedTCPPorts = [ 11434 ];
+        allowedTCPPortRanges = [
+          {
+            from = 1714;
+            to = 1764;
+          }
+        ];
+        allowedUDPPortRanges = [
+          {
+            from = 1714;
+            to = 1764;
+          }
+        ];
+      };
+      wlp226s0 = {
+        allowedTCPPortRanges = [
+          {
+            from = 1714;
+            to = 1764;
+          }
+        ];
+        allowedUDPPortRanges = [
+          {
+            from = 1714;
+            to = 1764;
+          }
+        ];
+      };
+    };
+  };
 
-  # Set Helium as default browser (system-wide)
-  xdg.mime.defaultApplications = {
-    "text/html" = "helium.desktop";
-    "x-scheme-handler/http" = "helium.desktop";
-    "x-scheme-handler/https" = "helium.desktop";
-    "x-scheme-handler/about" = "helium.desktop";
-    "x-scheme-handler/unknown" = "helium.desktop";
+  xdg = {
+    # Install the freedesktop terminal launcher used by modern GNOME and make
+    # every desktop-specific and generic request resolve exclusively to Ghostty.
+    terminal-exec = {
+      enable = true;
+      settings = {
+        default = [ "com.mitchellh.ghostty.desktop" ];
+        GNOME = [ "com.mitchellh.ghostty.desktop" ];
+      };
+    };
+
+    # Set Helium as default browser (system-wide).
+    mime.defaultApplications = {
+      "text/html" = "helium.desktop";
+      "x-scheme-handler/http" = "helium.desktop";
+      "x-scheme-handler/https" = "helium.desktop";
+      "x-scheme-handler/about" = "helium.desktop";
+      "x-scheme-handler/unknown" = "helium.desktop";
+    };
   };
 
   nix = {
     buildMachines = lib.mkForce [ ];
     distributedBuilds = lib.mkForce false;
     settings = {
-      # Balance many small derivations with parallel native builds across the
-      # 7985WX's 64 physical cores, without letting 128 jobs each claim every
-      # thread. Higher substitute concurrency keeps the CPU fed during large
-      # hardware-specific rebuilds that miss the generic binary cache.
-      max-jobs = lib.mkForce 32;
-      cores = lib.mkForce 4;
-      max-substitution-jobs = 32;
-      http-connections = 64;
-      download-buffer-size = 67108864; # 64 MiB per download
-      narinfo-cache-negative-ttl = lib.mkForce 3600;
-
+      # Bound local builds to half the logical CPUs. Eight concurrent builds
+      # still provide throughput while preserving capacity for active workloads.
+      max-jobs = lib.mkForce 8;
+      cores = lib.mkForce 8;
       system-features = [
         "benchmark"
         "big-parallel"
-        "gccarch-znver4"
         "kvm"
         "nixos-test"
       ];

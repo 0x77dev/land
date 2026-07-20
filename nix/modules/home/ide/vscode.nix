@@ -181,8 +181,8 @@ in
       assertions = [
         {
           assertion =
-            lib.versionAtLeast cursorVscodeVersion "1.105.0" && lib.versionOlder cursorVscodeVersion "1.106.0";
-          message = "Cursor extensions were validated for VS Code API 1.105.x; re-audit them for ${cursorVscodeVersion}.";
+            lib.versionAtLeast cursorVscodeVersion "1.121.0" && lib.versionOlder cursorVscodeVersion "1.122.0";
+          message = "Cursor extensions were validated for VS Code API 1.121.x; re-audit them for ${cursorVscodeVersion}.";
         }
       ];
 

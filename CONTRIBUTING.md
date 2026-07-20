@@ -60,10 +60,10 @@ via `pkgs.ghostty` without explicitly prefixing with a namespace.
 
 All NVIDIA userspace tooling (CUDA, `nvtopPackages`,
 `nvidia-container-toolkit`) is routed from unstable here. The same overlay
-pins `cudaPackages`/`cudatoolkit` to CUDA 12.9 as the shared toolkit version.
-Muscle's native package boundary selects the `sm_89` package variant for its
-Ada GPUs; other hosts retain their broader or host-specific capability policy.
-Kernel-matched `hardware.nvidia.package` drivers stay in the host configs.
+pins `cudaPackages`/`cudatoolkit` to a single CUDA version (`cudaPackages_12_9`)
+as the single source of truth, so every host stays on the same toolkit. Per-GPU
+`cudaCapabilities` and the kernel-matched `hardware.nvidia.package` driver stay
+in the host configs.
 
 ### Custom Overlays
 

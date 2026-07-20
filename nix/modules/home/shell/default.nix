@@ -23,7 +23,6 @@ let
   commonPaths = unique (
     [
       "$HOME/go/bin"
-      "$HOME/.bun/bin"
       "$HOME/.local/bin"
       "${config.home.homeDirectory}/.local/share/pnpm"
       "/run/current-system/sw/bin"
@@ -118,7 +117,6 @@ in
       httpie
       oha
       curl
-      bun
       nodejs_24
       pnpm
       fastfetch

@@ -17,7 +17,6 @@ let
   opencodeWebPath = lib.concatStringsSep ":" [
     "${config.home.profileDirectory}/bin"
     "${config.home.homeDirectory}/go/bin"
-    "${config.home.homeDirectory}/.bun/bin"
     "${config.home.homeDirectory}/.local/bin"
     "${config.home.homeDirectory}/.local/share/pnpm"
     "/run/current-system/sw/bin"

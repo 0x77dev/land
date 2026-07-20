@@ -11,8 +11,6 @@ and Snowfall Lib.
   YubiKey-backed FIDO2 authentication for login and privilege elevation.
 - Staged Cachix Deploy rollouts with host and Home Manager closures updated as
   one unit, plus CI checks derived automatically from discovered flake outputs.
-- Hardware-native builds for the Zen 4 Threadripper workstation, with explicit
-  Rust, Go, CUDA, and C-family targets and cache-backed portability exceptions.
 - NVIDIA compute across dual RTX 6000 Ada GPUs and the DGX Spark GB10, including
   CUDA, containers, GPUDirect Storage, and shared Ollama model policy.
 - A dedicated Hermes Agent microVM with controlled secrets, model routing,

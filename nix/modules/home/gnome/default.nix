@@ -47,8 +47,8 @@ in
     # FancyZones-style per-monitor custom layouts.
     home.packages = [ pkgs.gnomeExtensions.tiling-shell ];
 
-    # Ghostty is the terminal: TERMINAL for launchers/scripts that honor it.
-    home.sessionVariables.TERMINAL = "ghostty";
+    # Use the managed package path rather than relying on an ambient PATH.
+    home.sessionVariables.TERMINAL = lib.getExe config.programs.ghostty.package;
 
     # Superhuman as a proper desktop app: Helium app-mode window, and the
     # system default mail client.
@@ -144,7 +144,8 @@ in
       };
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/terminal" = {
         name = "Terminal";
-        command = "ghostty";
+        # gsd does not launch through the login shell, so use the package path.
+        command = lib.getExe config.programs.ghostty.package;
         binding = "<Control><Alt>t";
       };
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/voxtype" = {

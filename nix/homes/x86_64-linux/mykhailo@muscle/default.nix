@@ -9,6 +9,7 @@ let
   shared = lib.${namespace}.shared.home-config { inherit lib; };
   fonts = config.modules.home.fonts.presentation;
   batteryExtension = pkgs.gnomeExtensions.bluetooth-battery-meter;
+  kdeConnect = pkgs.kdePackages.kdeconnect-kde;
   cohereModel = pkgs.${namespace}.voxtype-model-cohere-fp16;
   vadModel = pkgs.${namespace}.voxtype-model-silero-vad;
   vicinaePackage = pkgs.${namespace}.vicinae;
@@ -63,7 +64,7 @@ in
     {
       assertion =
         voxtypePackage.upstreamVersion == "0.7.5"
-        && voxtypePackage.sourceRevision == "86666ab9ee681eb3d1e80ef1826affd8e11107e5";
+        && voxtypePackage.sourceRevision == "f97276661d9b723aa3236f03879650a2a06c3ec3";
       message = "Voxtype source changed; re-audit the emitted config schema before updating this pin.";
     }
   ];
@@ -215,8 +216,51 @@ in
     };
   };
 
+  # Home Manager owns package installation, graphical-session lifecycle, and
+  # the non-Plasma tray indicator. GNOME supplies the AppIndicator shell host
+  # and the system Qt policy supplies its Adwaita appearance.
+  services.kdeconnect = {
+    enable = true;
+    indicator = true;
+    package = kdeConnect;
+  };
+
   systemd.user.services = {
     voxtype.Service.Environment = "CUDA_VISIBLE_DEVICES=GPU-3b81ccee-ecb5-5617-58da-0ac7d35dd001";
+
+    # Add confinement to Home Manager's upstream units rather than maintaining
+    # parallel service definitions. File sharing still has normal home access.
+    kdeconnect.Service = {
+      Restart = lib.mkForce "on-failure";
+      RestartSec = 5;
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+      RestrictRealtime = true;
+      RestrictAddressFamilies = [
+        "AF_UNIX"
+        "AF_INET"
+        "AF_INET6"
+        "AF_NETLINK" # Qt monitors interface changes for LAN discovery.
+      ];
+      UMask = "0077";
+    };
+
+    kdeconnect-indicator.Service = {
+      Restart = lib.mkForce "on-failure";
+      RestartSec = 5;
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+      UMask = "0077";
+    };
 
     # Solaar must stay resident to restore Logitech settings after reconnects.
     # Keep its management tray icon, but let GNOME's battery extension own the
