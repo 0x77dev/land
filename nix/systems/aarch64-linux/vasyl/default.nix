@@ -216,16 +216,29 @@ in
 
     hermes-agent = {
       enable = true;
-      # Upstream input stays pinned; the ephemeral-fallback fix is overlaid as
-      # a single reviewable patch. Drop this overrideAttrs + the patch file
-      # once the fix lands upstream (NousResearch/hermes-agent). See
-      # patches/hermes-ephemeral-fallback.patch for rationale + test.
-      # Upstream renamed the `full` package output; `default` is the full build.
+      # Patch the Python module inside Hermes' sealed virtual environment.
+      # The top-level wrapper and virtualenv have no unpacked source after
+      # upstream 0.19.0, so materialize the target before applying the patch.
       package =
-        inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
-          (old: {
-            patches = (old.patches or [ ]) ++ [ ./patches/hermes-ephemeral-fallback.patch ];
+        let
+          upstream = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+          hermesVenv = upstream.hermesVenv.overrideAttrs (old: {
+            postFixup = (old.postFixup or "") + ''
+              target=$out/lib/python3.12/site-packages/hermes_cli/cli_agent_setup_mixin.py
+              patched=$(mktemp)
+              cp "$target" "$patched"
+              chmod u+w "$patched"
+              patch -d $(dirname "$patched") -p0 --input=${./patches/hermes-ephemeral-fallback.patch} "$patched"
+              rm "$target"
+              cp "$patched" "$target"
+            '';
           });
+        in
+        upstream.overrideAttrs (old: {
+          installPhase =
+            builtins.replaceStrings [ "${upstream.hermesVenv}" ] [ "${hermesVenv}" ]
+              old.installPhase;
+        });
 
       # `hermes` CLI on every PATH, sharing HERMES_HOME with the gateway. This
       # also makes config.yaml group-writable (0660) — the module's official
@@ -390,7 +403,7 @@ in
         # approval and delegation settings below.
         agent = {
           max_turns = 240;
-          reasoning_effort = "xhigh";
+          reasoning_effort = "medium";
           service_tier = "fast";
         };
         approvals = {
@@ -681,43 +694,6 @@ in
       }
     ];
 
-  # Hermes dashboard WebUI. It is deliberately NOT exposed through Tailscale
-  # Funnel: it binds on the VM so Hermes' non-loopback OAuth gate engages, and
-  # the NixOS firewall below admits the port only from the tailnet interface.
-  # The dashboard password is intentionally local-only: the dashboard is a
-  # tailnet control plane, not public ingress. hermes-secret-init below writes
-  # the basic-auth password once into ${hermesSecretEnv}; read it there instead
-  # of putting credentials in Nix. Missing auth config still makes Hermes fail
-  # closed instead of serving an unauthenticated control plane.
-  systemd.services.hermes-dashboard = {
-    description = "Hermes Agent dashboard WebUI";
-    after = [
-      "hermes-agent.service"
-      "hermes-secret-init.service"
-    ];
-    wants = [
-      "hermes-agent.service"
-      "hermes-secret-init.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-
-    environment = {
-      HERMES_HOME = "${config.services.hermes-agent.stateDir}/.hermes";
-      HOME = config.services.hermes-agent.stateDir;
-      HERMES_DASHBOARD_PORT = toString hermesDashboardPort;
-    };
-
-    serviceConfig = {
-      User = config.services.hermes-agent.user;
-      Group = config.services.hermes-agent.group;
-      WorkingDirectory = config.services.hermes-agent.workingDirectory;
-      EnvironmentFile = hermesSecretEnv;
-      ExecStart = "${lib.getExe config.services.hermes-agent.package} dashboard --host 0.0.0.0 --port ${toString hermesDashboardPort} --no-open --skip-build";
-      Restart = "on-failure";
-      RestartSec = "5s";
-    };
-  };
-
   # Tailnet-only dashboard ingress. Do not add this port to global
   # allowedTCPPorts: the dashboard is a control plane and must not be reachable
   # from the public internet or the VM tap edge.
@@ -854,6 +830,41 @@ in
     # module merges the secret file into $HERMES_HOME/.env at activation, so the
     # key is live from the first activation/boot after it is generated.
     services = {
+      # Hermes dashboard WebUI. It is deliberately NOT exposed through
+      # Tailscale Funnel: it binds on the VM so Hermes' non-loopback OAuth gate
+      # engages, and the NixOS firewall below admits the port only from the
+      # tailnet interface. The dashboard password is intentionally local-only:
+      # hermes-secret-init below writes the basic-auth password once into
+      # ${hermesSecretEnv}. Missing auth config still makes Hermes fail closed.
+      hermes-dashboard = {
+        description = "Hermes Agent dashboard WebUI";
+        after = [
+          "hermes-agent.service"
+          "hermes-secret-init.service"
+        ];
+        wants = [
+          "hermes-agent.service"
+          "hermes-secret-init.service"
+        ];
+        wantedBy = [ "multi-user.target" ];
+
+        environment = {
+          HERMES_HOME = "${config.services.hermes-agent.stateDir}/.hermes";
+          HOME = config.services.hermes-agent.stateDir;
+          HERMES_DASHBOARD_PORT = toString hermesDashboardPort;
+        };
+
+        serviceConfig = {
+          User = config.services.hermes-agent.user;
+          Group = config.services.hermes-agent.group;
+          WorkingDirectory = config.services.hermes-agent.workingDirectory;
+          EnvironmentFile = hermesSecretEnv;
+          ExecStart = "${lib.getExe config.services.hermes-agent.package} dashboard --host 0.0.0.0 --port ${toString hermesDashboardPort} --no-open --skip-build";
+          Restart = "on-failure";
+          RestartSec = "5s";
+        };
+      };
+
       hermes-secret-init = {
         description = "Generate internal hermes-agent secrets (write-once)";
         before = [ "hermes-agent.service" ];
