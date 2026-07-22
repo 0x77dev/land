@@ -33,6 +33,11 @@ in
       "recursive-nix"
     ];
 
+    # Do not rely on Nix's package-compiled default. An empty value makes the
+    # root daemon execute sandboxed builders as root, breaking permission-
+    # sensitive tests and weakening build-user isolation.
+    build-users-group = "nixbld";
+
     keep-derivations = true;
     keep-outputs = true;
     log-lines = 50;

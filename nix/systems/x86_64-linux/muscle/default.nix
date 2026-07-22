@@ -267,9 +267,8 @@ in
       ];
     };
 
-    # Policy source for Helium (no Chromium browser installed): the helium
-    # module reuses /etc/chromium policies and native-messaging hosts, so
-    # extensions declared here are force-installed into Helium.
+    # Shared policy source: the Helium module reuses /etc/chromium policies and
+    # native-messaging hosts, so extensions declared here apply to both browsers.
     chromium = {
       enable = true;
       extensions = [
@@ -603,6 +602,10 @@ in
       libgtop
       pciutils
 
+      # PulseAudio-compatible client tools (including pactl) control the
+      # PipeWire Pulse server configured above; no PulseAudio daemon is enabled.
+      pulseaudio
+
       # Current LLVM toolchain for interactive builds. Nixpkgs packages retain
       # their package-tested stdenv compiler; globally replacing stdenv is
       # unsupported and can regress or break packages.
@@ -630,6 +633,7 @@ in
       libfido2
       opensc
       ghostty
+      chromium
       wl-clipboard
       xdg-utils
       dconf-editor
