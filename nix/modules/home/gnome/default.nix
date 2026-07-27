@@ -42,10 +42,15 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Tiling Shell: Windows 11-grade snap assistant (drag to top edge for
-    # the layout picker, screen edges for halves/quarters) with
-    # FancyZones-style per-monitor custom layouts.
-    home.packages = [ pkgs.gnomeExtensions.tiling-shell ];
+    # Window management is split three ways, with no two mechanisms grabbing
+    # the same chord: gTile owns the Rectangle/Raycast keyboard layer
+    # (Ctrl+Alt), Tiling Shell owns the pointer (edge snapping, snap-layout
+    # picker, FancyZones-style per-monitor layouts), and GNOME keeps
+    # maximize/restore, monitors and workspaces.
+    home.packages = [
+      pkgs.gnomeExtensions.tiling-shell
+      pkgs.gnomeExtensions.gtile
+    ];
 
     # Use the managed package path rather than relying on an ambient PATH.
     home.sessionVariables.TERMINAL = lib.getExe config.programs.ghostty.package;
@@ -76,7 +81,11 @@ in
     dconf.settings = {
       "org/gnome/shell" = {
         favorite-apps = cfg.favoriteApps;
-        enabled-extensions = [ "tilingshell@ferrarodomenico.com" ] ++ cfg.extensions;
+        enabled-extensions = [
+          "tilingshell@ferrarodomenico.com"
+          "gTile@vibou"
+        ]
+        ++ cfg.extensions;
       };
 
       # Keyboard layout priority: English (US) → Ukrainian → Russian.
@@ -114,9 +123,55 @@ in
         switch-input-source = [ "<Control>space" ];
         switch-input-source-backward = [ "<Shift><Control>space" ];
         close = [ "<Super>q" ];
-        # Throw windows across monitors (ultrawide <-> portrait).
-        move-to-monitor-left = [ "<Shift><Super>Left" ];
-        move-to-monitor-right = [ "<Shift><Super>Right" ];
+
+        # GNOME shipped workspace switching on Ctrl+Alt+arrows and window
+        # moving on Shift+Ctrl+Alt+arrows, which shadowed every tiling
+        # shortcut on that layer. Workspaces keep their Super chords only;
+        # up/down are dropped because the workspace layout is horizontal.
+        switch-to-workspace-left = [
+          "<Super>Page_Up"
+          "<Super><Alt>Left"
+        ];
+        switch-to-workspace-right = [
+          "<Super>Page_Down"
+          "<Super><Alt>Right"
+        ];
+        switch-to-workspace-up = [ ];
+        switch-to-workspace-down = [ ];
+        move-to-workspace-left = [
+          "<Shift><Super>Page_Up"
+          "<Shift><Super><Alt>Left"
+        ];
+        move-to-workspace-right = [
+          "<Shift><Super>Page_Down"
+          "<Shift><Super><Alt>Right"
+        ];
+        move-to-workspace-up = [ ];
+        move-to-workspace-down = [ ];
+
+        # Rectangle's Maximize, Restore and Maximize Height. These are real
+        # window states rather than a full-area tile, so Restore returns the
+        # window to the geometry it had before Maximize.
+        maximize = [
+          "<Control><Alt>Return"
+          "<Super>Up"
+        ];
+        unmaximize = [
+          "<Control><Alt>BackSpace"
+          "<Super>Down"
+        ];
+        maximize-vertically = [ "<Shift><Control><Alt>Up" ];
+
+        # Throw windows across monitors (ultrawide <-> portrait); the
+        # Ctrl+Alt+Super pair mirrors Move to Next/Previous Display.
+        move-to-monitor-left = [
+          "<Shift><Super>Left"
+          "<Control><Alt><Super>Left"
+        ];
+        move-to-monitor-right = [
+          "<Shift><Super>Right"
+          "<Control><Alt><Super>Right"
+        ];
         move-to-monitor-up = [ "<Shift><Super>Up" ];
         move-to-monitor-down = [ "<Shift><Super>Down" ];
       };
@@ -146,7 +201,7 @@ in
         name = "Terminal";
         # gsd does not launch through the login shell, so use the package path.
         command = lib.getExe config.programs.ghostty.package;
-        binding = "<Control><Alt>t";
+        binding = "<Super>Return";
       };
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/voxtype" = {
         name = "Voice dictation";
@@ -154,11 +209,14 @@ in
         binding = "XF86VoiceCommand";
       };
 
-      # Windows 11-style tiling: drag to the top edge for the snap-layout
-      # picker, screen edges for halves/quarters, snap assist suggests
-      # windows for the remaining space. Ctrl+Alt+arrows move the focused
-      # window between tiles of the active layout; Shift+Ctrl+Alt+arrows
-      # span multiple tiles; Ctrl+Alt+Return untiles.
+      # Tiling Shell keeps the pointer: drag to the top edge for the
+      # snap-layout picker, screen edges for halves/quarters, snap assist
+      # suggests windows for the remaining space. Its keyboard layer stays
+      # off on purpose - enabling it makes the extension blank GNOME's own
+      # maximize/unmaximize and mutter's toggle-tiled keybindings
+      # (keybindings.js `_overrideNatives`), which the Rectangle layer needs.
+      # `overridden-settings` is pinned empty so a stale restore cannot write
+      # those GNOME defaults back over this configuration.
       "org/gnome/shell/extensions/tilingshell" =
         let
           mkPortraitRows =
@@ -189,17 +247,8 @@ in
           enable-snap-assist = true;
           active-screen-edges = true;
           top-edge-maximize = false;
-          enable-move-keybindings = true;
-          move-window-left = [ "<Control><Alt>Left" ];
-          move-window-right = [ "<Control><Alt>Right" ];
-          move-window-up = [ "<Control><Alt>Up" ];
-          move-window-down = [ "<Control><Alt>Down" ];
-          span-window-left = [ "<Shift><Control><Alt>Left" ];
-          span-window-right = [ "<Shift><Control><Alt>Right" ];
-          span-window-up = [ "<Shift><Control><Alt>Up" ];
-          span-window-down = [ "<Shift><Control><Alt>Down" ];
-          untile-window = [ "<Control><Alt>Return" ];
-          cycle-layouts = [ "<Control><Alt>l" ];
+          enable-move-keybindings = false;
+          overridden-settings = "{}";
           # The top-edge Snap Assistant and panel indicator share one global
           # catalog. Tiling Shell only stores the active layout per
           # workspace/monitor, so the portrait layouts also appear in the
@@ -328,6 +377,91 @@ in
               "Portrait 3 Rows"
             ]
           ];
+        };
+
+      # Rectangle/Raycast keyboard layer, ported chord for chord from the
+      # macOS setup. gTile places the focused window from an absolute grid
+      # spec: "<cols>x<rows> <left>:<top> <right>:<bottom>", 1-indexed and
+      # inclusive over the monitor work area. Comma-separated variants cycle
+      # when the same chord is pressed again inside gTile's two-second window
+      # (v65 hard-codes that lifetime and ignores `max-timeout`).
+      "org/gnome/shell/extensions/gtile" =
+        let
+          placements = {
+            "<Control><Alt>Left" = "2x1 1:1 1:1"; # Left half
+            "<Control><Alt>Right" = "2x1 2:1 2:1"; # Right half
+            "<Control><Alt>Up" = "1x2 1:1 1:1"; # Top half
+            "<Control><Alt>Down" = "1x2 1:2 1:2"; # Bottom half
+            "<Control><Alt>u" = "2x2 1:1 1:1"; # Top left quarter
+            "<Control><Alt>i" = "2x2 2:1 2:1"; # Top right quarter
+            "<Control><Alt>j" = "2x2 1:2 1:2"; # Bottom left quarter
+            "<Control><Alt>k" = "2x2 2:2 2:2"; # Bottom right quarter
+            "<Control><Alt>d" = "3x1 1:1 1:1"; # First third
+            "<Control><Alt>f" = "3x1 2:1 2:1"; # Center third
+            "<Control><Alt>g" = "3x1 3:1 3:1"; # Last third
+            "<Control><Alt>e" = "3x1 1:1 2:1"; # First two thirds
+            "<Control><Alt>t" = "3x1 2:1 3:1"; # Last two thirds
+            "<Control><Alt>1" = "4x1 1:1 1:1"; # First fourth
+            "<Control><Alt>2" = "4x1 2:1 2:1"; # Second fourth
+            "<Control><Alt>3" = "4x1 3:1 3:1"; # Third fourth
+            "<Control><Alt>4" = "4x1 4:1 4:1"; # Last fourth
+            "<Control><Alt>5" = "4x1 2:1 3:1"; # Center half
+            # Center: two thirds, then half, then four fifths.
+            "<Control><Alt>c" = "6x6 2:2 5:5,4x4 2:2 3:3,10x10 2:2 9:9";
+          };
+
+          chords = attrNames placements;
+
+          # Slot N drives both `resize<N>` (the geometry) and
+          # `preset-resize-<N>` (the chord that applies it).
+          presets = listToAttrs (
+            concatLists (
+              imap1 (index: chord: [
+                (nameValuePair "resize${toString index}" placements.${chord})
+                (nameValuePair "preset-resize-${toString index}" [ chord ])
+              ]) chords
+            )
+          );
+
+          # gTile ships 30 slots pre-bound to Super+modifier+numpad; release
+          # the ones this configuration does not use.
+          spareSlots = genAttrs (map (index: "preset-resize-${toString index}") (
+            range (length chords + 1) 30
+          )) (_: [ ]);
+        in
+        presets
+        // spareSlots
+        // {
+          # Presets act on the focused window without opening the grid, and
+          # target the monitor the window is on rather than the pointer's.
+          global-presets = true;
+          target-presets-to-monitor-of-mouse = false;
+          # A full-area preset stays a plain resize: GNOME owns the maximized
+          # state so Ctrl+Alt+Backspace can restore out of it.
+          auto-maximize = false;
+          # Tiling Shell already carries a tiling indicator in the panel.
+          show-icon = false;
+
+          # Rectangle's Make Larger / Make Smaller. gTile moves one edge per
+          # press by a single line of the active grid - the first entry below
+          # until the overlay cycles it - so Ctrl+Alt is width and
+          # Shift+Ctrl+Alt is height.
+          grid-sizes = "8x6,6x4,4x4";
+          moveresize-enabled = true;
+          action-expand-right = [ "<Control><Alt>equal" ];
+          action-contract-right = [ "<Control><Alt>minus" ];
+          action-expand-bottom = [ "<Shift><Control><Alt>equal" ];
+          action-contract-bottom = [ "<Shift><Control><Alt>minus" ];
+          action-expand-left = [ ];
+          action-expand-top = [ ];
+          # Ctrl+Alt+h/j/k/l by default, which collides with the quarters.
+          action-contract-left = [ ];
+          action-contract-top = [ ];
+
+          # The interactive grid overlay, moved off Super+Return (Ghostty).
+          show-toggle-tiling = [ "<Control><Super>g" ];
+          snap-to-neighbors = [ ];
+          move-next-monitor = [ ];
         };
     };
   };
