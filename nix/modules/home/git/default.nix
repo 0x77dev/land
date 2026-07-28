@@ -9,6 +9,8 @@ let
   cfg = config.modules.home.git;
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
   credentialHelper = if isDarwin then "osxkeychain" else "cache --timeout=7200";
+  # Single identity source shared with everything else that names Mykhailo.
+  maintainer = lib.land.maintainers.mykhailo;
 in
 {
   options.modules.home.git = {
@@ -28,13 +30,12 @@ in
         package = pkgs.gitFull;
         lfs.enable = true;
         signing = mkIf cfg.signing {
-          key = "A6337A4AB36481FB18A4FCC5F1171FAAAA237211";
+          key = maintainer.gpgKey;
           signByDefault = true;
         };
         settings = {
           user = {
-            name = "Mykhailo Marynenko";
-            email = "mykhailo@0x77.dev";
+            inherit (maintainer) name email;
             useConfigOnly = true;
           };
           commit.gpgsign = cfg.signing;
@@ -93,6 +94,26 @@ in
             co = "pr checkout";
             pv = "pr view";
           };
+        };
+      };
+
+      # Same identity and YubiKey-backed key as git. Signing happens at push
+      # time (sign-on-push), not on every rewrite: jj rewrites commits
+      # constantly and a hardware prompt per rewrite would be unusable.
+      jujutsu = {
+        enable = true;
+        settings = {
+          user = {
+            inherit (maintainer) name email;
+          };
+          signing = mkIf cfg.signing {
+            behavior = "drop";
+            backend = "gpg";
+            key = maintainer.gpgKey;
+            backends.gpg.program = "${pkgs.gnupg}/bin/gpg";
+          };
+          git.sign-on-push = cfg.signing;
+          ui.default-command = "log";
         };
       };
     };
