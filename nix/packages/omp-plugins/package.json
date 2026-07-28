@@ -1,0 +1,8 @@
+{
+  "name": "land-omp-plugins",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "pi-langfuse": "1.5.7"
+  }
+}

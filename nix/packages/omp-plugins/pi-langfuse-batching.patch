@@ -1,0 +1,102 @@
+diff --git a/src/langfuse.ts b/src/langfuse.ts
+index 98ccce1..f38bc8c 100644
+--- a/src/langfuse.ts
++++ b/src/langfuse.ts
+@@ -1,6 +1,7 @@
+ import type { LangfuseRuntime, LangfuseScoreClient } from "./types.js";
+ import { state } from "./state.js";
+ import { randomUUID } from "node:crypto";
++import { chunkIngestionBatch, limitTelemetryValue } from "./land-batching.js";
+ 
+ let runtime: LangfuseRuntime | null = null;
+ let registeredContextManager: OtelContextManager | null = null;
+@@ -365,31 +366,34 @@ async function fallbackToRestIngestion(rt: LangfuseRuntime) {
+     return;
+   }
+ 
+-  const response = await withTimeout(
+-    "REST fallback ingestion",
+-    ingestionApi.batch({
+-      batch,
+-      metadata: {
+-        source: "pi-langfuse",
+-        fallback: "rest-ingestion",
+-        reason: "otel-trace-not-visible-after-flush",
+-      },
+-    }),
+-  );
+-
+-  if (!response) {
+-    return;
+-  }
+-
+-  const responseBody = response as { errors?: unknown[] } | undefined;
+-  const responseErrors = responseBody?.errors;
+-  const errors = Array.isArray(responseErrors) ? responseErrors : [];
+-  if (errors.length > 0) {
+-    rememberRuntimeError("REST fallback ingestion", new Error(JSON.stringify(errors)));
+-    console.warn("📊 Langfuse: REST fallback ingestion reported errors", errors);
+-  } else {
+-    debugLog(`📊 Langfuse: OTel trace ${trace.id} was not visible; wrote fallback trace via REST ingestion`);
++  const metadata = {
++    source: "pi-langfuse",
++    fallback: "rest-ingestion",
++    reason: "otel-trace-not-visible-after-flush",
++  };
++  const chunks = chunkIngestionBatch(batch, metadata);
++
++  for (const [index, chunk] of chunks.entries()) {
++    const label = `REST fallback ingestion chunk ${index + 1}/${chunks.length}`;
++    const response = await withTimeout(
++      label,
++      ingestionApi.batch({ batch: chunk, metadata }),
++    );
++
++    if (!response) {
++      continue;
++    }
++
++    const responseBody = response as { errors?: unknown[] } | undefined;
++    const responseErrors = responseBody?.errors;
++    const errors = Array.isArray(responseErrors) ? responseErrors : [];
++    if (errors.length > 0) {
++      rememberRuntimeError(label, new Error(JSON.stringify(errors)));
++      console.warn(`📊 Langfuse: ${label} reported errors`, errors);
++    }
+   }
++
++  debugLog(`📊 Langfuse: OTel trace ${trace.id} was not visible; wrote fallback trace via REST ingestion`);
+ }
+ 
+ export async function getRuntime(): Promise<LangfuseRuntime> {
+@@ -433,6 +437,7 @@ export async function getRuntime(): Promise<LangfuseRuntime> {
+         secretKey: state.config.secretKey,
+         baseUrl: state.config.host,
++        mask: ({ data }: { data: unknown }) => limitTelemetryValue(data),
+       });
+       const tracerProvider = new BasicTracerProvider({ spanProcessors: [spanProcessor] });
+       tracing.setLangfuseTracerProvider(tracerProvider);
+
+diff --git a/index.ts b/index.ts
+--- a/index.ts
++++ b/index.ts
+@@ -159,5 +159,5 @@ export default async function (pi: ExtensionAPI) {
+   pi.on("agent_end", async (event, ctx) => withSession(ctx, async () => {
+     await finishAgentRun(event);
+     const sessionId = state.currentSessionId;
+-    setTimeout(() => {
++    queueMicrotask(() => {
+       shutdownRuntime(sessionId).catch((error) => {
+@@ -165,3 +165,3 @@ export default async function (pi: ExtensionAPI) {
+       });
+-    }, 0);
++    });
+   }));
+
+diff --git a/src/capture-policy.ts b/src/capture-policy.ts
+--- a/src/capture-policy.ts
++++ b/src/capture-policy.ts
+@@ -84,3 +84,3 @@ function normalizePreset(value: string | undefined): PrivacyPreset {
+-  return value && value in PRESETS ? (value as PrivacyPreset) : "full-debug";
++  return value && value in PRESETS ? (value as PrivacyPreset) : "metadata-only";
+ }
