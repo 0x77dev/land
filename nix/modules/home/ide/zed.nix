@@ -56,7 +56,7 @@ in
         "docker-compose"
         "dockerfile"
         "github-actions"
-        "github-dark-default"
+        "github-theme"
         "make"
         "markdownlint"
         "nix"
@@ -72,9 +72,19 @@ in
       userSettings = {
         auto_update = false;
         base_keymap = "VSCode";
-        vim_mode = false;
+        vim_mode = true;
+        cli_default_open_behavior = "new_window";
 
-        theme = "GitHub Dark Default";
+        # GitHub theme pair following system appearance, matching the
+        # ghostty module (dark:gdd,light:gld). The github-theme extension
+        # names its default variants "GitHub Dark"/"GitHub Light" (no
+        # "Default" suffix, unlike the single-variant github-dark-default
+        # extension this replaces).
+        theme = {
+          mode = "system";
+          dark = "GitHub Dark";
+          light = "GitHub Light";
+        };
         icon_theme = "Zed (Default)";
 
         ui_font_family = fonts.roles.body.family;
