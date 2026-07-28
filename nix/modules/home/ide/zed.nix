@@ -160,6 +160,11 @@ in
             command = lib.getExe pkgs.llm-agents.opencode;
             args = [ "acp" ];
           };
+          pi-acp = {
+            type = "custom";
+            command = lib.getExe pkgs.land.pi-acp;
+            args = [ ];
+          };
         };
 
         git = {
