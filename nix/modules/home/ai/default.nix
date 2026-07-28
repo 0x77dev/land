@@ -32,6 +32,14 @@ in
 
   options.modules.home.ai = {
     enable = lib.mkEnableOption "ai";
+
+    omp = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      default = ompWithLangfuse;
+      defaultText = lib.literalMD "the Langfuse-wrapped omp";
+      description = "The Langfuse-wrapped omp this module installs; consumers (e.g. Zed ACP) reference it instead of a profile path.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -42,7 +50,7 @@ in
         pkgs.llm-agents.codex
         pkgs.llm-agents.cursor-agent
         pkgs.llm-agents.lean-ctx
-        ompWithLangfuse
+        cfg.omp
       ];
 
       # Bound OTel batches before Langfuse's 4.5 MiB ingestion limit; the bundled

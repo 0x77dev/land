@@ -165,6 +165,11 @@ in
             command = lib.getExe pkgs.llm-agents.codex-acp;
             args = [ ];
           };
+          cursor = {
+            type = "custom";
+            command = lib.getExe pkgs.llm-agents.cursor-agent;
+            args = [ "acp" ];
+          };
           opencode = {
             type = "custom";
             command = lib.getExe pkgs.llm-agents.opencode;
@@ -175,6 +180,24 @@ in
             command = lib.getExe pkgs.land.pi-acp;
             args = [ ];
           };
+        }
+        // lib.optionalAttrs config.modules.home.ai.enable {
+          # The ai module's Langfuse-wrapped omp, not pkgs.llm-agents.omp
+          # directly, so ACP sessions are traced too.
+          omp-acp = {
+            type = "custom";
+            command = lib.getExe config.modules.home.ai.omp;
+            args = [
+              "--mode"
+              "acp"
+            ];
+          };
+        };
+
+        context_servers.lean-ctx = {
+          command = lib.getExe pkgs.llm-agents.lean-ctx;
+          args = [ ];
+          env = { };
         };
 
         git = {
