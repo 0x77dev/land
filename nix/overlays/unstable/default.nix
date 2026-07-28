@@ -5,6 +5,8 @@ _final: _prev: {
     code-cursor-fhs
     ghostty
     ghostty-bin
+    # Terminal session persistence; not yet in stable 26.05.
+    zmx
     # Keep the gaming compositor, HDR WSI layer, Vulkan diagnostics, and
     # performance overlay on the latest compatible patch releases.
     gamescope
@@ -26,7 +28,7 @@ _final: _prev: {
     alvr
     monado
     # NVIDIA userspace tooling (driver kernel modules stay matched to each
-    # host's kernel — see the host configs).
+    # host's kernel - see the host configs).
     nvtopPackages
     nvidia-container-toolkit
     fish
