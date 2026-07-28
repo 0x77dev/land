@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -84,6 +85,11 @@ let
   };
 in
 {
+  # Attached here rather than via flake-level homes.modules: the shell module
+  # owns its options, and the repo pattern for external home-manager modules
+  # is a local import through the `inputs` module arg (see ide/neovim.nix).
+  imports = [ inputs.nix-index-database.homeModules.nix-index ];
+
   options.modules.home.shell = {
     enable = mkEnableOption "shell";
   };
@@ -197,6 +203,11 @@ in
         nix-direnv.enable = true;
         enableZshIntegration = false;
       };
+
+      # Prebuilt nix-index DB: `, cmd` runs any package's binary ad hoc and
+      # command-not-found suggests the providing attr in all three shells.
+      nix-index.enable = true;
+      nix-index-database.comma.enable = true;
 
       # Full ls replacement: home-manager's eza integrations alias
       # ls/ll/la/lt/lla to eza in bash, zsh, and fish. Scripts calling

@@ -22,6 +22,12 @@
 
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
 
+    # Weekly-prebuilt nix-index database; powers comma and command-not-found.
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
       flake = false;
