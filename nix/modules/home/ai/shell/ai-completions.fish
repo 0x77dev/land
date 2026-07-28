@@ -1,5 +1,7 @@
-complete -c ai -f
-complete -c ai -s n -l new -d "Start new session"
-complete -c ai -s m -l model -d "Specify model (provider/model)" -r
-complete -c ai -s s -l session -d "Continue specific session" -r
-complete -c ai -s a -l agent -d "Agent to use (default: build)" -r
+complete -c ai -w pi
+complete -c ai -n '__fish_use_subcommand' -a new -d 'Start a new saved conversation'
+complete -c ai -n '__fish_use_subcommand' -a chat -d 'Continue interactively'
+complete -c ai -n '__fish_use_subcommand' -a history -d 'Resume a saved conversation'
+complete -c ai -n '__fish_use_subcommand' -a text -d 'Generate stateless text without tools'
+complete -c ai -n '__fish_use_subcommand' -a models -d 'List available models'
+complete -c ai -n '__fish_use_subcommand' -a help -d 'Show help'

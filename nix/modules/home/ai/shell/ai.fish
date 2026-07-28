@@ -1,23 +1,75 @@
-argparse --stop-nonopt 'n/new' 'm/model=' 's/session=' 'a/agent=' -- $argv
-or return
+set -l subcommand run
 
-set -l flags
-set -a flags --model (set -q _flag_model; and echo $_flag_model; or echo "openai/gpt-5.5")
-set -a flags --variant xhigh
-set -a flags --thinking
-set -q _flag_agent; and set -a flags --agent $_flag_agent
-
-if set -q _flag_new
-    set -e __ai_session_id
-else if set -q _flag_session
-    set -a flags --session $_flag_session
-else if set -q __ai_session_id
-    set -a flags --session $__ai_session_id --continue
+if test (count $argv) -gt 0
+    switch $argv[1]
+        case -h --help help new chat history text models
+            set subcommand $argv[1]
+            set -e argv[1]
+    end
 end
 
-opencode run $flags $argv
+if contains -- $subcommand -h --help help
+    printf '%s\n' \
+        'Usage: ai [prompt...]' \
+        '       ai new [prompt...]' \
+        '       ai chat [prompt...]' \
+        '       ai history' \
+        '       ai text [prompt...]' \
+        '       ai models [query]' \
+        '' \
+        'A context-aware Pi coding assistant with composable stdin and stdout.' \
+        '' \
+        'Commands:' \
+        '  new      Start a new saved conversation' \
+        '  chat     Continue the current project conversation interactively' \
+        '  history  Select a saved conversation to resume' \
+        '  text     Generate stateless text without tools' \
+        '  models   List available Pi models' \
+        '' \
+        'All other options are passed directly to Pi.'
+    return
+end
+
+set -l context_root (command git -C (pwd) rev-parse --show-toplevel 2>/dev/null)
+or set context_root (pwd -P)
+
+if not set -q __ai_context_root; or test "$__ai_context_root" != "$context_root"
+    command lean-ctx index status >/dev/null 2>&1
+    or command lean-ctx bootstrap --json >/dev/null 2>&1
+    or return
+
+    command lean-ctx index build "$context_root" >/dev/null 2>&1 &
+    disown $last_pid
+    command lean-ctx session load >/dev/null 2>&1
+    set -g __ai_context_root $context_root
+end
+
+switch $subcommand
+    case new
+        if test (count $argv) -eq 0; and isatty stdin; and isatty stdout
+            command pi
+        else
+            command pi --print $argv
+        end
+    case chat
+        command pi --continue $argv
+    case history
+        command pi --resume $argv
+    case text
+        command pi --print --no-session --no-tools $argv
+    case models
+        command pi --list-models $argv
+    case run
+        if test (count $argv) -eq 0; and isatty stdin; and isatty stdout
+            command pi --continue
+        else
+            command pi --print --continue $argv
+        end
+end
 set -l run_status $status
 
 if test $run_status -eq 0
-    set -g __ai_session_id (opencode session list --format json 2>/dev/null | jq -r --arg d (pwd) '[.[] | select(.directory == $d)] | sort_by(-.updated) | first | .id // empty')
+    command lean-ctx session save >/dev/null 2>&1
 end
+
+return $run_status

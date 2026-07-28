@@ -11,8 +11,8 @@ in
   config = lib.mkIf (cfg.enable && shellEnabled) {
     programs.fish = {
       functions.ai = {
-        description = "AI coding assistant (opencode)";
-        wraps = "opencode";
+        description = "Context-aware Pi coding assistant";
+        wraps = "pi";
         body = builtins.readFile ./ai.fish;
       };
 
