@@ -25,8 +25,8 @@ with lib;
   nixpkgs.config.allowUnfree = true;
 
   # Latest mainline kernel by default. Hardware/ZFS constraints override this
-  # (muscle → CachyOS, spark → vendored NVIDIA kernel, timey → pinned RPi,
-  # ghost → latest ZFS-compatible). CPU vulnerability mitigations are
+  # (muscle -> CachyOS, timey -> pinned RPi, ghost -> latest ZFS-compatible). CPU
+  # vulnerability mitigations are
   # deliberately left at the kernel's per-CPU defaults: enabled and correct,
   # with no global `mitigations=off` (which would trade security for perf).
   boot.kernelPackages = mkDefault pkgs.linuxPackages_latest;

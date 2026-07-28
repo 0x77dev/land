@@ -80,17 +80,6 @@
 
     vpn-confinement.url = "github:Maroka-chan/VPN-Confinement";
 
-    microvm = {
-      url = "github:microvm-nix/microvm.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # Hermes owns both its official package and NixOS service module.
-    hermes-agent = {
-      url = "github:NousResearch/hermes-agent";
-      inputs.nixpkgs.follows = "unstable";
-    };
-
     # Centrally maintained, daily-updated AI agent packages. Keep its pinned
     # nixpkgs so Numtide's binary cache remains usable on our stable channel.
     llm-agents.url = "github:numtide/llm-agents.nix";
@@ -244,15 +233,6 @@
             timey.specialArgs = {
               inherit (inputs) nixos-raspberrypi;
             };
-
-            # microvm.nix stays per-host: spark hosts VMs, vasyl is a guest.
-            spark.modules = with inputs; [
-              microvm.nixosModules.host
-            ];
-            vasyl.modules = with inputs; [
-              microvm.nixosModules.microvm
-              hermes-agent.nixosModules.default
-            ];
 
             # Vicinae's input-server wrapper (global hotkey capture) and
             # lanzaboote for UEFI Secure Boot with sbctl-managed keys.

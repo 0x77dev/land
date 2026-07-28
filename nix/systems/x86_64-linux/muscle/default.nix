@@ -397,8 +397,8 @@ in
       extraSetFlags = [ "--operator=mykhailo" ];
     };
 
-    # LAN Ollama peer to Spark. Muscle has 2x RTX 6000 Ada GPUs (48 GB each),
-    # so the pull set stays shared and vetted against that smaller VRAM budget.
+    # Muscle's shared model policy keeps the pull set vetted against its 2x RTX
+    # 6000 Ada GPUs (48 GB each) and smaller VRAM budget.
     ollama = {
       enable = true;
       package = pkgs.ollama-cuda;

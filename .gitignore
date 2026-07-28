@@ -5,7 +5,6 @@ result-*
 .env
 .pre-commit-config.yaml
 .lab/
-.hermes/
 scripts/__pycache__/
 security-reports/
 http_cache.sqlite

@@ -8,14 +8,12 @@ let
   deployLib = flake.inputs.cachix-deploy-flake.lib pkgs;
 
   # A single system agent owns each host's integrated system + Home Manager
-  # closure. vasyl is part of spark's atomic microVM closure. Installer images
-  # are build artifacts, not deployment agents.
+  # closure. Installer images are build artifacts, not deployment agents.
   agents = {
     beefy = flake.darwinConfigurations.beefy.system;
     ghost = flake.nixosConfigurations.ghost.config.system.build.toplevel;
     muscle = flake.nixosConfigurations.muscle.config.system.build.toplevel;
     potato = flake.darwinConfigurations.potato.system;
-    spark = flake.nixosConfigurations.spark.config.system.build.toplevel;
     timey = flake.nixosConfigurations.timey.config.system.build.toplevel;
   };
 
@@ -24,13 +22,11 @@ let
     flake.nixosConfigurations.ghost.config.services.cachix-agent
     flake.nixosConfigurations.muscle.config.services.cachix-agent
     flake.darwinConfigurations.potato.config.services.cachix-agent
-    flake.nixosConfigurations.spark.config.services.cachix-agent
     flake.nixosConfigurations.timey.config.services.cachix-agent
   ];
 
-  # Cachix waits for each activation by default. Start with always-on potato,
-  # deploy infrastructure before portable hosts, and keep muscle and spark in
-  # separate stages so the paired builder/compute hosts never switch at once.
+  # Cachix waits for each activation by default. Start with always-on potato
+  # before deploying infrastructure and portable hosts.
   rollout = [
     {
       name = "canary";
@@ -39,10 +35,6 @@ let
     {
       name = "time-infrastructure";
       agents = [ "timey" ];
-    }
-    {
-      name = "compute-appliance";
-      agents = [ "spark" ];
     }
     {
       name = "primary-workstation";

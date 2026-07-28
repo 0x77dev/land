@@ -29,7 +29,6 @@ enables zmx by default and derives these remote prefixes from
 `nix/lib/shared/machines`, filtered on `sshTarget`:
 
 - `m`: `muscle.osv.computer`
-- `s`: `spark.osv.computer`
 - `b`: `beefy.0x77.computer`
 - `g`: `ghost.0x77.computer`
 - `t`: `timey.0x77.computer`

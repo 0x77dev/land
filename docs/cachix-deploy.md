@@ -1,10 +1,9 @@
 # Cachix Deploy operations
 
 The flake deploys the integrated system and Home Manager closures for `beefy`,
-`ghost`, `muscle`, `potato`, `spark`, and `timey`. `vasyl` remains part of
-`spark`'s atomic microVM closure. Installer outputs, `timey`'s SD-image artifact,
-and standalone Home Manager outputs do not run agents. NixOS agents own the
-`system` profile; Darwin agents explicitly own `system-profiles/system`.
+`ghost`, `muscle`, `potato`, and `timey`. Installer outputs, `timey`'s SD-image
+artifact, and standalone Home Manager outputs do not run agents. NixOS agents
+own the `system` profile; Darwin agents explicitly own `system-profiles/system`.
 
 ## One-time setup
 
@@ -89,8 +88,7 @@ Inspect the canonical rollout without activating:
 nix eval --json --file nix/deploy/default.nix rollout | jq
 ```
 
-Stages run synchronously and stop on the first failure. `spark` and `muscle`
-remain in separate stages.
+Stages run synchronously and stop on the first failure.
 
 ## Rollback, reboot, and disabling
 

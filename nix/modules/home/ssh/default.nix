@@ -52,10 +52,8 @@ in
       }
       // optionalAttrs gpgEnabled {
         # Lab hosts reached with the YubiKey-backed identity (gpg-agent's ssh
-        # socket): IdentityAgent offers it without touching the default agent,
-        # and ForwardAgent carries it onward for multi-hop (e.g. potato ->
-        # spark -> vasyl).
-        "${machines.spark.tailnet} *.osv.computer" = {
+        # socket): IdentityAgent offers it without touching the default agent.
+        "*.osv.computer" = {
           User = "mykhailo";
           ForwardAgent = true;
           IdentityAgent = localAgentSshSocket;

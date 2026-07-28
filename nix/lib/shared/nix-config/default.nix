@@ -6,9 +6,6 @@ let
     "https://land.cachix.org"
     "https://nix-community.cachix.org"
     "https://nixos-raspberrypi.cachix.org"
-    # NVIDIA-authorized pre-built CUDA binaries for aarch64-linux (DGX Spark).
-    # https://flox.dev
-    "https://cache.flox.dev"
   ];
 
   # Every flake input that is itself a flake (excluding `self`). These are
@@ -48,7 +45,6 @@ in
       "land.cachix.org-1:9KPti8Xi0UJ7eQof7b8VUzSYU5piFy6WVQ8MDTLOqEA="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
-      "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs="
     ];
     trusted-users = [
       "root"
@@ -58,8 +54,7 @@ in
 
     max-jobs = "auto";
     cores = 0;
-    # mkDefault so a host with an overlay store (vasyl) can disarm the in-daemon
-    # auto-GC by setting these to 0; every other host keeps these values.
+    # Defaults retain space for Nix daemon operations while allowing host overrides.
     min-free = lib.mkDefault 1073741824; # 1 GiB
     max-free = lib.mkDefault 4294967296; # 4 GiB
     connect-timeout = 5;

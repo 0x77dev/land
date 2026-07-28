@@ -8,8 +8,8 @@ let
 
   # Qwen3.6 can emit malformed/empty tool-call envelopes that make Ollama 0.24
   # return HTTP 500s (ollama/ollama#16383). Carry the unmerged parser fix once
-  # in the CUDA package used by Spark and Muscle; pure Go patch, no vendor hash
-  # change. Drop when the pinned channel contains ollama/ollama#16398.
+  # in Muscle's CUDA package; pure Go patch, no vendor hash change. Drop when
+  # the pinned channel contains ollama/ollama#16398.
   withQwen36ToolParserFix =
     pkg:
     pkg.overrideAttrs (old: {

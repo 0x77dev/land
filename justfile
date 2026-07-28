@@ -7,10 +7,6 @@ help:
 iso:
   nom build .#nixosConfigurations.installer.config.system.build.isoImage -o result-installer
 
-# Build the NVIDIA DGX Spark (aarch64, GB10) installer ISO
-spark-iso:
-  nom build .#nixosConfigurations.spark-installer.config.system.build.isoImage -o result-spark-installer
-
 # Install NixOS on a host at an IP address
 # Use `just iso` or any linux distro with kexec-tools installed
 provision host username_at_hostname:
