@@ -55,7 +55,7 @@ in
         # socket): IdentityAgent offers it without touching the default agent,
         # and ForwardAgent carries it onward for multi-hop (e.g. potato ->
         # spark -> vasyl).
-        "spark.axolotl-sole.ts.net *.osv.computer" = {
+        "${machines.spark.tailnet} *.osv.computer" = {
           User = "mykhailo";
           ForwardAgent = true;
           IdentityAgent = localAgentSshSocket;

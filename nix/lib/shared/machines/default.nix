@@ -8,6 +8,7 @@ _: {
       "muscle"
       "muscle.0x77.computer"
     ];
+    tailnet = "muscle.axolotl-sole.ts.net";
     sshTarget = true;
     zmxPrefix = "m";
     forwardAgent = true;
@@ -17,6 +18,7 @@ _: {
   spark = {
     hostname = "spark.osv.computer";
     aliases = [ "spark" ];
+    tailnet = "spark.axolotl-sole.ts.net";
     sshTarget = true;
     zmxPrefix = "s";
     forwardAgent = true;
@@ -26,6 +28,7 @@ _: {
   beefy = {
     hostname = "beefy.0x77.computer";
     aliases = [ "beefy" ];
+    tailnet = null;
     sshTarget = true;
     zmxPrefix = "b";
     forwardAgent = true;
@@ -35,6 +38,7 @@ _: {
   ghost = {
     hostname = "ghost.0x77.computer";
     aliases = [ "ghost" ];
+    tailnet = null;
     sshTarget = true;
     zmxPrefix = "g";
     forwardAgent = false;
@@ -44,6 +48,7 @@ _: {
   timey = {
     hostname = "timey.0x77.computer";
     aliases = [ "timey" ];
+    tailnet = null;
     sshTarget = true;
     zmxPrefix = "t";
     forwardAgent = false;
@@ -53,6 +58,7 @@ _: {
   potato = {
     hostname = "potato.0x77.computer";
     aliases = [ "potato" ];
+    tailnet = null;
     sshTarget = false;
     zmxPrefix = null;
     forwardAgent = false;
@@ -62,6 +68,7 @@ _: {
   vasyl = {
     hostname = "vasyl.0x77.computer";
     aliases = [ "vasyl" ];
+    tailnet = null;
     sshTarget = false;
     zmxPrefix = null;
     forwardAgent = false;

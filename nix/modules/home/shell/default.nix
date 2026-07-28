@@ -214,6 +214,26 @@ in
       # home-manager; no hand-rolled `zoxide init` lines needed.
       zoxide.enable = true;
 
+      # Synced through the public atuin.sh server for now: history blobs are
+      # end-to-end encrypted client-side, so the server only sees ciphertext
+      # and sync metadata. The E2E key is intentionally not managed by Nix:
+      # one-time `atuin login` plus the `atuin key` mnemonic on each machine.
+      atuin = {
+        enable = true;
+        # ctrl-r only; native up-arrow stays untouched.
+        flags = [ "--disable-up-arrow" ];
+        settings = {
+          auto_sync = true;
+          sync_frequency = "5m";
+          sync.records = true;
+          # sync_address stays at the default https://api.atuin.sh.
+          update_check = false;
+          enter_accept = true;
+          workspaces = true;
+          filter_mode_shell_up_key_binding = "session";
+        };
+      };
+
       starship = {
         enable = true;
         enableBashIntegration = false;

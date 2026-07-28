@@ -25,6 +25,7 @@ let
 in
 {
   imports = [
+    ./atuin-hooks.nix
     ./opencode.nix
     ./pi.nix
     ./shell
