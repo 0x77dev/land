@@ -81,6 +81,9 @@ in
   # briefing rendered from this config.
   imports = [ ./environment.nix ];
 
+  # Remote dev session persistence.
+  modules.zmx.enable = true;
+
   networking = {
     hostName = "vasyl";
     domain = "0x77.computer";

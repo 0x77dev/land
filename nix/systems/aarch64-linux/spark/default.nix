@@ -384,6 +384,8 @@ in
     vscode-server.enable = true;
     observability.enable = true;
     security-tools.enable = true;
+    # Remote dev session persistence.
+    zmx.enable = true;
   };
 
   # Offload large/parallel builds to muscle (Threadripper 7985WX) — it

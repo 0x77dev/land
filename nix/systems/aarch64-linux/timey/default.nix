@@ -19,9 +19,13 @@
     agentName = "timey";
   };
 
-  # Netdata claiming is broken on NixOS (read-only /etc/netdata)
-  # time-server module provides netdata without cloud claiming
-  modules.observability.enable = false;
+  modules = {
+    # Netdata claiming is broken on NixOS (read-only /etc/netdata)
+    # time-server module provides netdata without cloud claiming
+    observability.enable = false;
+    # Remote dev session persistence.
+    zmx.enable = true;
+  };
 
   # =============================================================================
   # Network Configuration

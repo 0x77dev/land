@@ -27,6 +27,8 @@
     };
     security-tools.enable = true;
     vscode-server.enable = true;
+    # Remote dev session persistence.
+    zmx.enable = true;
   };
 
   networking = {
