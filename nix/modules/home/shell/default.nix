@@ -100,7 +100,6 @@ in
       btop
       coreutils
       devenv
-      eza
       fd
       ripgrep
       ast-grep
@@ -197,6 +196,16 @@ in
         enable = true;
         nix-direnv.enable = true;
         enableZshIntegration = false;
+      };
+
+      # Full ls replacement: home-manager's eza integrations alias
+      # ls/ll/la/lt/lla to eza in bash, zsh, and fish. Scripts calling
+      # /bin/ls are unaffected (aliases are interactive-only).
+      eza = {
+        enable = true;
+        git = true;
+        icons = "auto";
+        extraOptions = [ "--group-directories-first" ];
       };
 
       tmux.enable = true;
