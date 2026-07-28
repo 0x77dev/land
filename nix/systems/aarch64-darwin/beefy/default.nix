@@ -17,6 +17,9 @@ in
     agentName = "beefy";
   };
 
+  # Make zmx available to SSH before the user profile is loaded.
+  modules.zmx.enable = true;
+
   networking = {
     hostName = "beefy";
     domain = "0x77.computer";

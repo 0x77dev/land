@@ -73,7 +73,11 @@ in
     knownUsers = [ userName ];
   };
 
-  modules.darwin.dock.enable = true;
+  modules = {
+    darwin.dock.enable = true;
+    # Make zmx available to SSH before the user profile is loaded.
+    zmx.enable = true;
+  };
 
   programs.fish.enable = true;
 
