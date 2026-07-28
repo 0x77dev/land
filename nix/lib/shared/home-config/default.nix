@@ -1,5 +1,8 @@
 _:
 { lib, ... }:
+let
+  machines = import ../machines { };
+in
 {
   home = {
     stateVersion = lib.mkDefault "25.05";
@@ -38,5 +41,15 @@ _:
     shell.enable = lib.mkDefault true;
     ssh.enable = lib.mkDefault true;
     gpg.enable = lib.mkDefault true;
+    zmx.enable = lib.mkDefault true;
+    # Trust flags live in the shared machine list.
+    zmx.remotes = lib.mkDefault (
+      lib.mapAttrs' (
+        _: m:
+        lib.nameValuePair m.zmxPrefix {
+          inherit (m) hostname forwardAgent forwardGpg;
+        }
+      ) (lib.filterAttrs (_: m: m.sshTarget) machines)
+    );
   };
 }
