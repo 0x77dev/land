@@ -59,7 +59,13 @@ in
     max-free = lib.mkDefault 4294967296; # 4 GiB
     connect-timeout = 5;
     download-speed = 0;
-    narinfo-cache-negative-ttl = 0;
+    # Parallel substitution and transfer tuning for fast local networks.
+    max-substitution-jobs = 32;
+    http-connections = 64;
+    download-buffer-size = 67108864; # 64 MiB
+    # Cache "not found" narinfo lookups for an hour instead of re-querying
+    # every substituter on each miss.
+    narinfo-cache-negative-ttl = 3600;
     sandbox = true;
     use-xdg-base-directories = true;
     warn-dirty = true;
