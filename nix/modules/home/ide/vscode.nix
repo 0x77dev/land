@@ -37,16 +37,6 @@ let
       }
     else
       pkgs.vscode-extensions.ms-toolsai.jupyter;
-  parquetExtension = pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-    buildInputs = [ (lib.getLib pkgs.stdenv.cc.cc) ];
-    mktplcRef = {
-      name = "parquet-visualizer";
-      publisher = "lucien-martijn";
-      version = "0.31.1";
-      hash = "sha256-LSL2zhg8vZXIV+wwMypC7OzTSIWmk1TP+4T280fyovU=";
-    };
-  };
 
   marketplaceExtensions = pkgs.vscode-utils.extensionsFromVscodeMarketplace [
     {
@@ -145,7 +135,6 @@ let
     ])
     ++ [
       jupyterExtension
-      parquetExtension
     ]
     ++ marketplaceExtensions;
 
