@@ -11,7 +11,9 @@
   home-config = import ./home-config { inherit lib inputs namespace; };
   home-manager-config = import ./home-manager-config { inherit lib inputs namespace; };
   user-config = import ./user-config { inherit lib inputs namespace; };
+  gpg-agent = import ./gpg-agent { inherit lib inputs namespace; };
   grafana-dashboards = import ./grafana-dashboards { inherit lib inputs namespace; };
   builders = import ./builders { inherit lib inputs namespace; };
+  machines = import ./machines { };
   ollama = import ./ollama { inherit lib inputs namespace; };
 }

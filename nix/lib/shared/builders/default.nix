@@ -1,8 +1,10 @@
 { lib, ... }:
 let
+  machines = import ../machines { };
+
   # muscle (Threadripper 7985WX) is the lab's biggest CPU — the preferred
   # remote builder, including aarch64-linux via binfmt for large parallel jobs.
-  hostName = "muscle.osv.computer";
+  hostName = machines.muscle.hostname;
 
   # Plain form for `programs.ssh.knownHosts`.
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMA3wX5kRJoNtxY+pr2ccN7YerSEPvJ/5cK7zdQ2Wppv";
@@ -18,9 +20,8 @@ in
       extraHostNames = [
         hostName
         "10.10.0.48"
-        "muscle"
-        "muscle.0x77.computer"
-      ];
+      ]
+      ++ machines.muscle.aliases;
     };
 
     # `nix.buildMachines` entries targeting muscle (x86_64 native + aarch64 via
