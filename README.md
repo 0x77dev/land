@@ -9,8 +9,8 @@ and Snowfall Lib.
   nix-darwin, Home Manager, and installer images.
 - Secure Boot with signed UKIs, declarative full-disk encryption, and
   YubiKey-backed FIDO2 authentication for login and privilege elevation.
-- Staged Cachix Deploy rollouts with host and Home Manager closures updated as
-  one unit, plus CI checks derived automatically from discovered flake outputs.
+- Repository-wide CI with checks derived automatically from discovered flake
+  outputs.
 - NVIDIA compute across dual RTX 6000 Ada GPUs, including CUDA, containers,
   GPUDirect Storage, and shared Ollama model policy.
 - Daily-updated coding agents from Numtide's `llm-agents.nix`, a Pi-backed `ai`

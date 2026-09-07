@@ -93,6 +93,8 @@ Hardware-specific support lives in `nix/modules/nixos/hardware/<name>/`. Each is
 an option-driven module that a system opts into with a single flag. For example,
 the ZFS module is enabled with `modules.zfs.enable = true;` on hosts that need
 ZFS support.
+The Minisforum MS-01 module is enabled with
+`modules.hardware.ms-01.enable = true;`, as used by `tomato`.
 
 ## Library Functions
 

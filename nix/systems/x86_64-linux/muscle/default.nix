@@ -91,6 +91,11 @@ in
       # Network: BBR congestion control
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
+      # SysRq rescue keys (sync + remount-ro + signal + reboot + keyboard):
+      # during the 2026-07-29 livelock the default 16 (sync only) left no way
+      # to trigger a manual OOM kill (Alt+SysRq+F) or clean emergency reboot
+      # (R-E-I-S-U-B); the only remaining option was a power reset.
+      "kernel.sysrq" = 244;
     };
     # Expose arm64 Linux builds to Darwin clients through NixOS binfmt support.
     # Disable SVE so JITs do not select QEMU user-mode paths that can emit
@@ -455,10 +460,28 @@ in
 
     # Monitor user-session cgroups so systemd-oomd can contain a memory-pressure
     # event before the kernel indiscriminately kills unrelated system services.
+    # enableRootSlice only wires ManagedOOMMemoryPressure=kill, and memory PSI
+    # stayed ~0 during the 2026-07-29 incident (the stall was all IO PSI from
+    # swap-in on the single LUKS+btrfs disk), so the pressure trigger is not
+    # enough: ManagedOOMSwap=kill on -.slice is what makes oomd kill the
+    # biggest swap consumer once system swap crosses SwapUsedLimit. Without it
+    # oomd watched a 100%-full 128G swapfile for 7+ hours while the desktop
+    # thrashed itself into a power reset.
     oomd = {
       enable = true;
       enableUserSlices = true;
+      enableRootSlice = true;
+      settings.OOM.SwapUsedLimit = "75%";
     };
+    slices."-".sliceConfig.ManagedOOMSwap = "kill";
+
+    # MGLRU thrash protection: if the working set is being refaulted faster
+    # than 1s, trigger the kernel OOM killer instead of livelocking in
+    # reclaim/swap-in loops. Default 100ms proved too lax during the same
+    # incident. No sysctl exists for this knob, hence tmpfiles.
+    tmpfiles.rules = [
+      "w! /sys/kernel/mm/lru_gen/min_ttl_ms - - - - 1000"
+    ];
 
     sleep.settings.Sleep = {
       AllowSuspend = "no";
@@ -494,9 +517,14 @@ in
   powerManagement.enable = false;
 
   modules = {
-    cachix-deploy = {
+    # Android phone bring-up work happens on this workstation, so adb and
+    # fastboot must survive the USB re-enumeration that every device mode
+    # switch causes. allUsbAccessories additionally covers non-Android USB
+    # hardware plugged in for development.
+    android-devices = {
       enable = true;
-      agentName = "muscle";
+      users = [ "mykhailo" ];
+      allUsbAccessories = true;
     };
     elgato-light-control.enable = true;
     yubikey-pam.enable = true;

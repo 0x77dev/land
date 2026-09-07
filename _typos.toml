@@ -1,7 +1,8 @@
 [files]
 extend-exclude = [
-  # ASCII-armored key material, not prose.
+  # ASCII-armored key material and third-party peering data, not prose.
   "gpg/keys/*.asc",
+  "nix/systems/x86_64-linux/tomato/containers/peering/*.json",
   "*.lock",
 ]
 

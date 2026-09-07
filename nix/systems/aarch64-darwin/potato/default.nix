@@ -9,10 +9,6 @@ let
   muscle = lib.${namespace}.shared.builders.muscle;
 in
 {
-  modules.cachix-deploy = {
-    enable = true;
-    agentName = "potato";
-  };
 
   system = {
     stateVersion = 6;

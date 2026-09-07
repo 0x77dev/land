@@ -12,10 +12,6 @@
   ];
 
   modules = {
-    cachix-deploy = {
-      enable = true;
-      agentName = "ghost";
-    };
     filesystem.zfs = {
       enable = true;
       useLatestKernel = true;

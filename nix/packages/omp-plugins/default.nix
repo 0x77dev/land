@@ -9,25 +9,12 @@ buildNpmPackage {
 
   src = ./.;
   npmDepsFetcherVersion = 2;
-  npmDepsHash = "sha256-klWrF5y3MHfYfLeGgid3tC1hyf8TlHdVNh+n4xsg3F4=";
+  npmDepsHash = "sha256-dWaflTdCUzkHjRQfbYMClMfbjO1k5FqxuGMMv75Zc9Y=";
   npmFlags = [ "--legacy-peer-deps" ];
 
   dontNpmBuild = true;
 
   nativeBuildInputs = [ esbuild ];
-
-  doCheck = true;
-  checkPhase = ''
-    runHook preCheck
-    esbuild langfuse-batching.test.ts \
-      --bundle \
-      --platform=node \
-      --format=esm \
-      --target=node22 \
-      --outfile=$TMPDIR/langfuse-batching.test.mjs
-    node --test $TMPDIR/langfuse-batching.test.mjs
-    runHook postCheck
-  '';
 
   installPhase = ''
     runHook preInstall
@@ -36,7 +23,6 @@ buildNpmPackage {
     source=$PWD/pi-langfuse-patched
     cp -r node_modules/pi-langfuse "$source"
     chmod -R u+w "$source"
-    cp langfuse-batching.ts "$source/src/land-batching.ts"
     patch -d "$source" -p1 < pi-langfuse-batching.patch
 
     mkdir -p "$plugin"

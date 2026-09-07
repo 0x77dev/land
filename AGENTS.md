@@ -50,7 +50,6 @@
 
 - `just provision` runs `nixos-anywhere` and may repartition a target. Do not
   provision, rebuild, activate, or deploy unless explicitly requested.
-- Cachix Deploy is sourced from `nix/deploy/default.nix`.
 - Keep credentials and host-local state outside the Nix store and repository;
   follow the relevant `docs/` runbook for security-sensitive integrations.
 - Update the canonical documentation in the same change for user-facing

@@ -13,11 +13,11 @@ let
   sources = {
     sf-pro = fetchurl {
       url = "${base}/SF-Pro.dmg";
-      hash = "sha256-YxGk8IQ6TS5hagsFx3US0x0uqVBFnPUmzbW5CZageU8=";
+      hash = "sha256-qQlPDem3idc1RO5Q/FKgiE1Kn3/PYt5Sl04yBPOnSmI=";
     };
     sf-compact = fetchurl {
       url = "${base}/SF-Compact.dmg";
-      hash = "sha256-/lF6UYS+KQ5m/om4tLbqGFSPztGuFTlJmnEmXjMXJJ8=";
+      hash = "sha256-LIkAOWe+WaaGeqXeEgZjUtmmtEt4XPK5/4jvDXf/KPw=";
     };
     sf-mono = fetchurl {
       url = "${base}/SF-Mono.dmg";
@@ -31,7 +31,7 @@ let
 in
 stdenvNoCC.mkDerivation {
   pname = "apple-fonts";
-  version = "2026-07-09";
+  version = "2026-08-30";
 
   dontUnpack = true;
   nativeBuildInputs = [ _7zz ];

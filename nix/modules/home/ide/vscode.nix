@@ -10,6 +10,14 @@ let
   fonts = config.modules.home.fonts.presentation;
   cursorPackage = pkgs.code-cursor;
   cursorVscodeVersion = cursorPackage.vscodeVersion;
+  marketplaceSystem = pkgs.stdenv.hostPlatform.system;
+  marketplaceArch =
+    {
+      aarch64-darwin = "darwin-arm64";
+      aarch64-linux = "linux-arm64";
+      x86_64-linux = "linux-x64";
+    }
+    .${marketplaceSystem};
   cursorPython = pkgs.python3.withPackages (
     pythonPackages: with pythonPackages; [
       ipykernel
@@ -25,9 +33,9 @@ let
         mktplcRef = {
           name = "jupyter";
           publisher = "ms-toolsai";
-          version = "2025.9.1";
+          version = "2026.6.2026071501";
           arch = "linux-x64";
-          hash = "sha256-v5WsVVbz23Dy+Bb7r3NerlUBNDWElL0yOH/oZjYicRk=";
+          hash = "sha256-0M/DqAdjXeqA5oEoaCmxcntXEJ88bhe7cegPsXbH1w8=";
         };
         postInstall = ''
           rm -f \
@@ -42,20 +50,20 @@ let
     {
       name = "nix-ide";
       publisher = "jnoortheen";
-      version = "0.5.7";
-      hash = "sha256-6wIjuvMlA+mwg5gzctkfOAdaQLBy2K6YcV3kJxK3VOo=";
+      version = "0.5.13";
+      hash = "sha256-0pMMnYFX+Ghs42Tvfcv9QqwhrEhCjIa7+6xJ51Fa0Dk=";
     }
     {
       name = "colab";
       publisher = "google";
-      version = "0.1.7";
-      hash = "sha256-wAvmXccgIEfw9Q84F/ozJwvzo26OvehdrTy3DqKu5e8=";
+      version = "0.9.3";
+      hash = "sha256-zUppzF8/xyQ4ITXtm+zoAss5KWMbDxOkN0Otz+tEZEE=";
     }
     {
       name = "motion-vscode-extension";
       publisher = "motion";
-      version = "5.3.0";
-      hash = "sha256-mJJVA4DE8NGtODpy95iO9QXR2D/heJOMSDdLAeD0snk=";
+      version = "6.2.0";
+      hash = "sha256-OeikaGzHDzIfQ0VaknamtH6bvHaKDnKWFf4NB+4xEJY=";
     }
     {
       name = "vscode-jupyter-powertoys";
@@ -66,32 +74,39 @@ let
     {
       name = "angular-console";
       publisher = "nrwl";
-      version = "18.82.0";
-      hash = "sha256-KeJjyI8/3JHBa1VW+CdQtBaxP+3oaaXfiXCauxlHLv8=";
+      version = "18.101.1";
+      hash = "sha256-d2ST/Y8OGedpfHxADjBVEOycotMQO0kui6e/G3/bAFA=";
     }
     {
       name = "remote-kubernetes";
       publisher = "Okteto";
-      version = "0.5.2";
-      hash = "sha256-joiFeEQXjnyGIH583CCIZbqET2HKbVT+/1zD/b/AMtQ=";
+      version = "0.5.4";
+      hash = "sha256-Hay6P6mU+02lEkeUPh+GUykbgay1HzSwsNxbTHeXcLE=";
     }
     {
       name = "vscode-opentofu";
       publisher = "opentofu";
-      version = "0.6.0";
-      hash = "sha256-BXzR1jmifawIIwA0RxnqVOGrpT5/gHV4lPIcYfqAaeM=";
+      version = "0.6.3";
+      arch = marketplaceArch;
+      hash =
+        {
+          aarch64-darwin = "sha256-Evrp8coF3nR0TDhH4u9TOj4Qyq+KL9P4ry8V8//DJsk=";
+          aarch64-linux = "sha256-lHVe5s071OkMbAV2j5Uu0nIVLk60+DbTfZemEqaARdI=";
+          x86_64-linux = "sha256-7Qy9W4hpt63MXx2PzsXOVzueRvTlfsxmw9U1djo6hf0=";
+        }
+        .${marketplaceSystem};
     }
     {
       name = "oxc-vscode";
       publisher = "oxc";
-      version = "1.50.0";
-      hash = "sha256-ZEL3nwq2nY776ZS6V+0r3+IAwH21vzwWpYM3zLj05sI=";
+      version = "1.60.0";
+      hash = "sha256-LTkZNz6EnBre4TguSKZJaZ6vdn9cFNqsYgw+ueFT7oc=";
     }
     {
       name = "schemastore";
       publisher = "remcohaszing";
-      version = "1.0.264";
-      hash = "sha256-MYetpp5qzH7eg8Lsl1kAGgtn4+/jo0Q6gBQvZeLuHlg=";
+      version = "1.0.338";
+      hash = "sha256-2QzbXgWw3wvcbg+fy3GRNZp6u5cim//eGSZAFFMAXJg=";
     }
     {
       name = "opencode-v2";
@@ -102,8 +117,15 @@ let
     {
       name = "typos-vscode";
       publisher = "tekumara";
-      version = "0.1.52";
-      hash = "sha256-o+AQDdToXTV/pUSt2zw19hf7nwbOb4gb9dlSsB7t32E=";
+      version = "0.1.55";
+      arch = marketplaceArch;
+      hash =
+        {
+          aarch64-darwin = "sha256-/pj6HPuqvAYXrBVX/FoOZRDYL5xvdnM+PPM27/5+hxw=";
+          aarch64-linux = "sha256-xxniWRtMkh3NE9OWJkR9xUARJTBnQkoTRlXrQa95K/k=";
+          x86_64-linux = "sha256-3FE2tZtkDZttZlD7foqt1qgcb1w37mT0/RC30HYEvNA=";
+        }
+        .${marketplaceSystem};
     }
   ];
 

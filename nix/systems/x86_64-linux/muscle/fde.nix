@@ -97,10 +97,15 @@ _: {
             ];
             content =
               let
+                # No discard=async: on this PM9A3-behind-dm-crypt stack,
+                # async discards measured 1.7-3.3s average (p95 10-26s) per
+                # operation under load during the 2026-07-29 thrash incident,
+                # head-of-line-blocking the only disk in the machine. The
+                # weekly fstrim.timer already handles TRIM in one scheduled
+                # batch instead.
                 fast = [
                   "compress=zstd:1"
                   "noatime"
-                  "discard=async"
                 ];
               in
               {
@@ -131,7 +136,6 @@ _: {
                     mountOptions = [
                       "nodatacow"
                       "noatime"
-                      "discard=async"
                     ];
                   };
                   "@swap" = {

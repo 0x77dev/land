@@ -1,6 +1,6 @@
 {
-  pkgs,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -9,20 +9,43 @@ let
   muscle = lib.${namespace}.shared.builders.muscle;
 in
 {
-  system.stateVersion = 6;
-  system.primaryUser = userName;
 
-  modules.cachix-deploy = {
-    enable = true;
-    agentName = "beefy";
+  system = {
+    stateVersion = 6;
+    primaryUser = userName;
+
+    defaults = {
+      screensaver = {
+        askForPassword = true;
+        askForPasswordDelay = 0;
+      };
+
+      CustomUserPreferences."com.apple.screensaver" = {
+        idleTime = 15 * 60;
+      };
+    };
+
+    activationScripts.postActivation.text = lib.mkAfter ''
+      # Keep beefy awake on wall power without changing battery behavior.
+      /usr/bin/pmset -c sleep 0
+      /usr/bin/pmset -c displaysleep 20
+      /usr/bin/pmset -c ttyskeepawake 1
+    '';
   };
-
-  # Make zmx available to SSH before the user profile is loaded.
-  modules.zmx.enable = true;
 
   networking = {
     hostName = "beefy";
     domain = "0x77.computer";
+
+    # Keep automatic exceptions for Apple software while requiring explicit
+    # approval before downloaded applications can accept inbound traffic.
+    applicationFirewall = {
+      enable = true;
+      enableStealthMode = true;
+      blockAllIncoming = false;
+      allowSigned = true;
+      allowSignedApp = false;
+    };
   };
 
   snowfallorg.users.${userName} = {
@@ -31,28 +54,6 @@ in
     home = {
       enable = true;
       path = "/Users/${userName}";
-
-      config = {
-        modules.home = {
-          ai.enable = true;
-          cloud.enable = true;
-          fonts.enable = true;
-          ghostty.enable = true;
-          git.enable = true;
-          ide.enable = true;
-          media.enable = true;
-          mobile.enable = true;
-          network.enable = true;
-          nix.enable = true;
-          p2p.enable = true;
-          reverse-engineering.enable = true;
-          comms.enable = true;
-          security-tools.enable = true;
-          shell.enable = true;
-          ssh.enable = true;
-          gpg.enable = true;
-        };
-      };
     };
   };
 
@@ -68,17 +69,28 @@ in
     knownUsers = [ userName ];
   };
 
+  modules = {
+    darwin.dock.enable = true;
+    # Make zmx available to SSH before the user profile is loaded.
+    zmx.enable = true;
+  };
+
   programs.fish.enable = true;
 
-  services.openssh = {
-    enable = true;
-    # TODO: extraConfig is not in 25.05 yet
-    # extraConfig = {
-    #   PermitRootLogin = "no";
-    #   # NOTE: don't do PasswordAuthentication = false; it will prevent remote FileVault unlock
-    #   AllowAgentForwarding = true;
-    #   StreamLocalBindUnlink = true;
-    # };
+  services = {
+    openssh.enable = true;
+    ipfs = {
+      enable = true;
+      enableGarbageCollection = true;
+    };
+  };
+
+  launchd.daemons.caffeinate-ac = {
+    command = "/usr/bin/caffeinate -s";
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+    };
   };
 
   launchd.daemons.nix-daemon.serviceConfig.EnvironmentVariables.SSH_AUTH_SOCK =

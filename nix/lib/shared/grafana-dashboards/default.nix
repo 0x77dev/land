@@ -75,8 +75,8 @@ _: {
     # https://grafana.com/grafana/dashboards/1860
     node-exporter-full = {
       id = 1860;
-      version = 37;
-      hash = "sha256-1DE1aaanRHHeCOMWDGdOS1wBXxOF84UXAjJzT5Ek6mM=";
+      version = 45;
+      hash = "sha256-GExrdAnzBtp1Ul13cvcZRbEM6iOtFrXXjEaY6g6lGYY=";
       name = "node-exporter-full.json";
     };
 

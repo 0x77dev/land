@@ -40,6 +40,14 @@ _: {
     forwardAgent = false;
     forwardGpg = false;
   };
+  tomato = {
+    hostname = "tomato.0x77.computer";
+    aliases = [ "tomato" ];
+    sshTarget = true;
+    zmxPrefix = "to";
+    forwardAgent = true;
+    forwardGpg = true;
+  };
 
   potato = {
     hostname = "potato.0x77.computer";
