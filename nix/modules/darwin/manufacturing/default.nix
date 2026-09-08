@@ -11,7 +11,7 @@ in
     lib.mkEnableOption "Homebrew applications unavailable from nixpkgs on Darwin";
 
   config = lib.mkIf cfg.enable {
-    homebrew.casks = [
+    homebrew.casks = lib.mkDefault [
       "bambu-studio"
       "freecad"
       "orcaslicer"

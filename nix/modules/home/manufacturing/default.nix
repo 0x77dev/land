@@ -18,6 +18,8 @@ in
   options.modules.home.manufacturing.enable = lib.mkEnableOption "CAD and 3D-printing tools";
 
   config = lib.mkIf cfg.enable {
-    home.packages = lib.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) packages;
+    home.packages = lib.filter (
+      package: lib.meta.availableOn pkgs.stdenv.hostPlatform package && !(package.meta.broken or false)
+    ) packages;
   };
 }

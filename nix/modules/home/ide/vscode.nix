@@ -344,23 +344,6 @@ in
           # Managed extensions are copied into Cursor's mutable directory by
           # installCursorExtensions so Cursor can safely write runtime metadata.
           extensions = [ ];
-          userTasks = {
-            version = "2.0.0";
-            tasks = [
-              {
-                label = "Agent: Pi";
-                type = "process";
-                command = lib.getExe pkgs.llm-agents.pi;
-                options.cwd = "\${workspaceFolder}";
-                problemMatcher = [ ];
-                presentation = {
-                  reveal = "always";
-                  focus = true;
-                  panel = "dedicated";
-                };
-              }
-            ];
-          };
           userSettings = {
             "editor.fontFamily" =
               "'${fonts.families.monospace}', '${fonts.families.monospaceFallback}', '${fonts.families.symbolsMonospace}', '${fonts.families.emoji}', monospace";

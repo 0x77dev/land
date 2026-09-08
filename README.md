@@ -13,9 +13,9 @@ and Snowfall Lib.
   outputs.
 - NVIDIA compute across dual RTX 6000 Ada GPUs, including CUDA, containers,
   GPUDirect Storage, and shared Ollama model policy.
-- Daily-updated coding agents from Numtide's `llm-agents.nix`, a Pi-backed `ai`
-  shell CLI with project conversation history and LeanCTX warm-up, size-bounded
-  Langfuse tracing for Pi and OMP, and a Nix-built Pi ACP bridge for Zed.
+- Daily-updated Claude Code, Codex, Cursor Agent, OpenCode, and OMP packages
+  from Numtide's `llm-agents.nix`, with Zed ACP integration for every retained
+  agent.
 - HDR and VRR gaming through GNOME Wayland, NVIDIA, Gamescope, GameMode,
   MangoHud, Steam, and GE-Proton, alongside OpenXR, ALVR, and Monado tooling.
 - Helium packaging with store-backed Widevine, 1Password and Vicinae native

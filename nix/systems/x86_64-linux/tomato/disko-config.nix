@@ -124,8 +124,8 @@
             mountpoint = "/data/documents";
             options."com.sun:auto-snapshot" = "true";
           };
-          # Per-container state datasets: independent auto-snapshots so kubo's
-          # repo and the Servarr/aria2 DBs roll back without pulling all of /var.
+          # Per-container state datasets use independent auto-snapshots so
+          # media and tsidp state can roll back without pulling all of /var.
           containers = {
             type = "zfs_fs";
             mountpoint = "/var/lib/nixos-containers";
@@ -133,11 +133,6 @@
           "containers/media" = {
             type = "zfs_fs";
             mountpoint = "/var/lib/nixos-containers/media";
-            options."com.sun:auto-snapshot" = "true";
-          };
-          "containers/ipfs" = {
-            type = "zfs_fs";
-            mountpoint = "/var/lib/nixos-containers/ipfs";
             options."com.sun:auto-snapshot" = "true";
           };
           "containers/tsidp" = {

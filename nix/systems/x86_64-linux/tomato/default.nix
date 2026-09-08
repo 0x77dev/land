@@ -9,7 +9,6 @@
     ./disko-config.nix
     ./fde.nix
     ./containers/media.nix
-    ./containers/ipfs.nix
     ./containers/tsidp.nix
   ];
 
@@ -83,9 +82,8 @@
     hostId = "442cbd39";
     # Both 10GbE NICs configured independently via DHCP.
     useDHCP = true;
-    # Container stacks share this network namespace; the media stack adds its
-    # own allowed ports. ipfs runs in a private network namespace (see
-    # containers/ipfs.nix) and reaches the host only via forwardPorts.
+    # The media and tsidp containers share the host network namespace; the
+    # media stack adds its own allowed ports.
     firewall = {
       enable = true;
       # Native nftables (modern, no iptables-compat translation layer).

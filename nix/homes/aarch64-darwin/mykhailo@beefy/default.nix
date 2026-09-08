@@ -18,6 +18,7 @@ in
     ghostty.enable = true;
     git.enable = true;
     ide.enable = true;
+    manufacturing.enable = true;
     media.enable = true;
     mobile.enable = true;
     network.enable = true;

@@ -19,18 +19,7 @@ in
         askForPassword = true;
         askForPasswordDelay = 0;
       };
-
-      CustomUserPreferences."com.apple.screensaver" = {
-        idleTime = 15 * 60;
-      };
     };
-
-    activationScripts.postActivation.text = lib.mkAfter ''
-      # Keep beefy awake on wall power without changing battery behavior.
-      /usr/bin/pmset -c sleep 0
-      /usr/bin/pmset -c displaysleep 20
-      /usr/bin/pmset -c ttyskeepawake 1
-    '';
   };
 
   networking = {
@@ -70,7 +59,12 @@ in
   };
 
   modules = {
-    darwin.dock.enable = true;
+    darwin = {
+      dock.enable = true;
+      manufacturing.enable = true;
+      power.alwaysOn = true;
+    };
+    security-tools.enable = true;
     # Make zmx available to SSH before the user profile is loaded.
     zmx.enable = true;
   };
@@ -79,24 +73,13 @@ in
 
   services = {
     openssh.enable = true;
-    ipfs = {
-      enable = true;
-      enableGarbageCollection = true;
-    };
-  };
-
-  launchd.daemons.caffeinate-ac = {
-    command = "/usr/bin/caffeinate -s";
-    serviceConfig = {
-      KeepAlive = true;
-      RunAtLoad = true;
-    };
   };
 
   launchd.daemons.nix-daemon.serviceConfig.EnvironmentVariables.SSH_AUTH_SOCK =
     "/Users/${userName}/.gnupg/S.gpg-agent.ssh";
 
   nix = {
+    linux-builder.enable = true;
     distributedBuilds = true;
     buildMachines = muscle.mkMachines { sshUser = userName; };
   };

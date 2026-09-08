@@ -19,20 +19,25 @@ in
       "homebrew/homebrew-cask" = inputs.homebrew-cask;
     };
 
-    mutableTaps = lib.mkDefault true;
+    mutableTaps = lib.mkDefault false;
   };
 
   homebrew = {
     enable = lib.mkDefault true;
-    taps = lib.mkDefault (builtins.attrNames config.nix-homebrew.taps ++ [ "steipete/tap" ]);
+    taps = lib.mkDefault (builtins.attrNames config.nix-homebrew.taps);
 
     global.autoUpdate = lib.mkDefault false;
-    onActivation.autoUpdate = lib.mkDefault true;
+    onActivation.autoUpdate = lib.mkDefault false;
     onActivation.upgrade = lib.mkDefault true;
 
-    brews = lib.mkDefault [
-      "steipete/tap/gogcli"
+    casks = lib.mkDefault [
       "superhuman"
+      "soundsource"
+      "audio-hijack"
+      "loopback"
+      "fission"
+      "ua-connect"
+      "betterdisplay"
     ];
   };
 }

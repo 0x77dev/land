@@ -175,29 +175,16 @@ in
             command = lib.getExe pkgs.llm-agents.opencode;
             args = [ "acp" ];
           };
-          pi-acp = {
-            type = "custom";
-            command = lib.getExe pkgs.land.pi-acp;
-            args = [ ];
-          };
         }
         // lib.optionalAttrs config.modules.home.ai.enable {
-          # The ai module's Langfuse-wrapped omp, not pkgs.llm-agents.omp
-          # directly, so ACP sessions are traced too.
           omp-acp = {
             type = "custom";
-            command = lib.getExe config.modules.home.ai.omp;
+            command = lib.getExe pkgs.llm-agents.omp;
             args = [
               "--mode"
               "acp"
             ];
           };
-        };
-
-        context_servers.lean-ctx = {
-          command = lib.getExe pkgs.llm-agents.lean-ctx;
-          args = [ ];
-          env = { };
         };
 
         git = {
@@ -255,18 +242,6 @@ in
         {
           context = "Workspace";
           bindings.ctrl-alt-shift-a = "agent::ToggleNewThreadMenu";
-        }
-      ];
-
-      userTasks = [
-        {
-          label = "Agent: Pi";
-          command = lib.getExe pkgs.llm-agents.pi;
-          cwd = "$ZED_WORKTREE_ROOT";
-          use_new_terminal = true;
-          allow_concurrent_runs = false;
-          reveal = "always";
-          hide = "never";
         }
       ];
     };

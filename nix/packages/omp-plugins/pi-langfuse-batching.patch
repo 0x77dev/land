@@ -1,7 +1,0 @@
-diff --git a/src/capture-policy.ts b/src/capture-policy.ts
---- a/src/capture-policy.ts
-+++ b/src/capture-policy.ts
-@@ -84,3 +84,3 @@ function normalizePreset(value: string | undefined): PrivacyPreset {
--  return value && value in PRESETS ? (value as PrivacyPreset) : "full-debug";
-+  return value && value in PRESETS ? (value as PrivacyPreset) : "metadata-only";
- }
