@@ -61,10 +61,13 @@ in
         && batteryExtension.version == "45";
       message = "Bluetooth Battery Meter changed; re-audit its GNOME metadata and schema.";
     }
+    # Audited at 320a737e (1.0.1): home-manager module unchanged; the diff only
+    # adds an OpenVINO engine with optional [openvino]/[streaming] sections and
+    # audio/whisper keys this config does not set.
     {
       assertion =
-        voxtypePackage.upstreamVersion == "1.0.0"
-        && voxtypePackage.sourceRevision == "833c9970e5fa7c91a3b965c5051aeee9ef1531fb";
+        voxtypePackage.upstreamVersion == "1.0.1"
+        && voxtypePackage.sourceRevision == "320a737e5d3c8662e0ec7de95f75407baa784d82";
       message = "Voxtype source changed; re-audit the emitted config schema before updating this pin.";
     }
   ];
