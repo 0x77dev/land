@@ -25,10 +25,6 @@ in
         assertion = config.services.displayManager.gdm.enable;
         message = "modules.yubikey-pam requires GDM.";
       }
-      {
-        assertion = config.security.sudo.wheelNeedsPassword;
-        message = "modules.yubikey-pam requires authenticated sudo; set security.sudo.wheelNeedsPassword = true.";
-      }
     ];
 
     environment.systemPackages = [ pkgs.pam_u2f ];
@@ -55,8 +51,10 @@ in
           control = "sufficient";
         };
 
+        # YubiKey tap only stands in for the password prompt while sudo still
+        # authenticates; NOPASSWD sudo (wheelNeedsPassword = false) skips it.
         sudo.u2f = {
-          enable = true;
+          enable = config.security.sudo.wheelNeedsPassword;
           control = "sufficient";
         };
       };

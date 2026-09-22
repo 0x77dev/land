@@ -422,7 +422,7 @@ in
 
   security = {
     rtkit.enable = true;
-    sudo.wheelNeedsPassword = true;
+    sudo.wheelNeedsPassword = false;
 
     # TPM 2.0 userspace: PKCS#11, TCTI env, and the tss group. Used by
     # systemd-cryptenroll for LUKS auto-unlock once the disk is encrypted.
