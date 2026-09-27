@@ -355,6 +355,9 @@ in
         PasswordAuthentication = false;
         AllowAgentForwarding = true;
         StreamLocalBindUnlink = true;
+        # sshd creates remote-forwarded Unix sockets as root. The containing
+        # per-user runtime directory remains mode 0700.
+        StreamLocalBindMask = "0111";
       };
     };
 
