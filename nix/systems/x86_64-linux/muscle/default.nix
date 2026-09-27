@@ -464,11 +464,11 @@ in
     # user-controlled symlink from turning this root service into a chown primitive.
     paths.gpg-agent-forward-socket = {
       wantedBy = [ "multi-user.target" ];
-      pathConfig.PathExists = "/run/user/1000/gnupg/S.gpg-agent";
+      pathConfig.PathChanged = "/run/user/1000/gnupg/S.gpg-agent";
     };
     services.gpg-agent-forward-socket.serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${lib.getExe' pkgs.coreutils "chown"} --no-dereference mykhailo:users /run/user/1000/gnupg/S.gpg-agent";
+      ExecStart = "${lib.getExe' pkgs.coreutils "chown"} --from=root:root --no-dereference mykhailo:users /run/user/1000/gnupg/S.gpg-agent";
     };
 
     # Monitor user-session cgroups so systemd-oomd can contain a memory-pressure
