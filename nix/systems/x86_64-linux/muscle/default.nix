@@ -355,9 +355,6 @@ in
         PasswordAuthentication = false;
         AllowAgentForwarding = true;
         StreamLocalBindUnlink = true;
-        # sshd creates remote-forwarded Unix sockets as root. The containing
-        # per-user runtime directory remains mode 0700.
-        StreamLocalBindMask = "0111";
       };
     };
 
@@ -459,6 +456,19 @@ in
     services.nix-daemon.serviceConfig = {
       CPUWeight = 20;
       IOWeight = 20;
+    };
+
+    # sshd creates remote-forwarded Unix sockets as root:root 0600 on this host,
+    # which blocks GPG agent forwarding. Preserve the restrictive mode and
+    # transfer ownership when the socket appears. --no-dereference prevents a
+    # user-controlled symlink from turning this root service into a chown primitive.
+    paths.gpg-agent-forward-socket = {
+      wantedBy = [ "multi-user.target" ];
+      pathConfig.PathExists = "/run/user/1000/gnupg/S.gpg-agent";
+    };
+    services.gpg-agent-forward-socket.serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${lib.getExe' pkgs.coreutils "chown"} --no-dereference mykhailo:users /run/user/1000/gnupg/S.gpg-agent";
     };
 
     # Monitor user-session cgroups so systemd-oomd can contain a memory-pressure
